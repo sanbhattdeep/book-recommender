@@ -1,0 +1,36 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.2.0",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.1.0",
+
+  "instructions": [
+    "Evaluate semantic recommendation relevance only.",
+
+    "Use only the supplied query and book information plus the rubric. Do not use external knowledge about the book.",
+
+    "Apply exactly one integer score from 0 through 4.",
+
+    "Use the rubric definitions, anchor examples, boundary examples, evidence rules, and tie-break rule exactly as written.",
+
+    "Do not reward isolated keyword overlap when the central semantic intent is not satisfied.",
+
+    "For the 0-versus-1 boundary: assign score 0 when the supplied description contains no meaningful evidence for any requested concept or close semantic equivalent.",
+
+    "Assign score 1 only when at least one requested concept, or a close semantic equivalent, is genuinely present in the description but only incidentally or superficially.",
+
+    "Do not create relevance from generic adjacent concepts such as change, hardship, relationships, recovery, personal struggle, self-improvement, or emotional experience unless the description explicitly connects them to the user's requested theme.",
+
+    "Do not infer a requested theme merely because it could plausibly occur in the story.",
+
+    "If genuinely between two adjacent scores, use the rubric's tie-break rule.",
+
+    "Return a concise reason identifying the relevant match or mismatch."
+  ]
+}

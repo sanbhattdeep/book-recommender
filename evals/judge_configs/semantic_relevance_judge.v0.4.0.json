@@ -1,0 +1,76 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.4.0",
+  "status": "calibration",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.1.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "allowed_case_fields": [
+    "query",
+    "title",
+    "authors",
+    "description"
+  ],
+  "blocked_case_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+  "instructions": [
+    "Evaluate semantic recommendation relevance only.",
+    "Use only the supplied user query, book title, authors, book description, and rubric. Do not use external knowledge about the book.",
+    "Judge exactly one query-book pair at a time.",
+    "Do not reward isolated keyword overlap when the central semantic intent is not satisfied.",
+    "Do not infer themes, plot elements, or meanings merely because they could plausibly occur in the book.",
+    "Use the rubric definitions, anchor examples, boundary examples, evidence rules, and tie-break rule exactly as written.",
+    "Apply the following ordered decision ladder. Evaluate the levels in order and choose the highest level that is clearly supported by the supplied description.",
+    "LEVEL 0 - NONE: Assign match_level='none' when the description contains no meaningful evidence for any requested concept or close semantic equivalent. Hypothetical, speculative, or inferred connections do not count as evidence.",
+    "LEVEL 1 - INCIDENTAL: Assign match_level='incidental' only when at least one requested concept or close semantic equivalent is genuinely present in the description, but only incidentally, peripherally, or superficially. The book is not really about what the user requested.",
+    "LEVEL 2 - PARTIAL: Assign match_level='partial' when the book meaningfully satisfies one central part of the request but misses another central part. The overlap must be substantive, not merely incidental.",
+    "LEVEL 3 - CLEAR: Assign match_level='clear' when the book clearly satisfies the overall request, but one important aspect is secondary, implicit, weaker, or missing. A reasonable reader would still regard it as a good recommendation.",
+    "LEVEL 4 - STRONG: Assign match_level='strong' when the book directly and strongly satisfies the central semantic intent of the request. A reasonable reader would consider it an obvious or direct recommendation.",
+    "Use this exact mapping between match_level and score: none=0, incidental=1, partial=2, clear=3, strong=4.",
+    "Before returning the verdict, check that has_relevant_evidence, match_level, score, and reason are mutually consistent.",
+    "If has_relevant_evidence is false, match_level MUST be 'none' and score MUST be 0.",
+    "If match_level is 'none', score MUST be 0.",
+    "If match_level is 'incidental', score MUST be 1.",
+    "If match_level is 'partial', score MUST be 2.",
+    "If match_level is 'clear', score MUST be 3.",
+    "If match_level is 'strong', score MUST be 4.",
+    "Statements such as 'could be related', 'could be seen as', 'might represent', 'may imply', 'possibly reflects', or similar speculative language are not positive evidence and must not justify has_relevant_evidence=true.",
+    "Generic adjacent concepts such as change, hardship, relationships, recovery, personal struggle, self-improvement, emotional experience, or personal growth do not establish relevance unless the supplied description explicitly connects them to what the user requested.",
+    "If genuinely between two adjacent levels, use the rubric tie-break rule and choose the lower level unless the higher level is clearly supported.",
+    "Return a concise evidence-based reason that identifies what in the supplied description supports the selected match level. Do not speculate about unstated themes."
+  ],
+  "output": {
+    "has_relevant_evidence": "boolean",
+    "match_level": "one of: none, incidental, partial, clear, strong",
+    "score": "integer in {0,1,2,3,4}",
+    "reason": "brief evidence-based explanation"
+  },
+  "score_mapping": {
+    "none": 0,
+    "incidental": 1,
+    "partial": 2,
+    "clear": 3,
+    "strong": 4
+  },
+  "primary_calibration_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_calibration_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ]
+}

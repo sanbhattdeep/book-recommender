@@ -1,0 +1,97 @@
+{
+  "rubric_id": "semantic-recommendation-relevance",
+  "version": "0.1.0",
+  "status": "calibration",
+  "name": "Semantic Recommendation Relevance",
+  "evaluation_unit": "one user query x one recommended book",
+  "purpose": "Judge how well a recommended book's supplied description satisfies the semantic intent of the user's natural-language request.",
+  "evidence_rules": [
+    "Use the supplied book description as the primary evidence.",
+    "The title and author may provide supporting context, but must not override the description.",
+    "Do not use external knowledge about the book when the supplied description does not establish a claim.",
+    "Judge semantic relevance only. Ignore category-filter correctness, recommendation count, retrieval rank, and tone-ordering behavior.",
+    "Do not reward isolated keyword overlap when the central intent is not satisfied."
+  ],
+  "tie_break_rule": "If a case genuinely falls between two adjacent scores, assign the lower score unless the higher score's anchor is clearly satisfied.",
+  "scores": {
+    "4": {
+      "label": "Strong match",
+      "definition": "The book clearly matches the central subject, theme, situation, plot, or concept requested. A reasonable reader would consider it a direct recommendation.",
+      "anchor_examples": [
+        {
+          "query": "A fantasy adventure involving magic and dangerous journeys",
+          "book_description": "A young mage crosses a cursed kingdom with a small band of companions, facing monsters and forbidden magic while searching for an ancient relic.",
+          "why": "Directly satisfies fantasy, magic, adventure, and dangerous-journey aspects."
+        }
+      ]
+    },
+    "3": {
+      "label": "Good match",
+      "definition": "The book is clearly relevant, but one important aspect of the request is secondary, implicit, or missing.",
+      "anchor_examples": [
+        {
+          "query": "A moving story about grief, loss, and learning to live again",
+          "book_description": "After the sudden death of her husband, a woman returns to her hometown and rebuilds relationships with family and old friends.",
+          "why": "Grief and loss are central, and rebuilding life is present, but the recovery theme is less explicit than in a strong direct match."
+        }
+      ]
+    },
+    "2": {
+      "label": "Partial match",
+      "definition": "The book shares one meaningful aspect of the request but misses another central aspect.",
+      "anchor_examples": [
+        {
+          "query": "A suspenseful story involving crime and investigation",
+          "book_description": "The novel follows three generations of a family as they build and defend a powerful organized-crime empire.",
+          "why": "Crime is central, but investigation is absent and suspense is not established as the main experience."
+        }
+      ]
+    },
+    "1": {
+      "label": "Weak match",
+      "definition": "Only incidental or superficial overlap exists. The user would probably not regard the book as a useful recommendation for this request.",
+      "anchor_examples": [
+        {
+          "query": "A beginner-friendly book explaining astronomy and the universe",
+          "book_description": "A coming-of-age novel about a teenager whose father works at an observatory; the story focuses on family conflict, school, and growing up.",
+          "why": "Astronomy appears only incidentally through the setting; the book does not explain astronomy or the universe."
+        }
+      ]
+    },
+    "0": {
+      "label": "No match",
+      "definition": "The book is unrelated to, or meaningfully contradicts, the user's request.",
+      "anchor_examples": [
+        {
+          "query": "A book about leadership, teamwork, and building effective organizations",
+          "book_description": "An illustrated field guide to coastal birds, covering migration patterns, plumage, habitats, and identification tips.",
+          "why": "No meaningful relationship to leadership, teamwork, or organizational effectiveness."
+        }
+      ]
+    }
+  },
+  "boundary_examples": [
+    {
+      "boundary": "3_vs_4",
+      "query": "A dystopian story about authoritarian control and resistance",
+      "score_4_example": "Citizens live under constant surveillance until a group of dissidents organizes a rebellion against the ruling regime.",
+      "score_3_example": "Citizens live under an authoritarian surveillance state while the protagonist quietly questions the regime and looks for a way to escape.",
+      "distinction": "Both are clearly relevant. Score 4 when resistance is central and explicit; score 3 when the authoritarian setting is strong but resistance is secondary or only emerging."
+    },
+    {
+      "boundary": "2_vs_3",
+      "query": "A story about a complicated relationship between a parent and child",
+      "score_3_example": "An adult daughter returns home to care for her estranged father, forcing both to confront years of resentment and affection.",
+      "score_2_example": "Three siblings return home after their mother's death; the novel primarily focuses on the rivalry between the siblings, with their late mother's influence in the background.",
+      "distinction": "Score 3 when the parent-child relationship itself is a central thread. Score 2 when family relationships are relevant but the requested relationship is not central."
+    },
+    {
+      "boundary": "1_vs_2",
+      "query": "A thoughtful book about inequality, poverty, and how society distributes wealth",
+      "score_2_example": "A history of urban poverty that examines housing, wages, and public policy, but gives limited attention to broader wealth distribution.",
+      "score_1_example": "A political memoir that briefly discusses childhood poverty but is mainly about campaigns and public life.",
+      "distinction": "Score 2 when at least one central requested concept is meaningfully addressed. Score 1 when the overlap is only incidental."
+    }
+  ],
+  "anti_leakage_note": "These anchor examples are synthetic and should not be reused as calibration dataset rows. The judge may see these anchors while scoring the calibration set; therefore calibration cases must remain distinct."
+}

@@ -1,0 +1,117 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.5.0",
+  "status": "calibration",
+
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.1.0",
+
+  "evaluation_unit": "one user query x one recommended book",
+
+  "allowed_case_fields": [
+    "query",
+    "title",
+    "authors",
+    "description"
+  ],
+
+  "blocked_case_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+
+  "instructions": [
+    "Evaluate semantic recommendation relevance only.",
+
+    "Use only the supplied user query, book title, authors, book description, and rubric. Do not use external knowledge about the book.",
+
+    "Judge exactly one query-book pair at a time.",
+
+    "Do not reward isolated keyword overlap when the central semantic intent is not satisfied.",
+
+    "Do not infer themes, plot elements, or meanings merely because they could plausibly occur in the book.",
+
+    "Use the rubric definitions, anchor examples, boundary examples, evidence rules, and tie-break rule exactly as written.",
+
+    "Apply the following ordered decision ladder. Choose the highest level that is clearly supported by the supplied book description.",
+
+    "LEVEL 0 - NONE: Assign match_level='none' when the description contains no meaningful evidence for any requested concept or close semantic equivalent. Hypothetical, speculative, or inferred connections do not count as evidence.",
+
+    "LEVEL 1 - INCIDENTAL: Assign match_level='incidental' only when at least one requested concept or close semantic equivalent is genuinely present in the description, but only incidentally, peripherally, or superficially. The book is not really about what the user requested.",
+
+    "LEVEL 2 - PARTIAL: Assign match_level='partial' when the book meaningfully satisfies one central part of the request but misses another central part. The overlap must be substantive rather than merely incidental.",
+
+    "LEVEL 3 - CLEAR: Assign match_level='clear' when the book clearly satisfies the overall request, but one important aspect is secondary, implicit, weaker, or missing. A reasonable reader would still regard it as a good recommendation.",
+
+    "LEVEL 4 - STRONG: Assign match_level='strong' when the book directly and strongly satisfies the central semantic intent of the request. A reasonable reader would consider it an obvious or direct recommendation.",
+
+    "Use this exact mapping between match_level and score: none=0, incidental=1, partial=2, clear=3, strong=4.",
+
+    "Before returning the verdict, check that has_relevant_evidence, evidence_text, matched_concept, match_level, score, and reason are mutually consistent.",
+
+    "If has_relevant_evidence is false, evidence_text MUST be null, matched_concept MUST be null, match_level MUST be 'none', and score MUST be 0.",
+
+    "If has_relevant_evidence is true, evidence_text MUST contain a short exact phrase copied directly from the supplied book description.",
+
+    "When has_relevant_evidence is true, do not paraphrase evidence_text. Copy the shortest useful phrase from the book description that supports the relevance judgment.",
+
+    "When has_relevant_evidence is true, matched_concept MUST identify the concept requested by the user, or a close semantic equivalent, that the evidence_text supports.",
+
+    "Do not set has_relevant_evidence=true unless the supplied description itself contains positive textual evidence for at least one requested concept or close semantic equivalent.",
+
+    "Statements such as 'could be related', 'could be seen as', 'might represent', 'may imply', 'possibly reflects', or similar speculative reasoning are not positive evidence and MUST NOT justify has_relevant_evidence=true.",
+
+    "Generic adjacent concepts such as change, hardship, relationships, recovery, personal struggle, self-improvement, emotional experience, personal growth, or overcoming adversity do not establish relevance unless the supplied description explicitly connects them to what the user requested.",
+
+    "Do not treat a concept as present merely because it is psychologically or thematically adjacent to the requested concept.",
+
+    "If the description contains no actual textual support for the requested concept, assign has_relevant_evidence=false even if a broader interpretation of the story could plausibly suggest that concept.",
+
+    "If genuinely between two adjacent match levels, use the rubric tie-break rule and choose the lower level unless the higher level is clearly supported.",
+
+    "Return a concise evidence-based reason explaining why the supplied evidence supports the selected match level.",
+
+    "The reason must be consistent with the structured fields. For example, if the reason says there is no evidence for the requested concepts, has_relevant_evidence must be false, match_level must be 'none', and score must be 0.",
+
+    "Do not speculate about unstated themes, motivations, plot developments, or meanings."
+  ],
+
+  "output": {
+    "has_relevant_evidence": "boolean",
+    "evidence_text": "exact phrase copied from the supplied book description, or null",
+    "matched_concept": "requested concept or close semantic equivalent supported by the evidence_text, or null",
+    "match_level": "one of: none, incidental, partial, clear, strong",
+    "score": "integer in {0,1,2,3,4}",
+    "reason": "brief evidence-based explanation"
+  },
+
+  "score_mapping": {
+    "none": 0,
+    "incidental": 1,
+    "partial": 2,
+    "clear": 3,
+    "strong": 4
+  },
+
+  "primary_calibration_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+
+  "secondary_calibration_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ]
+}

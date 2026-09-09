@@ -1,0 +1,85 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.3.0",
+  "status": "calibration",
+
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.1.0",
+
+  "evaluation_unit": "one user query x one recommended book",
+
+  "allowed_case_fields": [
+    "query",
+    "title",
+    "authors",
+    "description"
+  ],
+
+  "blocked_case_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+
+  "instructions": [
+    "Evaluate semantic recommendation relevance only.",
+
+    "Use only the supplied user query, book title, authors, book description, and rubric. Do not use external knowledge about the book.",
+
+    "Apply exactly one integer score from 0 through 4.",
+
+    "Use the rubric definitions, anchor examples, boundary examples, evidence rules, and tie-break rule exactly as written.",
+
+    "Do not reward isolated keyword overlap when the central semantic intent is not satisfied.",
+
+    "Before assigning any score above 0, identify positive evidence in the supplied book description for at least one concept explicitly requested by the user, or for a close semantic equivalent of that requested concept.",
+
+    "If the supplied description contains no positive evidence for any requested concept or close semantic equivalent, the score MUST be 0.",
+
+    "Score 1 requires actual but incidental or superficial semantic overlap. There must be positive evidence in the description that at least one requested concept or a close semantic equivalent is genuinely present.",
+
+    "Hypothetical, speculative, or inferred overlap does not qualify for score 1.",
+
+    "Statements such as 'could be related', 'could be seen as', 'might represent', 'may imply', 'possibly reflects', or similar speculative reasoning are not evidence of semantic relevance and MUST NOT justify a score above 0.",
+
+    "If your reasoning concludes that there is 'no explicit evidence', 'no meaningful evidence', 'no clear evidence', or that the connection is only hypothetical or inferred, assign score 0.",
+
+    "Do not create relevance from generic adjacent concepts such as change, hardship, relationships, recovery, personal struggle, self-improvement, emotional experience, or personal growth unless the description explicitly connects those concepts to what the user requested.",
+
+    "Do not infer a requested theme merely because it could plausibly occur in the story.",
+
+    "Use this decision rule for the 0-versus-1 boundary: first ask whether the description contains actual positive evidence for at least one requested concept or close semantic equivalent. If NO, assign 0. If YES but the concept is only incidental or superficial, assign 1. Only then consider scores 2 through 4.",
+
+    "For scores 2 through 4, continue to apply the rubric normally based on how completely and centrally the book satisfies the user's semantic intent.",
+
+    "If genuinely between two adjacent scores, use the rubric's tie-break rule.",
+
+    "Return a concise reason identifying the evidence for the semantic match or mismatch. The explanation should support the selected score rather than speculate about themes not established by the description."
+  ],
+
+  "output": {
+    "score": "integer in {0,1,2,3,4}",
+    "reason": "brief evidence-based explanation"
+  },
+
+  "primary_calibration_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+
+  "secondary_calibration_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ]
+}
