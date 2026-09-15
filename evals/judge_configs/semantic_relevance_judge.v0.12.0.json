@@ -1,0 +1,258 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.12.0",
+  "status": "development",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.3.0",
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "facet_spec_version": "0.3.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "pipeline": [
+    "priority_ranked_definition_aware_multi_candidate_evidence_selection",
+    "isolated_precedence_based_definition_aware_evidence_verification",
+    "definition_aware_verified_core_prominence",
+    "deterministic_support_derivation",
+    "deterministic_0_4_aggregation"
+  ],
+  "evidence_selection_stage": {
+    "owner": "llm_recall_oriented_top_k",
+    "visible_inputs": [
+      "one frozen facet",
+      "its frozen semantic definition",
+      "numbered description spans"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "human_score",
+      "human_reason",
+      "retrieval rank"
+    ],
+    "max_candidates": 3,
+    "instructions": [
+      "Return up to three UNIQUE source spans that are the best candidates for supporting the target facet, ordered best-first.",
+      "Follow CANDIDATE RANKING PRIORITY strictly. Higher-priority evidence must rank before weaker indirect evidence.",
+      "If any span literally names the facet, a normal lexical/morphological variant, or a clearly included concept from the frozen semantic definition, include it and normally rank it first.",
+      "For relational facets, prioritize spans that directly describe the relevant people/entities and their relationship or interaction before unrelated backstory or downstream events.",
+      "For process/action facets, prioritize spans that describe the process or action itself. For example, clues being examined, questions being pursued, fingerprints being checked, or an actor trying to determine who/why are stronger investigation candidates than a crime scene alone.",
+      "For broad subject facets, prioritize direct subject statements such as 'introduction to astronomy' before supporting technical details.",
+      "Favor recall after applying the ranking priorities. A candidate does not need to prove the facet; the isolated verifier decides whether support is real.",
+      "If more than one span could plausibly support the facet, include additional plausible spans instead of stopping after the first one.",
+      "Use the frozen semantic definition to understand the intended meaning and boundaries, but do not perform final relation classification in Stage A.",
+      "Do not invent text or use external knowledge.",
+      "Do not decide support level, verification relation, prominence, or final score.",
+      "Return exactly [\"NONE\"] only when no supplied span has even a plausible facet-specific connection."
+    ],
+    "candidate_priority": [
+      {
+        "priority": 1,
+        "name": "literal_or_lexical_match",
+        "rule": "Prefer spans that literally name the facet, use a normal morphological/derivational variant, or directly name an included concept from the frozen semantic definition."
+      },
+      {
+        "priority": 2,
+        "name": "unmistakable_concrete_instance",
+        "rule": "Next prefer spans that unmistakably instantiate the facet through a concrete event, action, relationship, condition, role, or property."
+      },
+      {
+        "priority": 3,
+        "name": "full_facet_entailment",
+        "rule": "Then prefer spans from which the complete facet follows through one short, necessary semantic inference."
+      },
+      {
+        "priority": 4,
+        "name": "specific_adjacent_connection",
+        "rule": "Then include spans with a genuine facet-specific but incomplete connection that could support ADJACENT."
+      },
+      {
+        "priority": 5,
+        "name": "indirect_context",
+        "rule": "Use indirect/background context only when no stronger candidate span exists. Broad-domain overlap alone is not a valid candidate."
+      }
+    ]
+  },
+  "verification_stage": {
+    "owner": "llm_isolated",
+    "visible_inputs": [
+      "one frozen facet",
+      "its frozen semantic definition",
+      "one exact candidate evidence span"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "title",
+      "authors",
+      "other description spans",
+      "human_score",
+      "human_reason"
+    ],
+    "relation_scale": {
+      "unsupported": "The evidence does not establish the facet, a close semantic equivalent, an unmistakable concrete instance, or a specific weak semantic connection. Broad domain overlap, generic possibility, or merely sharing a topic area is insufficient.",
+      "adjacent": "The evidence has a genuine, specific, but incomplete or weaker semantic connection to the facet. It is more than broad topical overlap, yet the full facet does not follow. This is the relation used for weak/incidental relevance rather than full semantic support.",
+      "entailed": "The full facet follows naturally and specifically from the evidence through one short, necessary semantic inference, without inventing an unstated event, motive, theme, relationship, process, or domain assumption.",
+      "direct": "The evidence directly states, directly paraphrases, morphologically expresses, or unmistakably instantiates the facet under the frozen semantic definition. Exact wording is not required."
+    },
+    "instructions": [
+      "Apply DECISION PRECEDENCE in order A -> B -> C -> D -> E. Do not skip directly to ADJACENT.",
+      "Use only the facet, its frozen semantic definition, and the exact evidence shown in this verification prompt.",
+      "Treat the semantic definition as the authoritative meaning boundary, but not as an exhaustive checklist of words that must all appear.",
+      "If the evidence literally names the facet in the intended sense, DIRECT is the default. Do not downgrade a literal facet mention merely because the span does not restate every example in the semantic definition.",
+      "Normal morphological and derivational variants are DIRECT when used in the intended sense: suspenseful -> suspense, redeem -> redemption, magical -> magic.",
+      "Ordinary lexical entailments are DIRECT when they unmistakably instantiate the facet without outside knowledge: orphaned -> loss of parent(s), drug pusher -> crime, a god -> gods/deity, a murder -> crime.",
+      "Concrete investigative actions are DIRECT for investigation: detectives examining clues, checking fingerprints, trying to determine who committed murders, or explicitly pursuing who/why.",
+      "A direct broad-subject statement can establish a broad facet. 'Introduction to astronomy' directly establishes astronomy subject matter; it need not separately restate every cosmology example in the definition.",
+      "For beginner-friendly explanation, introductory framing plus explicit clarity/accessibility/teaching language is strong direct evidence when the description presents the material as accessible instruction.",
+      "Use ENTAILED only when the FULL facet necessarily follows in one short semantic step.",
+      "Use ADJACENT only for a specific incomplete connection to the actual facet. It is not a fallback for something that is merely related.",
+      "If the semantic definition explicitly says a near-concept does not establish the facet, evidence containing only that near-concept is UNSUPPORTED, not ADJACENT.",
+      "Examples of excluded-near-concept guardrails: adapting to change alone is not redemption; generic individual injustice alone is not social/economic inequality; crime alone is not investigation; generic conflict alone is not war.",
+      "Do not infer an investigation merely because there is a death, injury, mystery, suspicious event, or unanswered question; there must be an investigative action/process.",
+      "Do not infer redemption from generic recovery, adaptation, self-improvement, or personal transformation when restoration after wrongdoing/failure/damage is absent.",
+      "Do not infer social/economic inequality from generic unfairness or one person's unjust treatment.",
+      "When the evidence explicitly contains BOTH a weak excluded concept and genuine direct facet evidence, judge the genuine facet evidence; the exclusion rule blocks only evidence whose sole connection is the excluded concept.",
+      "When uncertain between UNSUPPORTED and ADJACENT, choose UNSUPPORTED unless the connection is specific to the actual facet.",
+      "When uncertain between ADJACENT and ENTAILED, choose ADJACENT unless the complete facet necessarily follows.",
+      "When uncertain between ENTAILED and DIRECT, choose DIRECT when the evidence itself states, paraphrases, lexically expresses, or unmistakably instantiates the facet."
+    ],
+    "decision_precedence": [
+      {
+        "step": "A",
+        "name": "excluded_or_wrong_sense_gate",
+        "rule": "If the evidence's ONLY connection is a near-concept explicitly excluded by the semantic definition, or a literal word is used in a different sense, return UNSUPPORTED. Do not use ADJACENT to bypass an explicit exclusion."
+      },
+      {
+        "step": "B",
+        "name": "direct_gate",
+        "rule": "If the evidence directly states, directly paraphrases, morphologically/lexically expresses, or unmistakably concretely instantiates the facet, return DIRECT."
+      },
+      {
+        "step": "C",
+        "name": "entailed_gate",
+        "rule": "Otherwise, if the FULL facet follows through one short necessary inference without inventing an unstated event/theme/process, return ENTAILED."
+      },
+      {
+        "step": "D",
+        "name": "adjacent_gate",
+        "rule": "Otherwise, if there is a genuine facet-specific but incomplete connection to the ACTUAL facet, and that connection is not explicitly excluded by the semantic definition, return ADJACENT."
+      },
+      {
+        "step": "E",
+        "name": "unsupported_default",
+        "rule": "Otherwise return UNSUPPORTED."
+      }
+    ]
+  },
+  "prominence_stage": {
+    "owner": "llm_isolated_core_only",
+    "visible_inputs": [
+      "one verified core facet",
+      "its frozen semantic definition",
+      "its exact verified evidence",
+      "full numbered description spans"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "human_score",
+      "human_reason"
+    ],
+    "prominence_scale": {
+      "incidental": "The verified facet is genuinely present but functions mainly as background, context, a passing detail, or a minor side element. Removing that facet from the description would leave the main subject, plot, or purpose essentially unchanged.",
+      "substantive": "The verified facet materially contributes to the described book's subject, plot, theme, or purpose. Removing it would noticeably weaken the description, but the book is not clearly organized around it as a defining focus.",
+      "central": "The verified facet is a major premise, defining subject, recurring driver, or primary focus of the supplied description. The description is substantially organized around it."
+    },
+    "instructions": [
+      "Prominence is about how important the already-verified FULL facet is to the described book, not how important it is to the user's request.",
+      "This stage runs only for ENTAILED or DIRECT core facets. ADJACENT core facets already map to incidental and do not enter prominence assessment.",
+      "Use the frozen semantic definition only to identify the intended concept; do not let the definition itself inflate prominence.",
+      "Use INCIDENTAL when a fully supported facet is background, context, a passing detail, or a minor side element.",
+      "Use SUBSTANTIVE when the facet materially contributes to the subject, plot, theme, or purpose but is not a defining or recurring organizing element.",
+      "Use CENTRAL when the facet defines the genre, premise, principal subject, recurring plot engine, major relationship, or one of the main organizing themes.",
+      "CENTRAL does not mean sole focus. Several different facets can all be CENTRAL in the same description.",
+      "A facet can be CENTRAL even if only one sentence states it when that sentence explicitly defines the book's genre, main subject, core premise, or primary purpose.",
+      "A recurring crime that drives the plot can make crime CENTRAL; detectives repeatedly solving or pursuing who/why can make investigation CENTRAL.",
+      "A mythic world, mythological figures/events, gods, or legendary heroes can be CENTRAL when they structure the adventure rather than appearing as incidental decoration.",
+      "For self-development books, a repeatedly emphasized life-direction/purpose goal can be CENTRAL alongside personal growth.",
+      "Use the removal test: if removing the facet would leave the description's main subject or plot essentially unchanged, prefer INCIDENTAL; if it would remove a major organizing element, CENTRAL may be appropriate.",
+      "Do not promote to CENTRAL merely because the relation is DIRECT; directness and prominence remain separate.",
+      "When uncertain between INCIDENTAL and SUBSTANTIVE, choose INCIDENTAL unless the facet materially contributes to what the book is about.",
+      "When uncertain between SUBSTANTIVE and CENTRAL, choose CENTRAL only when the facet is genuinely defining, recurring, or organizing rather than merely important."
+    ]
+  },
+  "support_derivation": {
+    "owner": "deterministic_python",
+    "core": {
+      "unsupported": "absent",
+      "adjacent": "incidental",
+      "entailed_or_direct_plus_incidental_prominence": "incidental",
+      "entailed_plus_substantive_or_central": "meaningful",
+      "direct_plus_substantive": "meaningful",
+      "direct_plus_central": "strong"
+    },
+    "qualifier": {
+      "unsupported_or_adjacent": "absent",
+      "entailed": "meaningful",
+      "direct": "strong"
+    }
+  },
+  "scoring_stage": {
+    "owner": "deterministic_python",
+    "module": "evals/semantic_relevance_facet_scoring.py",
+    "function": "compute_facet_score",
+    "aggregation_version": "v0.7_rules_preserved_for_isolation",
+    "rules": {
+      "0_none": "All core facets derive to absent.",
+      "1_incidental": "At least one core facet derives to incidental and none derive to meaningful/strong.",
+      "2_partial": "At least one core facet derives to meaningful/strong but neither clear-score rule is met.",
+      "3_clear_general": "At least two-thirds of core facets derive to meaningful/strong while not all core facets are strong.",
+      "3_clear_two_core_exception": "For exactly two core facets, one strong facet is sufficient for score 3.",
+      "4_strong": "All core facets derive to strong.",
+      "qualifier_cap": "Qualifiers cannot promote relevance. If any required qualifier is absent, cap a provisional score of 3 or 4 to 2. If all qualifiers are at least meaningful but any is not strong, cap a provisional 4 to 3."
+    }
+  },
+  "structured_output_recovery": {
+    "strategy": "per_stage_retry",
+    "max_attempts_per_stage": 2,
+    "note": "v0.12.0 preserves the v0.11 multi-candidate/per-stage retry architecture and deterministic candidate resolution. Behavioral changes are limited to Stage-A candidate ranking priorities, explicit verifier decision precedence, exclusion guardrails, and prominence calibration."
+  },
+  "primary_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ],
+  "candidate_resolution_stage": {
+    "owner": "deterministic_python",
+    "relation_precedence": [
+      "direct",
+      "entailed",
+      "adjacent",
+      "unsupported"
+    ],
+    "tie_break": "When candidates have the same verification relation, the lower selector rank wins.",
+    "early_stop": "Stop verifying later candidates after DIRECT is found because no later relation can outrank DIRECT."
+  },
+  "calibration_change": {
+    "from_version": "0.11.0",
+    "purpose": "Correct the remaining v0.11 under-recognition and Stage-A retrieval failures without weakening the new adjacent/incidental architecture.",
+    "changes": [
+      "Add explicit Stage-A candidate ranking priorities: literal/lexical > concrete instance > full entailment > adjacent > indirect context.",
+      "Prioritize direct relational evidence for relational facets and direct action/process evidence for process facets.",
+      "Add an explicit A-E verifier decision hierarchy so DIRECT/ENTAILED checks occur before ADJACENT.",
+      "Add a hard adjacent-exclusion guardrail so explicitly excluded near-concepts cannot become ADJACENT.",
+      "Strengthen lexical/direct examples such as orphaned->loss, drug pusher->crime, investigative actions->investigation, and introduction to astronomy->astronomy.",
+      "Clarify prominence signals for multiple simultaneously central facets.",
+      "Keep v0.11 support derivation, qualifier behavior, candidate resolution, and final 0-4 aggregation unchanged."
+    ]
+  }
+}

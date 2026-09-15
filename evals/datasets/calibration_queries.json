@@ -1,0 +1,62 @@
+[
+  {
+    "query_id": "Q01",
+    "query": "A story about forgiveness and redemption",
+    "slice": "theme"
+  },
+  {
+    "query_id": "Q02",
+    "query": "A suspenseful story involving crime and investigation",
+    "slice": "plot_multi_concept"
+  },
+  {
+    "query_id": "Q03",
+    "query": "A book about personal growth and finding purpose",
+    "slice": "theme_nonfiction_or_fiction"
+  },
+  {
+    "query_id": "Q04",
+    "query": "A fantasy adventure involving magic and dangerous journeys",
+    "slice": "genre_plot"
+  },
+  {
+    "query_id": "Q05",
+    "query": "A historical book about war and political conflict",
+    "slice": "historical"
+  },
+  {
+    "query_id": "Q06",
+    "query": "A moving story about grief, loss, and learning to live again",
+    "slice": "emotion_theme"
+  },
+  {
+    "query_id": "Q07",
+    "query": "A story about a complicated relationship between a parent and child",
+    "slice": "relationship"
+  },
+  {
+    "query_id": "Q08",
+    "query": "A beginner-friendly book explaining astronomy and the universe",
+    "slice": "nonfiction_topic"
+  },
+  {
+    "query_id": "Q09",
+    "query": "A dystopian story about authoritarian control and resistance",
+    "slice": "genre_theme"
+  },
+  {
+    "query_id": "Q10",
+    "query": "A book about leadership, teamwork, and building effective organizations",
+    "slice": "nonfiction_business"
+  },
+  {
+    "query_id": "Q11",
+    "query": "An adventure inspired by mythology, gods, and legendary heroes",
+    "slice": "mythology"
+  },
+  {
+    "query_id": "Q12",
+    "query": "A thoughtful book about inequality, poverty, and how society distributes wealth",
+    "slice": "nonfiction_social_science"
+  }
+]

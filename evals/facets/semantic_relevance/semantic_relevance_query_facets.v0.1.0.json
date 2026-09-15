@@ -1,0 +1,271 @@
+{
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "version": "0.1.0",
+  "status": "frozen",
+  "evaluation_dimension": "semantic-recommendation-relevance",
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "development_dataset_version": "0.2.0",
+  "scoring_module": "evals/semantic_relevance_facet_scoring.py",
+  "purpose": "Frozen query-level semantic facet definitions used by the v0.6 facet-based semantic relevance judge. Each unique query is decomposed once and reused for every candidate book evaluated against that query.",
+  "authoring_guidelines": [
+    "Derive facets from the user query only; do not use candidate books or judge outputs when defining facets.",
+    "Use facet_type='core' for central semantic requirements whose absence materially weakens relevance.",
+    "Use facet_type='qualifier' for important modifiers such as beginner-friendly, historical, moving, or thoughtful.",
+    "Merge redundant or near-synonymous wording instead of creating duplicate facets.",
+    "Keep each facet text concise and semantically self-contained.",
+    "Do not split a single relational concept into independent facets when those pieces could be satisfied by unrelated parts of a description.",
+    "Use stable facet IDs F1, F2, F3, ... within each query.",
+    "Each query must contain at least one core facet.",
+    "Do not change frozen facet definitions during a judge run; version the file when definitions change.",
+    "The LLM evaluates facet support only; deterministic Python computes the final 0-4 score."
+  ],
+  "facet_types": {
+    "core": "A central semantic requirement of the query. Core facets determine the base relevance score.",
+    "qualifier": "An important modifier or constraint. Qualifiers can prevent a perfect score when weak or absent, but cannot promote weak core relevance."
+  },
+  "queries": [
+    {
+      "query_id": "Q01",
+      "query": "A story about forgiveness and redemption",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "forgiveness",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "redemption",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "query": "A suspenseful story involving crime and investigation",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "suspense",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "crime",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "investigation",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "query": "A book about personal growth and finding purpose",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "personal growth",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "finding purpose",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "query": "A fantasy adventure involving magic and dangerous journeys",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "fantasy adventure",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "magic",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "dangerous journeys",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "query": "A historical book about war and political conflict",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "war",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "political conflict",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "historical",
+          "facet_type": "qualifier"
+        }
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "query": "A moving story about grief, loss, and learning to live again",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "grief",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "loss",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "learning to live again",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F4",
+          "text": "moving",
+          "facet_type": "qualifier"
+        }
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "query": "A story about a complicated relationship between a parent and child",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "complicated parent-child relationship",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "query": "A beginner-friendly book explaining astronomy and the universe",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "astronomy and the universe",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "beginner-friendly explanation",
+          "facet_type": "qualifier"
+        }
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "query": "A dystopian story about authoritarian control and resistance",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "authoritarian control",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "resistance",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "dystopian",
+          "facet_type": "qualifier"
+        }
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "query": "A book about leadership, teamwork, and building effective organizations",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "leadership",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "teamwork",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "building effective organizations",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "query": "An adventure inspired by mythology, gods, and legendary heroes",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "adventure",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "mythology",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "gods",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F4",
+          "text": "legendary heroes",
+          "facet_type": "core"
+        }
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "query": "A thoughtful book about inequality, poverty, and how society distributes wealth",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "inequality",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F2",
+          "text": "poverty",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F3",
+          "text": "wealth distribution",
+          "facet_type": "core"
+        },
+        {
+          "facet_id": "F4",
+          "text": "thoughtful",
+          "facet_type": "qualifier"
+        }
+      ]
+    }
+  ]
+}

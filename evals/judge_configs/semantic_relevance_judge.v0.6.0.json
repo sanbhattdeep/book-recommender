@@ -1,0 +1,99 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.6.0",
+  "status": "development",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.2.0",
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "facet_spec_version": "0.1.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "allowed_input_fields": [
+    "query",
+    "title",
+    "authors",
+    "description",
+    "frozen_facets"
+  ],
+  "blocked_input_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+  "semantic_stage": {
+    "owner": "llm",
+    "purpose": "Assess every frozen query facet independently. The LLM does not assign the final 0-4 score.",
+    "support_scale": {
+      "absent": "No meaningful semantic support for this facet in the supplied book information.",
+      "incidental": "A genuine relationship exists, but it is peripheral, superficial, or not an important part of the described book.",
+      "meaningful": "The description substantively supports the facet. Support may be implicit when reasonably entailed by the text, but must not rely on speculation or external knowledge.",
+      "strong": "The facet is directly, explicitly, and centrally supported by the supplied description."
+    },
+    "instructions": [
+      "Evaluate semantic recommendation relevance only.",
+      "Use only the supplied query, frozen facets, title, authors, description, rubric, and these instructions.",
+      "Do not use external knowledge about the book, author, series, historical events, or cultural context.",
+      "Treat the description as the primary evidence source. Title and authors may provide supporting context but must not override the description.",
+      "Assess every supplied facet independently.",
+      "Do not invent, merge, remove, or rewrite facets.",
+      "A strong match on one facet does not imply support for another facet.",
+      "A missing facet does not erase genuine support for another facet.",
+      "Do not reward isolated keyword overlap when the described meaning is unrelated.",
+      "Reasonable semantic entailment is allowed. The description does not need to contain the exact facet wording.",
+      "Do not infer plausible but unstated themes, motivations, plot events, or relationships.",
+      "Use incidental when a real relationship exists but the facet is peripheral or superficial.",
+      "Use meaningful when the facet is substantively supported even if the wording is indirect.",
+      "Use strong only when the facet is direct, explicit, and central.",
+      "Use absent when no meaningful semantic relationship is supported.",
+      "Give a concise reason for each facet tied to the supplied description.",
+      "Return exactly one assessment for each supplied facet and no others.",
+      "Do not output an overall numeric score or overall match label."
+    ]
+  },
+  "scoring_stage": {
+    "owner": "deterministic_python",
+    "module": "evals/semantic_relevance_facet_scoring.py",
+    "function": "compute_facet_score",
+    "rules": {
+      "0_none": "All core facets are absent.",
+      "1_incidental": "At least one core facet is incidental, but no core facet is meaningful or strong.",
+      "2_partial": "At least one core facet is meaningful or strong, but fewer than two-thirds of core facets are meaningful or strong.",
+      "3_clear": "At least two-thirds of core facets are meaningful or strong, but all core facets are not strong.",
+      "4_strong": "All core facets are strong.",
+      "qualifier_cap": "If a provisional score is 4 and any qualifier is below meaningful, cap the final score at 3."
+    },
+    "tie_break_rule": "Choose the lower score unless the deterministic conditions for the higher score are satisfied."
+  },
+  "evidence_stage": {
+    "owner": "llm_span_selection_plus_python_lookup",
+    "purpose": "After semantic support levels are frozen, Python numbers exact description spans and the LLM selects one supporting span ID for every non-absent facet. Python then persists the exact source text for the selected ID.",
+    "instructions": [
+      "Evidence selection happens only after facet support has been decided.",
+      "The model selects a supplied source span ID rather than generating or copying quote text.",
+      "Return exactly one valid source span ID for every non-absent facet.",
+      "The selected span need not contain the facet's exact words; reasonable semantic entailment is allowed.",
+      "Do not select a span based only on unrelated keyword overlap.",
+      "Do not invent span IDs.",
+      "Do not change facet support, facet reason, or the deterministic score.",
+      "Python retrieves the exact evidence text from the selected source span."
+    ],
+    "max_repair_attempts": 2
+  },
+  "primary_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ]
+}

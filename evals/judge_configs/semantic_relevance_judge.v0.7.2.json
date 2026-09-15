@@ -1,0 +1,121 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.7.2",
+  "status": "development",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.2.0",
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "facet_spec_version": "0.1.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "allowed_input_fields": [
+    "query",
+    "title",
+    "authors",
+    "description",
+    "frozen_facets"
+  ],
+  "blocked_input_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+  "semantic_stage": {
+    "owner": "llm",
+    "purpose": "Assess every frozen query facet independently. Before assigning a positive support level, establish that the facet itself or a close semantic equivalent is genuinely discussed or entailed. Negative polarity does not make a concept semantically absent. The LLM does not assign the final 0-4 score.",
+    "support_scale": {
+      "absent": "The description does not genuinely support this facet itself or a close semantic equivalent. Thematically adjacent, causally related, broadly similar, or merely plausible concepts are still absent.",
+      "incidental": "The facet itself, or a close semantic equivalent, is genuinely supported, but only peripherally or briefly. Incidental does NOT mean 'somewhat related' to the facet; the facet must actually be present in the described content.",
+      "meaningful": "The facet itself, or a close semantic equivalent, is substantively supported by the description, but the support is not both direct and central enough to qualify as strong. Support may be implicit when reasonably entailed by the text, but must be more than thematic adjacency.",
+      "strong": "The facet itself, or a close semantic equivalent, is direct or explicit AND central to the supplied description. If your own reason says the description explicitly/directly supports the facet and calls it central or a central theme, normally classify it as strong rather than meaningful."
+    },
+    "instructions": [
+      "Evaluate semantic recommendation relevance only.",
+      "Use only the supplied query, frozen facets, title, authors, description, rubric, and these instructions.",
+      "Do not use external knowledge about the book, author, series, historical events, or cultural context.",
+      "Treat the description as the primary evidence source. Title and authors may provide supporting context but must not override the description.",
+      "Assess every supplied facet independently.",
+      "Do not invent, merge, remove, or rewrite facets.",
+      "For EACH facet, first apply an existence gate: is that facet itself, or a close semantic equivalent, genuinely supported by the supplied description?",
+      "If the existence gate is NO, the facet MUST be absent. Stop there for that facet.",
+      "A concept that is merely associated with, adjacent to, a consequence of, or broadly reminiscent of the facet does NOT pass the existence gate.",
+      "Close semantic equivalent means substantially the same concept, not merely a related concept.",
+      "Do not confuse negative polarity with semantic absence. A facet can be genuinely present as the subject of the description even when the text describes its absence, failure, denial, loss, pursuit, prevention, or opposite outcome. For example, 'the inability to find redemption' is direct evidence that redemption is a discussed concept; decide its support level from how central/substantive that discussion is, not from whether redemption is successfully achieved.",
+      "Examples of polarity handling: inability to find redemption can support the redemption facet; resistance to authoritarian control can support authoritarian control and resistance; efforts to escape poverty can support poverty. This rule does not allow merely adjacent concepts such as personal growth, recovery, or adaptation to count as redemption.",
+      "Examples of related but non-equivalent concepts: personal growth is not redemption; adapting to change is not forgiveness; relationship difficulty is not forgiveness; recovery is not redemption; crime is not investigation; poverty is not wealth distribution.",
+      "Do not use evidence for one frozen facet as proof of another facet. Each facet's reason must support that specific facet.",
+      "A strong match on one facet does not imply support for another facet.",
+      "A missing facet does not erase genuine support for another facet.",
+      "Do not reward isolated keyword overlap when the described meaning is unrelated.",
+      "Reasonable semantic entailment is allowed, but only when the facet itself follows from the supplied text without adding an unstated story, motive, theme, or event.",
+      "Do not infer plausible but unstated themes, motivations, plot events, relationships, forgiveness, redemption, resistance, investigation, or other requested concepts.",
+      "Use incidental only after the existence gate passes and the genuine facet is peripheral or brief.",
+      "Use meaningful when the facet itself is substantively supported even if the wording is indirect.",
+      "Use strong only when the facet itself is direct, explicit, and central.",
+      "Use absent when the facet itself or a close semantic equivalent is not genuinely supported.",
+      "If your reasoning uses phrases such as 'could be related to', 'could be seen as', 'in a broad sense', 'may imply', or 'is similar to' without textual entailment of the facet itself, choose absent.",
+      "Keep meaningful and strong distinct: meaningful is substantive support that is not both direct/explicit and central; strong requires the facet to be direct or explicit and central.",
+      "Maintain consistency between support and reason. If the reason says a facet is explicitly/directly supported and central, do not label it meaningful unless you clearly explain what prevents strong.",
+      "Facet isolation is strict: when assessing one facet, do not cite a different frozen facet as though it established the target facet. For example, redemption by itself does not establish forgiveness.",
+      "Give a concise reason for each facet tied specifically to that facet and the supplied description.",
+      "Return exactly one assessment for each supplied facet and no others.",
+      "Do not output an overall numeric score or overall match label."
+    ]
+  },
+  "scoring_stage": {
+    "owner": "deterministic_python",
+    "module": "evals/semantic_relevance_facet_scoring.py",
+    "function": "compute_facet_score",
+    "rules": {
+      "0_none": "All core facets are absent.",
+      "1_incidental": "At least one core facet is incidental, but no core facet is meaningful or strong.",
+      "2_partial": "At least one core facet is meaningful or strong, but neither clear-score rule is satisfied.",
+      "3_clear_general": "At least two-thirds of core facets are meaningful or strong, while not all core facets are strong.",
+      "3_clear_two_core_exception": "For a query with exactly two core facets, one strong core facet is sufficient for score 3 even if the other core facet is absent. This exception does not apply to queries with three or more core facets.",
+      "4_strong": "All core facets are strong.",
+      "qualifier_cap": "If a provisional score is 4 and any qualifier is below meaningful, cap the final score at 3."
+    },
+    "tie_break_rule": "Choose the lower score unless one of the deterministic conditions for the higher score is satisfied."
+  },
+  "evidence_stage": {
+    "owner": "llm_span_selection_plus_python_lookup",
+    "purpose": "After semantic support levels are frozen, Python numbers exact description spans and the LLM selects one supporting span ID for every non-absent facet. Python then persists the exact source text for the selected ID.",
+    "instructions": [
+      "Evidence selection happens only after facet support has been decided.",
+      "The model selects a supplied source span ID rather than generating or copying quote text.",
+      "Return exactly one valid source span ID for every non-absent facet.",
+      "The selected span need not contain the facet's exact words; reasonable semantic entailment is allowed.",
+      "Do not select a span based only on unrelated keyword overlap.",
+      "Do not invent span IDs.",
+      "Do not change facet support, facet reason, or the deterministic score.",
+      "Python retrieves the exact evidence text from the selected source span."
+    ],
+    "max_repair_attempts": 2
+  },
+  "primary_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ],
+  "structured_output_recovery": {
+    "purpose": "Improve local-model structured-output reliability without changing semantic support criteria or deterministic scoring.",
+    "batch_repair_attempts": 2,
+    "fallback": "If a complete multi-facet verdict remains structurally invalid after batch repairs, re-evaluate every frozen facet independently using the single FacetAssessment schema and combine the validated assessments in Python.",
+    "audit_fields": [
+      "semantic_generation_mode",
+      "semantic_batch_repair_attempts"
+    ]
+  }
+}

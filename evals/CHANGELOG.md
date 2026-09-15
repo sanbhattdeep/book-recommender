@@ -1,5 +1,1201 @@
 # Evaluation Changelog
 
+# v0.14.0 changelog entry
+
+## Calibration Dataset v0.5.0
+
+### Changed
+
+Blind re-adjudication of `Q12_R05` from human score `2` to `1` is now captured
+in the versioned development dataset. All 60 rows carry `dataset_version=0.5.0`.
+
+New reason:
+
+> The description relates to inequality through its discussion of equality and social justice, but this connection is incidental to the requested focus on inequality, poverty, and wealth distribution. Poverty and wealth distribution are not established.
+
+Historical runs remain pinned to the dataset version recorded in their own run
+metadata.
+
+---
+
+## Facet Spec v0.4.0
+
+### Changed
+
+Only Q03 semantic-definition boundaries changed; facet structure is unchanged.
+
+- `personal growth`: spiritual/devotional/philosophical/character/wisdom content
+  alone is insufficient unless actual development, improvement, change, or
+  increased self-understanding is established.
+- `finding purpose`: discovering how a deity, belief system, external force, or
+  circumstance works in a person's life alone is insufficient unless connected
+  to meaning, direction, vocation, values, goals, or life direction.
+
+### Why
+
+v0.13 unseen validation produced a severe over-promotion on
+`U_Q03_T70` by treating generic devotional discovery as both personal growth and
+finding purpose. The validation set is now development data for v0.14 tuning;
+the added boundaries are intentionally generic and candidate-independent.
+
+---
+
+## Judge Config v0.14.0
+
+### Changed
+
+For exactly two core facets, the historical `one strong facet => score 3`
+exception now requires **no absent core facet**.
+
+```text
+strong + absent      -> 2
+strong + incidental  -> 3 (guarded two-core exception)
+strong + meaningful  -> 3 (normal two-thirds coverage)
+strong + strong      -> 4
+```
+
+The audit rule name changes from `two_core_one_strong` to
+`two_core_one_strong_no_absent` when the guarded exception fires.
+
+### Why
+
+Two independent validation cases showed the same structural failure:
+
+- `U_Q03_T30` Learned Optimism: human 1, judge 3
+- `U_Q01_T02` Lila's Child: human 2, judge 3
+
+In both, one core facet was strong and the other completely absent. Calling that
+an overall clear match was too permissive for a two-part query.
+
+### Preserved
+
+- rubric v0.1.0
+- Ollama model `jeffnyman/ts-evaluator`, temperature 0
+- deterministic positive-only DIRECT cue layer
+- Stage-A candidate selection
+- isolated precedence verifier
+- core prominence stage
+- support derivation
+- qualifier behavior
+- final 0-4 scale
+
+## Calibration Dataset v0.4.0
+
+### Changed
+
+Re-adjudicated `Q02_NEG` (`Son of a Witch`) from human score `0` to `1`.
+
+New reason:
+> The description contains incidental suspense through unresolved questions, danger, and uncertainty, but crime and investigation are not established. The overlap is too weak for the book to be a useful match to the overall request.
+
+All rows carry `dataset_version = 0.4.0`. Existing run metadata is not rewritten.
+
+### Why
+
+Blind re-review against the frozen rubric found genuine but incidental suspense; crime and investigation remain absent. This fits score 1 better than score 0.
+
+---
+
+## Judge Config v0.13.0
+
+### Changed
+
+Added a deterministic, positive-only, high-precision DIRECT cue layer before Stage A. Cue matches are grounded in exact description spans and are defined from frozen query/facet semantics rather than individual candidate books.
+
+A cue may establish only `verification_relation=direct`. Core prominence still goes through the existing LLM prominence stage, and final support/0-4 scoring remains deterministic Python. When no cue fires, the v0.12 Stage-A -> isolated verifier -> prominence pipeline runs unchanged.
+
+Added `deterministic_direct_cue_count` to run results and deterministic cue reasons to per-facet audit output.
+
+### Why
+
+v0.12 reduced severe errors but still repeatedly missed obvious lexical/concrete evidence despite explicit prompt instructions, notably `orphaned` -> loss and `introduction to astronomy` -> astronomy subject matter. This indicated diminishing returns from further prompt wording.
+
+The cue layer handles only high-confidence lexical/concrete cases and leaves nuanced inference to the isolated LLM verifier.
+
+### Preserved
+
+- rubric v0.1.0
+- facet spec v0.3.0
+- adjacent semantics
+- qualifier behavior
+- candidate precedence for LLM-selected evidence
+- prominence semantics
+- deterministic final 0-4 aggregation
+
+## Calibration Dataset v0.4.0
+
+### Changed
+
+Re-adjudicated `Q02_NEG` (`Son of a Witch`) from human score `0` to `1`.
+
+Previous reason:
+> no match to any theme or plot aspects
+
+New reason:
+> The description contains incidental suspense through unresolved questions,
+> danger, and uncertainty, but crime and investigation are not established.
+> The overlap is too weak for the book to be a useful match to the overall request.
+
+### Why
+
+A blind re-review against the frozen semantic relevance rubric found genuine but
+incidental suspense in the supplied description. Crime and investigation remain
+unsupported. Under the rubric, this is better represented by score 1 (weak /
+incidental relevance) than score 0 (no meaningful relevance).
+
+No candidate identity, query, description, rubric version, or other human gold
+label was changed.
+
+All rows now carry `dataset_version = 0.4.0`.
+
+### Provenance
+
+Existing judge runs that used dataset v0.3.0 remain recorded as v0.3.0 runs.
+Their metadata must not be rewritten. Any comparison against v0.4.0 is a
+post-run re-analysis against the re-adjudicated gold dataset.
+
+## Judge Config v0.12.0
+Date: 2026-09-11
+
+### Changed
+
+Added explicit candidate-ranking and verification-precedence contracts while preserving the v0.11 isolated multi-candidate architecture.
+
+Stage A now ranks evidence candidates using:
+
+1. literal / lexical / morphological facet evidence
+2. unmistakable concrete instances
+3. full-facet entailment
+4. specific adjacent connections
+5. indirect context
+
+The isolated verifier now applies the relation decision in a fixed order:
+
+A. excluded-near-concept / wrong-sense gate
+B. direct
+C. entailed
+D. adjacent
+E. unsupported
+
+Added an explicit guardrail that a concept rejected by the frozen semantic definition cannot be promoted to `adjacent` when that excluded near-concept is the evidence's only connection to the facet.
+
+Strengthened direct-recognition guidance for ordinary lexical and concrete instances, including:
+- orphaned -> loss
+- drug pusher -> crime
+- fingerprints / who-why pursuit -> investigation
+- introduction to astronomy -> astronomy subject matter
+
+Strengthened Stage-A guidance for relational and process facets so directly relational/action-oriented spans outrank unrelated backstory.
+
+Clarified that multiple facets may simultaneously be central when they are defining or recurring organizing elements.
+
+### Preserved
+
+No change to:
+- dataset v0.3.0
+- rubric v0.1.0
+- facet spec v0.3.0
+- multi-candidate maximum of 3
+- deterministic candidate precedence: direct > entailed > adjacent > unsupported
+- adjacent-core -> incidental support mapping
+- qualifier semantics introduced in v0.11
+- deterministic core-coverage aggregation
+- final 0-4 scoring rules
+
+### Why
+
+The v0.11 20-case diagnostic successfully made score 1 reachable and reduced false zeros, but exposed three remaining systematic failures:
+- Stage A sometimes selected indirect backstory instead of direct relational evidence.
+- The verifier sometimes downgraded obvious lexical/concrete instances such as `orphaned`, `pusher`, investigative actions, and `introduction to astronomy`.
+- `adjacent` sometimes bypassed explicit exclusion boundaries, allowing generic adaptation to count weakly toward redemption and generic injustice to count weakly toward social/economic inequality.
+
+v0.12.0 addresses these failure classes without redesigning the pipeline or changing deterministic aggregation.
+
+### Validation
+
+Run:
+- `uv run python evals/test_facet_scoring.py`
+- `uv run python evals/test_evidence_candidate_selection.py`
+- `uv run python evals/test_semantic_definition_prompts.py`
+
+Then rerun the frozen 20-case diagnostic slice and assess against `v0.12.0_acceptance_checklist.md`.
+
+## Calibration Dataset v0.3.0
+Date: 2026-09-10
+
+### Changed
+
+Re-adjudicated Q09_R50 under the description-only evidence policy.
+
+- human_score: 2 -> 1
+- classification changed from partial relevance to incidental relevance
+
+Reason:
+
+The supplied description provides a genuine but weak semantic connection
+through imprisonment and a journey to freedom. It does not provide sufficient
+description-grounded evidence for authoritarian control, a dystopian setting,
+or explicit political resistance.
+
+All other candidate identities and human labels remain unchanged.
+
+## Judge Config v0.9.3
+Date: 2026-09-10
+
+### Changed
+
+Updated calibration dataset provenance:
+
+- dataset v0.2.0 -> v0.3.0
+
+No changes were made to:
+
+- evidence candidate selection
+- isolated evidence verification
+- prominence assessment
+- qualifier handling
+- support derivation
+- deterministic 0-4 aggregation
+- model or temperature
+
+Judge behavior is therefore unchanged from v0.9.2.
+
+## Judge Config v0.9.2
+Date: 2026-09-10
+
+### Changed
+
+Replaced the single-candidate evidence-selection stage introduced in v0.9.0
+with multi-candidate evidence retrieval.
+
+For each frozen facet, Stage A can now return up to three ranked candidate
+description spans rather than exactly one candidate.
+
+The pipeline is now:
+
+```text
+frozen facet
+    ↓
+select up to 3 candidate evidence spans
+    ↓
+verify each candidate independently
+    ↓
+Python selects strongest verified candidate
+    ↓
+assess prominence for supported core facet
+    ↓
+Python derives facet support
+    ↓
+Python computes overall 0-4 score
+
+## Judge Config v0.9.0
+Date: 2026-09-10
+
+### Changed
+
+Redesigned facet-level semantic evaluation to isolate evidence verification
+from the broader query and description context.
+
+v0.8.0 demonstrated that separating semantic relation from prominence improved
+interpretability, but the judge continued to over-classify requested concepts
+as `explicit` or `entailed`.
+
+The v0.9.0 architecture therefore introduced an isolated per-facet pipeline:
+
+```text
+frozen facet
+    ↓
+candidate evidence selection
+    ↓
+isolated facet-vs-evidence verification
+    ↓
+core-only prominence assessment
+    ↓
+Python derives facet support
+    ↓
+Python computes overall 0-4 score
+
+## Judge Config v0.8.0
+Date: 2026-09-10
+
+### Changed
+
+Judge v0.8.0 redesigned facet-level semantic judgment to separate semantic
+relationship from prominence.
+
+The LLM no longer directly assigns:
+
+```text
+absent
+incidental
+meaningful
+strong
+
+## Judge Config v0.7.2
+Date: 2026-09-10
+
+### Changed
+
+Judge v0.7.2 added a structured-output recovery mechanism for local-model
+failures observed during the v0.7.1 full development run.
+
+Semantic judging behavior remained unchanged from v0.7.1.
+
+Deterministic score aggregation remained unchanged from v0.7.0.
+
+The purpose of v0.7.2 was execution reliability rather than another semantic
+or scoring redesign.
+
+### Added Per-Facet Semantic Fallback
+
+The normal semantic path continues to request all frozen facet assessments in
+one structured response.
+
+Recovery behavior is:
+
+```text
+batch semantic verdict
+        |
+        | invalid
+        v
+batch repair attempt 1
+        |
+        | invalid
+        v
+batch repair attempt 2
+        |
+        | invalid
+        v
+per-facet fallback
+
+
+```markdown
+
+## Judge Config v0.7.1
+Date: 2026-09-09
+
+### Changed
+
+Judge v0.7.1 is a targeted semantic patch to v0.7.0.
+
+The following remain unchanged:
+
+- frozen facet specification
+- facet support scale
+- deterministic scoring algorithm
+- `two_core_one_strong` rule
+- two-thirds coverage rule
+- qualifier behavior
+- evidence span selection
+- model
+- provider
+- temperature
+- rubric
+- calibration dataset
+
+The change is limited to how the semantic judge handles polarity.
+
+### Added Negative-Polarity Guidance
+
+The judge is explicitly instructed not to confuse:
+
+```text
+concept is absent from the story
+
+## Judge Config v0.7.0
+Date: 2026-09-09
+
+### Changed
+
+Judge v0.7.0 revised the deterministic aggregation rules introduced by the
+facet-based v0.6 architecture.
+
+The semantic facet architecture remains unchanged:
+
+1. Frozen query facets are loaded for each query.
+2. The LLM independently assesses each facet as:
+   - absent
+   - incidental
+   - meaningful
+   - strong
+3. Python computes the final 0-4 score.
+4. Grounded evidence is selected only after semantic support is frozen.
+
+The primary v0.7.0 change is how partial facet coverage maps to score 3.
+
+### Added Two-Core Strong Exception
+
+The original v0.6 scoring rule required at least two-thirds of core facets to
+reach `meaningful` or `strong` support before score 3 could be assigned.
+
+For a two-core query this meant:
+
+- 1/2 supported = 50%
+- required coverage = 2/2
+
+This made the aggregation too strict for cases where one requested concept was
+missing but another was directly and centrally satisfied.
+
+The rubric explicitly permits score 3 when:
+
+> the recommendation is clearly relevant overall, but one important aspect of
+> the request is secondary, implicit, weaker, or missing.
+
+v0.7.0 therefore added the following narrow rule:
+
+- if a query has exactly TWO core facets
+- and at least ONE core facet is `strong`
+- the overall score may be 3 even if the other core facet is absent
+
+Example:
+
+```text
+forgiveness -> absent
+redemption  -> strong
+
+overall -> 3
+
+## Judge Config v0.6.1
+Date: 2026-09-09
+
+### Changed
+
+Tightened the semantic facet-support criteria introduced in Judge Config
+v0.6.0.
+
+The facet architecture, frozen facet specification, deterministic scoring
+algorithm, and source-span evidence mechanism remain unchanged.
+
+The change is limited to the LLM semantic-assessment behavior.
+
+### Added Existence Gate
+
+Before assigning:
+
+- incidental
+- meaningful
+- strong
+
+the judge must first answer:
+
+> Is this facet itself, or a close semantic equivalent, genuinely supported by
+> the supplied description?
+
+If the answer is no, the facet must be classified as:
+
+`absent`
+
+The existence gate is evaluated independently for every frozen facet.
+
+### Clarified Incidental Support
+
+`incidental` no longer means:
+
+> somewhat related to the requested concept
+
+It now requires that the requested facet itself, or a close semantic
+equivalent, is genuinely present but peripheral or brief.
+
+The following are explicitly insufficient:
+
+- thematic adjacency
+- causal association
+- broad similarity
+- plausible but unstated themes
+- concepts that commonly co-occur with the requested facet
+
+Examples added to the judge instructions include:
+
+- personal growth is not redemption
+- adapting to change is not forgiveness
+- relationship difficulty is not forgiveness
+- recovery is not redemption
+- crime is not investigation
+- poverty is not wealth distribution
+
+These relationships may be related in ordinary language, but they do not by
+themselves establish the requested semantic facet.
+
+### Added Facet Isolation Rule
+
+Evidence or reasoning for one facet must not automatically be reused as
+evidence for another facet.
+
+For example:
+
+`forgiveness`
+
+and:
+
+`redemption`
+
+are related concepts, but evidence supporting redemption does not automatically
+establish forgiveness.
+
+Each facet must independently pass the semantic existence gate.
+
+### Clarified Semantic Entailment
+
+Reasonable implicit support remains allowed.
+
+The description does not need to contain the exact wording of the facet.
+
+However, implicit support must entail the facet itself.
+
+The judge must not promote a merely adjacent concept using reasoning such as:
+
+- "could be related to"
+- "could be seen as"
+- "in a broad sense"
+- "may imply"
+- "is similar to"
+
+unless the supplied description actually supports the requested facet.
+
+### Unchanged
+
+The following remain unchanged from v0.6.0:
+
+- Calibration dataset: `v0.2.0`
+- Rubric: `v0.1.0`
+- Facet specification: `v0.1.0`
+- Provider: Ollama
+- Model: `jeffnyman/ts-evaluator`
+- Temperature: `0.0`
+- Evaluation unit: one query × one recommended book
+- Facet support scale:
+  - absent
+  - incidental
+  - meaningful
+  - strong
+- Deterministic 0-4 scoring algorithm
+- Two-thirds core-facet threshold for score 3
+- Qualifier cap
+- Lower-score tie-break rule
+- Source-span evidence selection
+- Python-owned final score
+- Blind evaluation
+- Per-case persistence
+- Resume support
+- Run provenance tracking
+
+### Why
+
+The v0.6.0 Q01 smoke test produced:
+
+- Q01_R20: human 0 -> judge 1
+- Q01_R50: human 0 -> judge 1
+- Q01_NEG: human 0 -> judge 1
+
+Inspection showed that the judge was interpreting semantic adjacency as
+incidental relevance.
+
+This is different from the v0.5 problem.
+
+v0.5 was too binary and frequently converted partial matches directly to 0.
+
+The goal of v0.6.1 is therefore NOT to make the judge more conservative in
+general.
+
+The goal is to distinguish:
+
+genuine-but-peripheral support
+    -> incidental
+
+from:
+
+related but non-equivalent concept
+    -> absent
+
+This preserves score 1 for legitimate incidental matches while preventing
+thematically adjacent concepts from receiving positive relevance.
+
+### Validation Status
+
+Development validation pending.
+
+The first validation step is another five-case Q01 smoke test:
+
+`uv run python evals/run_judge_calibration.py --limit 5`
+
+The expected behavior is not hard-coded as a required result, but the primary
+question is whether the previous false-positive incidental judgments for:
+
+- Q01_R20
+- Q01_R50
+- Q01_NEG
+
+are corrected without destroying genuine positive matches for:
+
+- Q01_R01
+- Q01_R05
+
+If Q01_R01 or Q01_R05 changes because one of the two frozen facets does not
+independently pass the tighter existence gate, that should be investigated as
+a possible deterministic scoring/facet-coverage issue rather than immediately
+loosening the semantic prompt.
+
+### Decision
+
+Judge Config v0.6.1 remains in development pending the Q01 smoke test.
+
+Do not run the complete 60-case development dataset until the five-case smoke
+result has been inspected.
+
+## Judge Config v0.6.0
+Date: 2026-09-09
+
+### Changed
+
+Judge v0.6.0 introduced a new facet-based semantic relevance architecture.
+
+The previous v0.5.x design asked the LLM to make a holistic relevance judgment
+and directly choose one of:
+
+- none
+- incidental
+- partial
+- clear
+- strong
+
+v0.6.0 separates semantic reasoning from final scoring.
+
+The new evaluation pipeline is:
+
+1. Decompose each query into a frozen set of semantic facets.
+2. Ask the LLM to assess each facet independently.
+3. Represent facet support using:
+   - absent
+   - incidental
+   - meaningful
+   - strong
+4. Compute the final 0-4 relevance score deterministically in Python.
+5. Extract grounded evidence only after semantic support and the final score
+   have already been decided.
+
+The LLM no longer directly assigns the overall numeric relevance score.
+
+### Added
+
+Added frozen query facet specification:
+
+`evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.1.0.json`
+
+The facet specification:
+
+- contains frozen decompositions for Q01-Q12
+- is derived from query text rather than individual candidate books
+- distinguishes:
+  - `core` facets
+  - `qualifier` facets
+- is reused unchanged for every candidate belonging to the same query
+
+Examples:
+
+Q10:
+
+- leadership — core
+- teamwork — core
+- building effective organizations — core
+
+Q08:
+
+- astronomy and the universe — core
+- beginner-friendly explanation — qualifier
+
+Q07 is intentionally represented as the single relational concept:
+
+- complicated parent-child relationship — core
+
+rather than splitting "complicated relationship" and "parent and child" into
+independent facets.
+
+### Added Deterministic Scoring
+
+Added:
+
+`evals/semantic_relevance_facet_scoring.py`
+
+Python now owns the mapping from facet support to the final rubric score.
+
+Base scoring rules:
+
+- Score 0 — None
+  - all core facets are absent
+
+- Score 1 — Incidental
+  - at least one core facet is incidental
+  - no core facet is meaningful or strong
+
+- Score 2 — Partial
+  - at least one core facet is meaningful or strong
+  - fewer than two-thirds of core facets are meaningful or strong
+
+- Score 3 — Clear
+  - at least two-thirds of core facets are meaningful or strong
+  - but all core facets are not strong
+
+- Score 4 — Strong
+  - all core facets are strong
+
+Qualifier rule:
+
+- qualifiers cannot promote a weak core match
+- if the provisional score is 4 and any qualifier is below meaningful,
+  the score is capped at 3
+
+The existing lower-score tie-break principle remains:
+
+> Choose the lower score unless the conditions for the higher score are
+> clearly satisfied.
+
+### Added Facet-Level Judge
+
+Added:
+
+`evals/semantic_relevance_facet_judge.py`
+
+The LLM now returns one semantic assessment per frozen facet.
+
+The structured semantic verdict deliberately contains no final numeric score.
+
+Each facet receives:
+
+- facet_id
+- support
+- reason
+
+The runner validates that:
+
+- every frozen facet is returned
+- each facet is returned exactly once
+- no facets are invented
+- no facets are omitted
+
+### Evidence Grounding
+
+The first v0.6.0 smoke implementation asked the LLM to copy an exact evidence
+excerpt for each positive facet.
+
+This exposed a reliability problem.
+
+For Q01_R50 the semantic stage completed, but the evidence extractor repeatedly
+returned the paraphrased sentence:
+
+> "The book's focus is more on personal growth and adaptation to change."
+
+The sentence did not occur verbatim in the supplied description, so Python
+correctly rejected the evidence and the run failed.
+
+Increasing extraction retries was not considered a satisfactory solution
+because the problem was architectural rather than transient.
+
+Evidence grounding was therefore changed to source-span selection.
+
+Python now:
+
+1. splits the supplied description into exact numbered source spans
+   such as S1, S2, S3
+2. gives those source spans to the LLM
+3. asks the LLM to select one span ID for each non-absent facet
+4. retrieves the exact source text itself
+
+The LLM therefore never generates or paraphrases persisted evidence text.
+
+Evidence remains grounded by construction.
+
+The evidence stage is still not allowed to change:
+
+- facet support
+- facet reasoning
+- final numeric score
+
+### Runner Changes
+
+`evals/run_judge_calibration.py` was updated for the v0.6 architecture.
+
+The runner preserves:
+
+- blind evaluation
+- version pinning
+- `--limit`
+- `--resume`
+- per-case persistence
+- run metadata
+- Git SHA provenance
+- Ollama model configuration
+
+It additionally records:
+
+- facet spec version
+- facet scoring module
+- facet judge module
+
+The result CSV retains compatibility fields:
+
+- case_id
+- has_relevant_evidence
+- evidence_text
+- matched_concept
+- match_level
+- judge_score
+- judge_reason
+
+and adds v0.6 audit fields:
+
+- core_facet_count
+- meaningful_core_count
+- meaningful_core_coverage
+- strong_core_count
+- qualifier_count
+- qualifier_cap_applied
+- scoring_explanation
+- facet_assessments_json
+- facet_evidence_json
+
+### Why
+
+Judge v0.5.1 showed a structural failure when evaluating multi-facet queries.
+
+Two opposite patterns were repeatedly observed:
+
+1. Missing one requested concept could cause an otherwise relevant book to
+   collapse to score 0.
+
+2. Strong support for one requested concept could cause the entire query-book
+   pair to be promoted to score 3 or 4 even when other important requested
+   concepts were absent.
+
+The judge also almost completely failed to use intermediate scores:
+
+- score 1 predictions: 0
+- score 2 predictions: 2
+
+on the 55-case Q02-Q12 development slice.
+
+Facet decomposition was introduced so that partial semantic coverage becomes
+an explicit intermediate representation rather than something the model must
+infer while simultaneously choosing an overall score.
+
+### Validation
+
+Deterministic scoring tests were added in:
+
+`evals/test_facet_scoring.py`
+
+Synthetic cases verify expected behavior for:
+
+- no support -> 0
+- incidental-only support -> 1
+- one strong facet out of several -> 2
+- partial mythology/adventure coverage -> 2
+- broad historical-war coverage -> 3
+- all central facets strong -> 4
+- qualifier preventing a score of 4
+
+The deterministic scoring tests passed.
+
+### Smoke Test
+
+Run:
+
+`20260909T114825Z`
+
+Scope:
+
+- Q01 only
+- 5 cases
+- development data
+- `--limit 5`
+
+Results:
+
+- Q01_R01 -> 3
+- Q01_R05 -> 3
+- Q01_R20 -> 1
+- Q01_R50 -> 1
+- Q01_NEG -> 1
+
+Human labels:
+
+- Q01_R01 -> 3
+- Q01_R05 -> 3
+- Q01_R20 -> 0
+- Q01_R50 -> 0
+- Q01_NEG -> 0
+
+Smoke-test agreement:
+
+- Exact agreement: 40%
+- Within ±1 agreement: 100%
+
+The run completed successfully using source-span evidence selection.
+
+### Observations
+
+The architecture successfully produced intermediate score-1 judgments rather
+than collapsing all weak cases to 0 or strong cases to 3/4.
+
+However, inspection of Q01_R20, Q01_R50, and Q01_NEG showed that the judge was
+using `incidental` too broadly.
+
+The judge sometimes treated concepts such as:
+
+- personal growth
+- adapting to change
+- recovery
+- general relationship difficulty
+
+as incidental evidence for:
+
+- forgiveness
+- redemption
+
+This revealed a semantic-support calibration issue rather than a deterministic
+scoring issue.
+
+The facet architecture and score computation were therefore retained.
+
+The semantic definition of positive facet support required further tightening.
+
+### Decision
+
+Retain the v0.6 architecture.
+
+Do not accept Judge Config v0.6.0 as the final calibrated semantic judge.
+
+Advance to v0.6.1 with tighter semantic facet-support criteria.
+
+### Development Note
+
+An early v0.6.0 smoke attempt used free-form exact-quote extraction and failed
+because the local model paraphrased evidence.
+
+The evidence mechanism was changed to source-span selection before broader
+v0.6 calibration.
+
+This implementation change is recorded explicitly here because a v0.6.0 smoke
+run had already occurred before the evidence mechanism was finalized.
+
+## Judge Config v0.5.1
+Date: 2026-09-09
+
+### Changed
+- Updated the judge configuration version from `0.5.0` to `0.5.1`.
+- Updated the calibration dataset dependency from:
+  - `semantic_relevance_calibration.v0.1.0.csv`
+  - to `semantic_relevance_calibration.v0.2.0.csv`
+- Kept the semantic judge behavior unchanged:
+  - same rubric
+  - same model
+  - same temperature
+  - same decision ladder
+  - same evidence-grounding rules
+  - same score mapping
+- Used the repaired calibration dataset in which:
+  - original candidate identities were restored
+  - exact ISBN-13 values were recovered from the canonical book catalog
+  - mixed encoding issues were repaired
+  - human scores and human reasons were preserved
+  - semantic retrieval was not rerun
+- Fixed runner-side persistence so the final `judge_results.csv` stores the verified `grounded_evidence` returned by the evidence-extraction stage rather than the original paraphrased `verdict.evidence_text`.
+
+### Why
+The previous v0.5.0 calibration run was performed against dataset v0.1.0, which was later found to contain candidate drift.
+
+Several `case_id` values had become associated with different books after candidate regeneration while retaining the original human labels. This made the resulting human-vs-judge comparison unreliable as a calibration result.
+
+A repaired dataset, `v0.2.0`, was created from the original human-labelled candidate set without rerunning retrieval.
+
+The repair process:
+
+- recovered all 60 original candidates
+- matched all 60 uniquely against the canonical book catalog
+- restored exact 13-digit ISBN values
+- restored canonical title, author, and description text
+- preserved original human labels and reasons
+- repaired mixed UTF-8 / Windows-1252 encoding issues
+
+Because the semantic judge itself was not changed, this was treated as a patch-level judge-config revision rather than a new semantic judge version.
+
+### Validation
+
+Calibration configuration:
+
+- Judge Config: `v0.5.1`
+- Calibration Dataset: `v0.2.0`
+- Rubric: `v0.1.0`
+- Provider: Ollama
+- Model: `jeffnyman/ts-evaluator`
+- Temperature: `0.0`
+
+Development set:
+
+- Q01
+- 5 cases
+- Previously used for judge development and therefore excluded from primary calibration metrics
+
+Primary holdout:
+
+- Q02-Q12
+- 55 cases
+
+Holdout results:
+
+- Exact agreement: **49.1%**
+- Within ±1 agreement: **72.7%**
+- Linear weighted Cohen's kappa: **0.501**
+- Quadratic weighted Cohen's kappa: **0.649**
+
+Judge prediction distribution across the 55-case holdout:
+
+- Score 0: 29
+- Score 1: 0
+- Score 2: 2
+- Score 3: 19
+- Score 4: 5
+
+Human-label distribution across the same holdout:
+
+- Score 0: 15
+- Score 1: 5
+- Score 2: 9
+- Score 3: 19
+- Score 4: 7
+
+Agreement by human score:
+
+- Human 0:
+  - Cases: 15
+  - Exact agreement: 100%
+  - Within ±1: 100%
+  - Mean absolute difference: 0.00
+
+- Human 1:
+  - Cases: 5
+  - Exact agreement: 0%
+  - Within ±1: 60%
+  - Mean absolute difference: 1.40
+
+- Human 2:
+  - Cases: 9
+  - Exact agreement: 0%
+  - Within ±1: 11.1%
+  - Mean absolute difference: 1.89
+
+- Human 3:
+  - Cases: 19
+  - Exact agreement: 57.9%
+  - Within ±1: 78.9%
+  - Mean absolute difference: 0.84
+
+- Human 4:
+  - Cases: 7
+  - Exact agreement: 14.3%
+  - Within ±1: 85.7%
+  - Mean absolute difference: 1.00
+
+### Observations
+
+The repaired dataset slightly improved agreement compared with the earlier corrupted v0.1.0 run:
+
+- Exact agreement:
+  - v0.5.0 / dataset v0.1.0: 47.3%
+  - v0.5.1 / dataset v0.2.0: 49.1%
+
+- Linear weighted kappa:
+  - previous: 0.477
+  - repaired run: 0.501
+
+- Quadratic weighted kappa:
+  - previous: 0.617
+  - repaired run: 0.649
+
+However, the main calibration problem remained.
+
+The judge showed strong score-distribution collapse:
+
+- no score-1 predictions
+- only two score-2 predictions
+- most non-zero predictions concentrated at scores 3 and 4
+
+This indicates that the judge is not reliably distinguishing:
+
+- incidental relevance
+- partial relevance
+- clear relevance
+- strong relevance
+
+The strongest performance was at score 0:
+
+- all 15 human score-0 cases were correctly judged as 0
+
+This suggests the current judge behaves more like a conservative binary relevance detector than a calibrated five-level ordinal evaluator.
+
+A binary interpretation of the holdout approximately gives:
+
+- Precision: 100%
+- Recall: 65%
+- F1: 78.8%
+
+where human score 0 is treated as irrelevant and scores 1-4 as relevant.
+
+Several large disagreements revealed a recurring semantic-composition failure.
+
+The judge sometimes treated:
+
+- one missing requested facet as meaning no relevance at all
+- one strongly matching facet as meaning the entire multi-part query was strongly satisfied
+
+Examples included:
+
+- historical / war / political-conflict queries being scored 0 despite descriptions clearly containing historical warfare
+- partial mythology/adventure matches being scored 0 when some important requested facets were present
+- organizational-effectiveness books being scored 4 even when leadership and teamwork were weak or absent
+
+The evidence-grounding stage itself behaved correctly in this run.
+
+All positive verdicts persisted grounded evidence spans that occurred in the supplied description.
+
+### Decision
+**Reject Judge Config v0.5.1 for production use as a five-level ordinal semantic-relevance judge.**
+
+Do not tune v0.5.1 further.
+
+Retain the following successful design elements for the next iteration:
+
+- blind evaluation
+- structured verdicts
+- deterministic score mapping
+- evidence grounding
+- exact evidence extraction
+- resumable execution
+- run provenance/version tracking
+
+Redesign the semantic classification architecture for the next judge version.
+
+The next judge should explicitly decompose multi-part user requests into semantic facets before assigning an overall relevance level.
+
+The 55 cases from Q02-Q12 have now been inspected in detail and should no longer be treated as an untouched holdout for future judge versions.
+
+Use them as development/calibration data for the next iteration.
+
+Create a new unseen human-labelled holdout before making any generalization claim about the next judge version.
+
+### Unchanged
+- Rubric version: `0.1.0`
+- Provider: `ollama`
+- Model: `jeffnyman/ts-evaluator`
+- Base URL: `http://localhost:11434`
+- Temperature: `0.0`
+- Evaluation unit: one user query × one recommended book
+- Semantic decision ladder:
+  - none -> 0
+  - incidental -> 1
+  - partial -> 2
+  - clear -> 3
+  - strong -> 4
+
 ## Judge Config v0.5.0
 Date: 2026-09-08
 
@@ -48,6 +1244,19 @@ Freeze Judge Config v0.5.0.
 Do not tune further using these five development cases.
 
 Evaluate v0.5.0 against the remaining 55 untouched holdout cases.
+
+Calibration outcome: REJECTED
+
+Reason:
+Insufficient ordinal agreement on untouched holdout.
+The judge substantially under-detects partial and implicit semantic
+relevance and collapses the 1–2 region of the rubric.
+
+Holdout size             55
+Exact agreement          47.3%
+Within ±1                72.7%
+Linear weighted κ        0.477
+Quadratic weighted κ     0.617
 
 ### Unchanged
 - Rubric version: 0.1.0

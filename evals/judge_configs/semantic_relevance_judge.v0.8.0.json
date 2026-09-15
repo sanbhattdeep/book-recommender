@@ -1,0 +1,128 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.8.0",
+  "status": "development",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.2.0",
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "facet_spec_version": "0.1.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "allowed_input_fields": [
+    "query",
+    "title",
+    "authors",
+    "description",
+    "frozen_facets",
+    "numbered_description_spans"
+  ],
+  "blocked_input_fields": [
+    "human_score",
+    "human_reason",
+    "review_status",
+    "retrieval_rank",
+    "candidate_source",
+    "query_slice"
+  ],
+  "semantic_stage": {
+    "owner": "llm_evidence_grounded_relation_and_prominence",
+    "purpose": "Select one exact source span and independently classify semantic relation and, for core facets, prominence. The LLM does not directly assign absent/incidental/meaningful/strong or the final 0-4 score.",
+    "relation_scale": {
+      "none": "No source span establishes a meaningful relationship to the facet.",
+      "adjacent": "A source span is topically/causally/broadly related, but the facet itself or a close semantic equivalent does not follow from it.",
+      "entailed": "The facet reasonably follows from the selected span without speculation, but is not directly stated or unmistakably instantiated.",
+      "explicit": "The selected span directly states the facet, a close semantic equivalent, or an unmistakable concrete instance of the facet. Exact query wording is not required."
+    },
+    "prominence_scale": {
+      "not_applicable": "Use for relation none/adjacent and for every qualifier facet.",
+      "incidental": "The genuinely supported core facet appears only peripherally or briefly.",
+      "substantive": "The genuinely supported core facet is a meaningful part of the described book but not clearly a central premise/theme/focus.",
+      "central": "The description presents the genuinely supported core facet as a major focus, premise, recurring driver, or defining subject."
+    },
+    "instructions": [
+      "Evaluate only the supplied query, frozen facet, title, authors, exact description spans, rubric, and these instructions.",
+      "Do not use external knowledge about the book or author.",
+      "The description is the primary evidence source. A title may help interpret the description but cannot replace description evidence.",
+      "Assess every frozen facet independently. Do not merge, rewrite, or infer one facet from another facet.",
+      "Choose the evidence span BEFORE deciding semantic relation or prominence.",
+      "Your relation decision must be justified by the selected span itself.",
+      "Do not claim that the selected span contains words, events, themes, or concepts that are not actually stated or entailed by that span.",
+      "Exact lexical overlap is not required. An unmistakable concrete instance can be explicit semantic support.",
+      "Example: a source span describing a murder can explicitly support the facet 'crime' even if the word 'crime' is absent.",
+      "Example: a source span saying detectives investigate a killing can explicitly support 'investigation'.",
+      "Example: a quest can directly instantiate 'adventure' even if the word 'adventure' is absent.",
+      "Do not confuse an associated concept with the requested facet. A concept that is merely related belongs in adjacent, not entailed/explicit.",
+      "Example: a perfect-looking society with hidden corruption does not by itself establish authoritarian control.",
+      "Example: general professional principles that could be applied to teams do not by themselves establish teamwork.",
+      "Example: redemption does not by itself establish forgiveness.",
+      "For composite or relational facets, the selected span must support the composite relation as a whole. Supporting only one component is not enough.",
+      "Do not confuse negative polarity with semantic absence. Failure, denial, loss, pursuit, prevention, or inability can still make a concept directly discussed.",
+      "For core facets, judge prominence only after relation is entailed or explicit.",
+      "Use incidental when the actual facet is genuinely present but peripheral.",
+      "Use substantive when the actual facet matters to the described book but is not clearly central.",
+      "Use central only when the selected evidence and broader description make the facet a major focus/premise/driver.",
+      "For qualifier facets, never judge centrality. Always use prominence=not_applicable.",
+      "A qualifier such as beginner-friendly may be entailed by properties such as everyday language, simple explanations, accessibility, or introductory treatment.",
+      "Return relation=none with evidence_span_id=NONE when there is no relevant source evidence.",
+      "Return relation=adjacent when a source span is genuinely related but does not establish the requested facet.",
+      "Do not output the legacy support labels absent/incidental/meaningful/strong.",
+      "Do not output a numeric score."
+    ]
+  },
+  "support_derivation": {
+    "owner": "deterministic_python",
+    "core": {
+      "none_or_adjacent": "absent",
+      "entailed_or_explicit_plus_incidental": "incidental",
+      "entailed_plus_substantive_or_central": "meaningful",
+      "explicit_plus_substantive": "meaningful",
+      "explicit_plus_central": "strong"
+    },
+    "qualifier": {
+      "none_or_adjacent": "absent",
+      "entailed": "meaningful",
+      "explicit": "strong"
+    }
+  },
+  "scoring_stage": {
+    "owner": "deterministic_python",
+    "module": "evals/semantic_relevance_facet_scoring.py",
+    "function": "compute_facet_score",
+    "aggregation_version": "v0.7_rules_preserved_for_isolation",
+    "rules": {
+      "0_none": "All core facets derive to absent.",
+      "1_incidental": "At least one core facet derives to incidental and none derive to meaningful/strong.",
+      "2_partial": "At least one core facet derives to meaningful/strong but neither clear-score rule is met.",
+      "3_clear_general": "At least two-thirds of core facets derive to meaningful/strong while not all core facets are strong.",
+      "3_clear_two_core_exception": "For exactly two core facets, one strong facet is sufficient for score 3.",
+      "4_strong": "All core facets derive to strong.",
+      "qualifier_cap": "If provisional score is 4 and any qualifier is below meaningful, cap to 3."
+    }
+  },
+  "evidence_stage": {
+    "owner": "integrated_into_semantic_stage",
+    "purpose": "The LLM selects exact source span IDs during facet assessment. Python persists the source text for those IDs. There is no later free-form or post-hoc evidence extraction call."
+  },
+  "structured_output_recovery": {
+    "batch_repair_attempts": 2,
+    "fallback": "If the multi-facet verdict remains mechanically invalid, re-evaluate every frozen facet individually using the same relation/prominence contract and recombine in Python.",
+    "audit_fields": [
+      "semantic_generation_mode",
+      "semantic_batch_repair_attempts"
+    ]
+  },
+  "primary_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ]
+}

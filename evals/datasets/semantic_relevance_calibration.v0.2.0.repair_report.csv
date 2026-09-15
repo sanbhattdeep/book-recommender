@@ -1,0 +1,61 @@
+case_id,title,authors,damaged_isbn13,recovered_isbn13,match_strategy,candidate_count,status
+Q01_R01,Searching for God Knows What,Donald Miller,9.78079E+12,9780785263715,title+authors+description,1,RECOVERED
+Q01_R05,Redemption,Gary Smalley;Karen Kingsbury,9.78084E+12,9780842356220,title+authors+description,1,RECOVERED
+Q01_R20,A Midwife's Story,Penny Armstrong;Sheryl Feldman,9.78191E+12,9781905177042,title+authors+description,1,RECOVERED
+Q01_R50,Who Moved My Cheese?,Spencer Johnson,9.78009E+12,9780091883768,title+authors+description,1,RECOVERED
+Q01_NEG,The Early Diary of Anaïs Nin: 1923-1927,Anaïs Nin,9.78016E+12,9780156272506,title+authors+description,1,RECOVERED
+Q02_R01,The Pusher,Ed McBain,9.78075E+12,9780752857930,title+authors+description,1,RECOVERED
+Q02_R05,3rd Degree,James Patterson;Andrew Gross,9.78045E+12,9780446614832,title+authors+description,1,RECOVERED
+Q02_R20,The Second Time Around,Mary Higgins Clark,9.78074E+12,9780743412629,title+authors+description,1,RECOVERED
+Q02_R50,Zombie,Joyce Carol Oates,9.78045E+12,9780452275003,title+authors+description,1,RECOVERED
+Q02_NEG,Son of a Witch,Gregory Maguire,9.78006E+12,9780060747220,title+authors+description,1,RECOVERED
+Q03_R01,Making a Change for Good,Cheri Huber,9.78159E+12,9781590302088,title+authors+description,1,RECOVERED
+Q03_R05,Bridget Jones's Guide to Life,Helen Fielding,9.78014E+12,9780142000212,title+authors+description,1,RECOVERED
+Q03_R20,Zen and the Art of Motorcycle Maintenance,Robert M. Pirsig,9.78069E+12,9780688052300,title+authors+description,1,RECOVERED
+Q03_R50,Unlimited Power,Tony Robbins,9.78068E+12,9780684845777,title+authors+description,1,RECOVERED
+Q03_NEG,The Coming Economic Collapse,Stephen Leeb;Glen Strathy,9.78045E+12,9780446579780,title+authors+description,1,RECOVERED
+Q04_R01,Children of Húrin,John Ronald Reuel Tolkien,9.78062E+12,9780618894642,title+authors+description,1,RECOVERED
+Q04_R05,Wild Magic,Tamora Pierce,9.78142E+12,9781416903437,title+authors+description,1,RECOVERED
+Q04_R20,The Mirror of Merlin,T. A. Barron,9.78044E+12,9780441009657,title+authors+description,1,RECOVERED
+Q04_R50,Master of Dragons,Angela Knight,9.78043E+12,9780425214244,title+authors+description,1,RECOVERED
+Q04_NEG,It's Not About the Bike,Lance Armstrong,9.78043E+12,9780425179611,title+authors+description,1,RECOVERED
+Q05_R01,Ride of the Second Horseman,Robert L. O'Connell,9.7802E+12,9780195119206,title+authors+description,1,RECOVERED
+Q05_R05,Paris 1919,Margaret MacMillan,9.78038E+12,9780375760525,title+authors+description,1,RECOVERED
+Q05_R20,Black Lamb and Grey Falcon,Rebecca West,9.78014E+12,9780143104902,title+authors+description,1,RECOVERED
+Q05_R50,"The Road to War, 1933-1939",Andrew Hunt,9.78034E+12,9780340774779,title+authors+description,1,RECOVERED
+Q05_NEG,Lady Oracle,Margaret Atwood,9.78039E+12,9780385491082,title+authors+description,1,RECOVERED
+Q06_R01,What Dreams May Come,Richard Matheson,9.78077E+12,9780765308702,title+authors+description,1,RECOVERED
+Q06_R05,The Tiny One,Eliza Minot,9.78038E+12,9780375706332,title+authors+description,1,RECOVERED
+Q06_R20,Wartime Lies,Louis Begley,9.78045E+12,9780449001172,title+authors+description,1,RECOVERED
+Q06_R50,The God of Small Things,Arundhati Roy,9.78006E+12,9780060977498,title+authors+description,1,RECOVERED
+Q06_NEG,Journey into God's Word,J. Scott Duvall;J. Daniel Hays,9.78031E+12,9780310259664,title+authors+description,1,RECOVERED
+Q07_R01,Turtle Moon,Alice Hoffman,9.7801E+12,9780099429166,title+authors+description,1,RECOVERED
+Q07_R05,This boy's life,Tobias Wolff,9.7808E+12,9780802136688,title+authors+description,1,RECOVERED
+Q07_R20,The Orange Girl,Jostein Gaarder,9.78075E+12,9780753819920,title+authors+description,1,RECOVERED
+Q07_R50,The Deep End of the Ocean,Jacquelyn Mitchard,9.78014E+12,9780140286274,title+authors+description,1,RECOVERED
+Q07_NEG,March,Geraldine Brooks,9.78014E+12,9780143036661,title+authors+description,1,RECOVERED
+Q08_R01,Astronomy,Eric Chaisson;Stephen McMillan,9.78013E+12,9780131871656,title+authors+description,1,RECOVERED
+Q08_R05,Stephen Hawking's Universe,David Filkin,9.78047E+12,9780465081981,title+authors+description,1,RECOVERED
+Q08_R20,A Brief History of Time,Stephen Hawking,9.78055E+12,9780553053401,title+authors+description,1,RECOVERED
+Q08_R50,Looking for God in Harry Potter,John Granger,9.78141E+12,9781414306346,title+authors+description,1,RECOVERED
+Q08_NEG,Amelia's Notebook,Marissa Moss,9.78142E+12,9781416909057,title+authors+description,1,RECOVERED
+Q09_R01,1984,George Orwell,9.78045E+12,9780452284234,title+authors+description,1,RECOVERED
+Q09_R05,Pacific Edge,Kim Stanley Robinson,9.78031E+12,9780312890384,title+authors+description,1,RECOVERED
+Q09_R20,Glamorama,Bret Easton Ellis,9.78038E+12,9780375703843,title+authors+description,1,RECOVERED
+Q09_R50,Long Walk to Freedom,Nelson Mandela,9.78035E+12,9780349116303,title+authors+description,1,RECOVERED
+Q09_NEG,Sammlung,William Shakespeare,9.78014E+12,9780141000589,title+authors+description,1,RECOVERED
+Q10_R01,The 7 Habits of Highly Effective People Personal Workbook,Stephen R. Covey,9.78074E+12,9780743250979,title+authors+description,1,RECOVERED
+Q10_R05,Built to Last,Jim Collins;Jerry I. Porras,9.78006E+12,9780060566104,title+authors+description,1,RECOVERED
+Q10_R20,The 7 Habits of Highly Effective People,Stephen R. Covey,9.78074E+12,9780743269513,title+authors+description,1,RECOVERED
+Q10_R50,Eight Mindful Steps to Happiness,Henepola Gunaratana,9.78086E+12,9780861711765,title+authors+description,1,RECOVERED
+Q10_NEG,Ward No. 6 and Other Stories,Anton Pavlovich Chekhov,9.78159E+12,9781593080037,title+authors+description,1,RECOVERED
+Q11_R01,Children of Húrin,John Ronald Reuel Tolkien,9.78062E+12,9780618894642,title+authors+description,1,RECOVERED
+Q11_R05,Dragons of Winter Night,Margaret Weis;Tracy Hickman;Andrew Dabb,9.78193E+12,9781932796780,title+authors+description,1,RECOVERED
+Q11_R20,Tales from the Odyssey: The Land of the Dead - Book #2,Mary Pope Osborne,9.78079E+12,9780786809295,title+authors+description,1,RECOVERED
+Q11_R50,Pet Peeve,Piers Anthony,9.78077E+12,9780765343116,title+authors+description,1,RECOVERED
+Q11_NEG,Romeo and Juliet,William Shakespeare,9.78075E+12,9780748702558,title+authors+description,1,RECOVERED
+Q12_R01,Sociology in Our Times,Diana Kendall,9.7805E+12,9780495006855,title+authors+description,1,RECOVERED
+Q12_R05,Political Philosophy: A Beginner's Guide for Students and Politicians,Adam Swift,9.78075E+12,9780745628479,title+authors+description,1,RECOVERED
+Q12_R20,The Politics of Injustice,Katherine Beckett;Theodore Sasson,9.78076E+12,9780761929949,title+authors+description,1,RECOVERED
+Q12_R50,A Certain Justice,John T. Lescroart,9.78045E+12,9780451217769,title+authors+description,1,RECOVERED
+Q12_NEG,Dates From Hell,Kim Harrison;Lynsay Sands;Kelley Armstrong;Lori Handeland,9.78006E+12,9780060854096,title+authors+description,1,RECOVERED

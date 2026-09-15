@@ -1,746 +1,697 @@
 """
-Run blind LLM-judge calibration for Semantic Recommendation Relevance.
+Analyze agreement between human gold labels and semantic-relevance judge scores.
 
-This runner is designed for Judge Config v0.4.0.
+Run from the repository root:
 
-What changed in v0.4.0
-----------------------
-Earlier judge versions returned only:
+    uv run python evals/analyze_judge_calibration.py `
+      --run evals/runs/semantic_relevance/<RUN_ID>
 
-    score
-    reason
+Optional subset analysis:
 
-v0.4.0 uses a richer structured verdict:
+    uv run python evals/analyze_judge_calibration.py `
+      --run evals/runs/semantic_relevance/<RUN_ID> `
+      --exclude-query-id Q01
 
-    has_relevant_evidence
-    match_level
-    score
-    reason
+Important methodology note
+--------------------------
+Q01-Q12 have all now been inspected and used during judge development.
 
-The judge first classifies the semantic match as one of:
+Therefore the current 60-case calibration dataset is DEVELOPMENT/CALIBRATION
+data, not an untouched holdout.
 
-    none       -> 0
-    incidental -> 1
-    partial    -> 2
-    clear      -> 3
-    strong     -> 4
+This analyzer deliberately calls an exclusion-based analysis a "subset" rather
+than a "holdout" so generated artifacts do not accidentally make a
+generalization claim that the data no longer supports.
 
-The Python runner then validates that the judge's boolean, match level,
-and numeric score are mutually consistent.
+Source-of-truth rule
+--------------------
+The analyzer no longer hard-codes the calibration dataset version.
 
-This is important because the earlier smoke tests showed that the local
-judge sometimes described a case as having "no explicit evidence" while
-still assigning score 1. The structured verdict makes those internal
-inconsistencies detectable.
+Instead it reads `run_metadata.json` first and resolves the exact dataset
+version recorded by the runner:
 
-Blind-evaluation rule
----------------------
-The judge may see only:
+    calibration_dataset_version -> evals/datasets/
+        semantic_relevance_calibration.v<version>.csv
 
-    query
-    title
-    authors
-    description
-    rubric
-    judge instructions
+This prevents the earlier provenance bug where a v0.2.0 judge run was analyzed
+against v0.1.0 candidate metadata.
 
-It must NOT see:
+Primary metrics
+---------------
+- Exact agreement
+- Within ±1 agreement
+- Linear weighted Cohen's kappa
 
-    human_score
-    human_reason
-    review_status
-    retrieval_rank
-    candidate_source
-    query_slice
+Secondary metrics / diagnostics
+-------------------------------
+- Quadratic weighted Cohen's kappa
+- Confusion matrix
+- Agreement by human score
+- Human and judge score distributions
+- Binary relevance precision / recall / F1 for 0 vs >0
+- False-zero cases
+- False-positive relevance cases
+- Severe ordinal disagreements (absolute difference >= 2)
+- Semantic structured-output mode counts
+- Agreement by semantic generation mode
+- Clear-score rule usage and agreement
 
-Typical usage
--------------
-Smoke test the first five remaining cases:
-
-    uv run python evals/run_judge_calibration.py --limit 5
-
-Resume an existing run:
-
-    uv run python evals/run_judge_calibration.py `
-      --resume evals/runs/semantic_relevance/<RUN_ID>
+The additional v0.7 diagnostics help distinguish:
+- semantic facet-classification failures,
+- deterministic aggregation failures,
+- and structured-output fallback behavior.
 """
 
 from __future__ import annotations
 
 import argparse
 import json
-import platform
-import subprocess
-from datetime import datetime, timezone
-from importlib.metadata import version as package_version
 from pathlib import Path
-from typing import Literal
+from typing import Any
 
 import pandas as pd
-from deepeval.models import OllamaModel
-from pydantic import BaseModel, Field
-
-
-# =============================================================================
-# Version pins
-# =============================================================================
-#
-# These constants define the exact evaluation artifacts used by this runner.
-#
-# Once a judge configuration has been used for a real calibration run,
-# do not silently modify it. Create a new version instead.
-# =============================================================================
-
-JUDGE_CONFIG_VERSION = "0.4.0"
-DATASET_VERSION = "0.1.0"
-RUBRIC_VERSION = "0.1.0"
+from sklearn.metrics import (
+    cohen_kappa_score,
+    confusion_matrix,
+    precision_recall_fscore_support,
+)
 
 
 # =============================================================================
 # Repository paths
 # =============================================================================
 
-# Expected script location:
-#   <repo>/evals/run_judge_calibration.py
-#
-# Therefore parents[1] is the repository root.
 REPO_ROOT = Path(__file__).resolve().parents[1]
 EVALS_DIR = REPO_ROOT / "evals"
-
-DATASET_FILE = (
-    EVALS_DIR
-    / "datasets"
-    / f"semantic_relevance_calibration.v{DATASET_VERSION}.csv"
-)
-
-RUBRIC_FILE = (
-    EVALS_DIR
-    / "rubrics"
-    / "semantic_relevance"
-    / f"semantic_relevance_rubric.v{RUBRIC_VERSION}.json"
-)
-
-JUDGE_CONFIG_FILE = (
-    EVALS_DIR
-    / "judge_configs"
-    / f"semantic_relevance_judge.v{JUDGE_CONFIG_VERSION}.json"
-)
-
-RUNS_DIR = EVALS_DIR / "runs" / "semantic_relevance"
+DATASETS_DIR = EVALS_DIR / "datasets"
 
 
 # =============================================================================
-# Structured judge output
+# Generic helpers
 # =============================================================================
 
-MatchLevel = Literal[
-    "none",
-    "incidental",
-    "partial",
-    "clear",
-    "strong",
-]
-
-
-class JudgeVerdict(BaseModel):
+def load_json(
+    path: Path,
+) -> dict[str, Any]:
     """
-    Structured semantic classification returned by the LLM judge.
-
-    The numeric score is still requested from the model, but the runner
-    independently validates it against match_level using the versioned
-    score_mapping from the judge config.
+    Load one UTF-8 JSON object and fail with the concrete path if missing.
     """
 
-    has_relevant_evidence: bool = Field(
-        description=(
-            "True only when the supplied description contains actual positive "
-            "evidence for at least one requested concept or close semantic "
-            "equivalent."
+    if not path.exists():
+        raise FileNotFoundError(
+            f"Required JSON file not found: {path}"
         )
-    )
 
-    match_level: MatchLevel = Field(
-        description=(
-            "Semantic match classification: none, incidental, partial, clear, "
-            "or strong."
-        )
-    )
-
-    score: Literal[0, 1, 2, 3, 4] = Field(
-        description="Numeric score corresponding to match_level."
-    )
-
-    reason: str = Field(
-        min_length=1,
-        description=(
-            "Brief evidence-based explanation for the selected match level."
-        )
-    )
-
-
-# =============================================================================
-# File/config helpers
-# =============================================================================
-
-def load_json(path: Path) -> dict:
-    """Load a UTF-8 JSON file."""
-    with path.open("r", encoding="utf-8") as file:
+    with path.open(
+        "r",
+        encoding="utf-8",
+    ) as file:
         return json.load(file)
 
 
-def validate_inputs(
-    dataset: pd.DataFrame,
-    rubric: dict,
-    config: dict,
-) -> None:
-    """
-    Validate dataset, rubric, and judge-config compatibility before any model
-    calls are made.
-    """
-
-    required_columns = {
-        "case_id",
-        "query",
-        "title",
-        "authors",
-        "description",
-        "human_score",
-        "human_reason",
-        "review_status",
-        "dataset_version",
-        "rubric_version",
-    }
-
-    missing_columns = required_columns - set(dataset.columns)
-
-    if missing_columns:
-        raise ValueError(
-            f"Missing dataset columns: {sorted(missing_columns)}"
-        )
-
-    if dataset["case_id"].duplicated().any():
-        duplicates = dataset.loc[
-            dataset["case_id"].duplicated(keep=False),
-            "case_id",
-        ].tolist()
-
-        raise ValueError(
-            f"Duplicate case_id values found: {duplicates}"
-        )
-
-    if not dataset["human_score"].notna().all():
-        raise ValueError(
-            "Calibration dataset contains missing human_score values."
-        )
-
-    if not dataset["human_score"].isin([0, 1, 2, 3, 4]).all():
-        raise ValueError(
-            "human_score must contain only 0, 1, 2, 3, or 4."
-        )
-
-    if set(dataset["dataset_version"].astype(str)) != {DATASET_VERSION}:
-        raise ValueError(
-            f"Dataset rows do not all declare dataset version "
-            f"{DATASET_VERSION}."
-        )
-
-    if set(dataset["rubric_version"].astype(str)) != {RUBRIC_VERSION}:
-        raise ValueError(
-            f"Dataset rows do not all declare rubric version "
-            f"{RUBRIC_VERSION}."
-        )
-
-    if rubric.get("version") != RUBRIC_VERSION:
-        raise ValueError(
-            f"Rubric file declares version {rubric.get('version')!r}; "
-            f"expected {RUBRIC_VERSION!r}."
-        )
-
-    if config.get("version") != JUDGE_CONFIG_VERSION:
-        raise ValueError(
-            f"Judge config declares version {config.get('version')!r}; "
-            f"expected {JUDGE_CONFIG_VERSION!r}."
-        )
-
-    if config.get("rubric_version") != RUBRIC_VERSION:
-        raise ValueError(
-            "Judge config rubric_version does not match RUBRIC_VERSION."
-        )
-
-    if config.get("dataset_version") != DATASET_VERSION:
-        raise ValueError(
-            "Judge config dataset_version does not match DATASET_VERSION."
-        )
-
-    if config.get("provider") != "ollama":
-        raise ValueError(
-            "Judge provider must be 'ollama' for this runner."
-        )
-
-    expected_mapping = {
-        "none": 0,
-        "incidental": 1,
-        "partial": 2,
-        "clear": 3,
-        "strong": 4,
-    }
-
-    if config.get("score_mapping") != expected_mapping:
-        raise ValueError(
-            "Judge config score_mapping is missing or does not match "
-            f"the expected mapping: {expected_mapping}"
-        )
-
-
-# =============================================================================
-# Rubric formatting
-# =============================================================================
-
-def format_rubric(rubric: dict) -> str:
-    """
-    Convert the versioned rubric JSON into readable prompt text.
-
-    The rubric JSON remains the source of truth. We do not duplicate the rubric
-    definitions inside this Python file.
-    """
-
-    lines: list[str] = [
-        f"RUBRIC: {rubric['name']}",
-        "",
-        "PURPOSE",
-        rubric["purpose"],
-        "",
-        "EVIDENCE RULES",
-    ]
-
-    for rule in rubric.get("evidence_rules", []):
-        lines.append(f"- {rule}")
-
-    lines.extend(
-        [
-            "",
-            "SCORING DEFINITIONS",
-        ]
-    )
-
-    for score in [4, 3, 2, 1, 0]:
-        item = rubric["scores"][str(score)]
-
-        lines.append(
-            f"{score} — {item['label']}: {item['definition']}"
-        )
-
-        # Synthetic anchor examples help humans and LLM judges interpret each
-        # score consistently.
-        for example in item.get("anchor_examples", []):
-            lines.append(
-                f"  Anchor query: {example['query']}"
-            )
-            lines.append(
-                f"  Anchor description: "
-                f"{example['book_description']}"
-            )
-            lines.append(
-                f"  Why this score: {example['why']}"
-            )
-
-        lines.append("")
-
-    lines.append("BOUNDARY GUIDANCE")
-
-    for boundary in rubric.get("boundary_examples", []):
-        lines.append(
-            f"- {boundary['boundary']}: "
-            f"{boundary['distinction']}"
-        )
-
-    lines.extend(
-        [
-            "",
-            "TIE-BREAK RULE",
-            rubric["tie_break_rule"],
-        ]
-    )
-
-    return "\n".join(lines)
-
-
-# =============================================================================
-# Prompt construction
-# =============================================================================
-
-def build_prompt(
-    row: pd.Series,
-    rubric_text: str,
-    config: dict,
-) -> str:
-    """
-    Build the blind prompt for one query-book evaluation unit.
-
-    IMPORTANT:
-    Never replace this explicit allow-list with `row.to_dict()`.
-
-    The row contains the human gold score and human reason, which must remain
-    hidden from the judge.
-    """
-
-    case = {
-        "query": str(row["query"]),
-        "title": str(row["title"]),
-        "authors": str(row["authors"]),
-        "description": str(row["description"]),
-    }
-
-    judge_instructions = "\n".join(
-        f"- {instruction}"
-        for instruction in config["instructions"]
-    )
-
-    return f"""You are an independent evaluator of a semantic book recommender.
-
-Judge exactly ONE query-book pair using the supplied rubric and decision ladder.
-
-JUDGE INSTRUCTIONS
-{judge_instructions}
-
-{rubric_text}
-
-CASE TO EVALUATE
-
-User query:
-{case["query"]}
-
-Recommended book title:
-{case["title"]}
-
-Authors:
-{case["authors"]}
-
-Book description:
-{case["description"]}
-
-Return the structured verdict requested by the response schema.
-"""
-
-
-# =============================================================================
-# Judge-verdict consistency checks
-# =============================================================================
-
-def validate_verdict(
-    verdict: JudgeVerdict,
-    config: dict,
-) -> int:
-    """
-    Validate semantic consistency between:
-
-        has_relevant_evidence
-        match_level
-        score
-
-    Returns
-    -------
-    int
-        The deterministic score derived from match_level.
-
-    Why derive the score again?
-    ---------------------------
-    The LLM is responsible for the semantic classification. Python is
-    responsible for enforcing the mechanical mapping from classification to
-    score. This prevents an internally inconsistent verdict such as:
-
-        match_level = "none"
-        score = 1
-    """
-
-    score_mapping = config["score_mapping"]
-
-    derived_score = score_mapping[
-        verdict.match_level
-    ]
-
-    # Mechanical mapping must always hold.
-    if verdict.score != derived_score:
-        raise ValueError(
-            "Judge returned inconsistent match_level/score: "
-            f"match_level={verdict.match_level!r}, "
-            f"score={verdict.score}, "
-            f"expected_score={derived_score}."
-        )
-
-    # No evidence must map to "none".
-    if (
-        verdict.has_relevant_evidence is False
-        and verdict.match_level != "none"
-    ):
-        raise ValueError(
-            "Judge returned has_relevant_evidence=False but "
-            f"match_level={verdict.match_level!r}. "
-            "Expected match_level='none'."
-        )
-
-    # Any non-none level requires positive evidence.
-    if (
-        verdict.has_relevant_evidence is True
-        and verdict.match_level == "none"
-    ):
-        raise ValueError(
-            "Judge returned has_relevant_evidence=True but "
-            "match_level='none'."
-        )
-
-    return derived_score
-
-
-# =============================================================================
-# Run metadata / resumability
-# =============================================================================
-
-def git_commit_sha() -> str | None:
-    """
-    Return the current Git commit SHA when available.
-    """
-
-    try:
-        return subprocess.check_output(
-            ["git", "rev-parse", "HEAD"],
-            cwd=REPO_ROOT,
-            text=True,
-        ).strip()
-
-    except Exception:
-        # Missing Git metadata should not block a local calibration run.
-        return None
-
-
-def create_run_dir(
-    resume: str | None,
+def resolve_run_dir(
+    run_argument: str,
 ) -> Path:
     """
-    Create a new timestamped run directory or resolve an existing run to resume.
+    Resolve --run as either an absolute path or repository-relative path.
     """
 
-    RUNS_DIR.mkdir(
-        parents=True,
-        exist_ok=True,
+    run_dir = Path(
+        run_argument
     )
 
-    if resume:
-        run_dir = Path(
-            resume
+    if not run_dir.is_absolute():
+        run_dir = (
+            REPO_ROOT
+            / run_dir
         )
 
-        if not run_dir.is_absolute():
-            run_dir = (
-                REPO_ROOT
-                / run_dir
-            )
-
-        if not run_dir.exists():
-            raise FileNotFoundError(
-                f"Resume directory not found: {run_dir}"
-            )
-
-        return run_dir
-
-    run_id = datetime.now(
-        timezone.utc
-    ).strftime(
-        "%Y%m%dT%H%M%SZ"
-    )
-
-    run_dir = (
-        RUNS_DIR
-        / run_id
-    )
-
-    run_dir.mkdir(
-        parents=False,
-        exist_ok=False,
-    )
+    if not run_dir.exists():
+        raise FileNotFoundError(
+            f"Run directory not found: {run_dir}"
+        )
 
     return run_dir
 
 
-def write_metadata(
-    run_dir: Path,
-    config: dict,
-    status: str,
-    completed_cases: int,
-    total_cases: int,
+def dataset_version_from_metadata(
+    metadata: dict[str, Any],
+) -> str:
+    """
+    Resolve dataset version from run metadata.
+
+    `calibration_dataset_version` is the canonical key used by the current
+    runner. `dataset_version` is accepted as a compatibility fallback for older
+    runs.
+    """
+
+    version = (
+        metadata.get(
+            "calibration_dataset_version"
+        )
+        or metadata.get(
+            "dataset_version"
+        )
+    )
+
+    if not version:
+        raise ValueError(
+            "run_metadata.json does not contain "
+            "'calibration_dataset_version' or 'dataset_version'."
+        )
+
+    return str(
+        version
+    )
+
+
+def dataset_file_for_version(
+    dataset_version: str,
+) -> Path:
+    """
+    Construct the exact versioned calibration dataset path.
+    """
+
+    return (
+        DATASETS_DIR
+        / f"semantic_relevance_calibration.v{dataset_version}.csv"
+    )
+
+
+# =============================================================================
+# Input / provenance validation
+# =============================================================================
+
+def validate_analysis_inputs(
+    gold: pd.DataFrame,
+    judged: pd.DataFrame,
+    metadata: dict[str, Any],
+    dataset_version: str,
 ) -> None:
     """
-    Persist run provenance and progress.
+    Validate gold labels, judge results, and run provenance before joining.
 
-    This file is rewritten throughout execution so partial runs remain
-    reproducible.
+    The goal is to fail loudly rather than produce numerically plausible
+    metrics from mismatched artifacts.
     """
 
-    metadata = {
-        "run_id": run_dir.name,
-        "status": status,
-        "updated_at_utc": datetime.now(
-            timezone.utc
-        ).isoformat(),
-
-        # Code provenance.
-        "git_commit_sha": git_commit_sha(),
-
-        # Versioned evaluation artifacts.
-        "rubric_version": RUBRIC_VERSION,
-        "calibration_dataset_version": DATASET_VERSION,
-        "judge_config_version": JUDGE_CONFIG_VERSION,
-
-        # Judge runtime configuration.
-        "judge_provider": config["provider"],
-        "judge_model": config["model"],
-        "judge_base_url": config["base_url"],
-        "temperature": config["temperature"],
-
-        # Runtime/library versions.
-        "python_version": platform.python_version(),
-        "deepeval_version": package_version("deepeval"),
-
-        # Progress.
-        "completed_cases": completed_cases,
-        "total_cases": total_cases,
+    required_gold_columns = {
+        "case_id",
+        "query_id",
+        "query",
+        "title",
+        "human_score",
+        "human_reason",
     }
 
-    metadata_file = (
-        run_dir
-        / "run_metadata.json"
+    required_judge_columns = {
+        "case_id",
+        "judge_score",
+        "judge_reason",
+    }
+
+    missing_gold = (
+        required_gold_columns
+        - set(
+            gold.columns
+        )
     )
 
-    metadata_file.write_text(
-        json.dumps(
-            metadata,
-            indent=2,
-        ),
-        encoding="utf-8",
+    missing_judge = (
+        required_judge_columns
+        - set(
+            judged.columns
+        )
+    )
+
+    if missing_gold:
+        raise ValueError(
+            "Gold dataset is missing columns: "
+            f"{sorted(missing_gold)}"
+        )
+
+    if missing_judge:
+        raise ValueError(
+            "Judge results are missing columns: "
+            f"{sorted(missing_judge)}"
+        )
+
+    if gold[
+        "case_id"
+    ].duplicated().any():
+
+        duplicates = gold.loc[
+            gold[
+                "case_id"
+            ].duplicated(
+                keep=False
+            ),
+            "case_id",
+        ].tolist()
+
+        raise ValueError(
+            "Gold dataset contains duplicate case_id values: "
+            f"{duplicates}"
+        )
+
+    if judged[
+        "case_id"
+    ].duplicated().any():
+
+        duplicates = judged.loc[
+            judged[
+                "case_id"
+            ].duplicated(
+                keep=False
+            ),
+            "case_id",
+        ].tolist()
+
+        raise ValueError(
+            "Judge results contain duplicate case_id values: "
+            f"{duplicates}"
+        )
+
+    if not gold[
+        "human_score"
+    ].isin(
+        [0, 1, 2, 3, 4]
+    ).all():
+        raise ValueError(
+            "Gold human_score contains values outside the 0-4 rubric scale."
+        )
+
+    if not judged[
+        "judge_score"
+    ].isin(
+        [0, 1, 2, 3, 4]
+    ).all():
+        raise ValueError(
+            "Judge score contains values outside the 0-4 rubric scale."
+        )
+
+    # -------------------------------------------------------------------------
+    # Dataset provenance recorded inside the CSV, when available.
+    # -------------------------------------------------------------------------
+    if "dataset_version" in gold.columns:
+
+        declared_versions = set(
+            gold[
+                "dataset_version"
+            ].astype(
+                str
+            )
+        )
+
+        if declared_versions != {
+            dataset_version
+        }:
+            raise ValueError(
+                "Gold dataset rows declare dataset versions "
+                f"{sorted(declared_versions)}, but run metadata requires "
+                f"{dataset_version!r}."
+            )
+
+    # -------------------------------------------------------------------------
+    # Rubric provenance, when both run metadata and dataset expose it.
+    # -------------------------------------------------------------------------
+    metadata_rubric_version = metadata.get(
+        "rubric_version"
+    )
+
+    if (
+        metadata_rubric_version
+        and "rubric_version" in gold.columns
+    ):
+
+        declared_rubric_versions = set(
+            gold[
+                "rubric_version"
+            ].astype(
+                str
+            )
+        )
+
+        if declared_rubric_versions != {
+            str(
+                metadata_rubric_version
+            )
+        }:
+            raise ValueError(
+                "Gold dataset rubric_version does not match run metadata. "
+                f"dataset={sorted(declared_rubric_versions)}, "
+                f"run={metadata_rubric_version!r}"
+            )
+
+
+# =============================================================================
+# Analysis scoping
+# =============================================================================
+
+def apply_exclusions(
+    gold: pd.DataFrame,
+    exclude_query_ids: list[str],
+) -> pd.DataFrame:
+    """
+    Remove requested query IDs from analysis.
+
+    This is a generic subset mechanism. It must not be interpreted as creating
+    a new holdout after those cases have already been inspected during judge
+    development.
+    """
+
+    if not exclude_query_ids:
+        return gold.copy()
+
+    available_query_ids = set(
+        gold[
+            "query_id"
+        ].astype(
+            str
+        )
+    )
+
+    unknown_query_ids = (
+        set(
+            exclude_query_ids
+        )
+        - available_query_ids
+    )
+
+    if unknown_query_ids:
+        raise ValueError(
+            "Requested excluded query IDs were not found in the dataset: "
+            f"{sorted(unknown_query_ids)}"
+        )
+
+    scoped_gold = gold[
+        ~gold[
+            "query_id"
+        ]
+        .astype(
+            str
+        )
+        .isin(
+            exclude_query_ids
+        )
+    ].copy()
+
+    if scoped_gold.empty:
+        raise ValueError(
+            "All calibration cases were excluded. "
+            "At least one case must remain for analysis."
+        )
+
+    return scoped_gold
+
+
+# =============================================================================
+# Comparison construction
+# =============================================================================
+
+def build_comparison(
+    gold: pd.DataFrame,
+    judged: pd.DataFrame,
+) -> pd.DataFrame:
+    """
+    Join human labels to judge results by case_id and derive error fields.
+
+    All judge diagnostic columns are retained. This is especially useful for
+    v0.7+, where facet assessments, clear-score rules, and semantic generation
+    modes explain how the final score was produced.
+    """
+
+    gold_columns = [
+        "case_id",
+        "query_id",
+        "query",
+        "title",
+        "human_score",
+        "human_reason",
+    ]
+
+    # Avoid duplicate gold/provenance columns if a future judge result happens
+    # to persist them as diagnostics.
+    judge_columns = [
+        column
+        for column in judged.columns
+        if (
+            column == "case_id"
+            or column not in gold_columns
+        )
+    ]
+
+    comparison = gold[
+        gold_columns
+    ].merge(
+        judged[
+            judge_columns
+        ],
+        on="case_id",
+        how="inner",
+        validate="one_to_one",
+    )
+
+    comparison[
+        "human_score"
+    ] = comparison[
+        "human_score"
+    ].astype(
+        int
+    )
+
+    comparison[
+        "judge_score"
+    ] = comparison[
+        "judge_score"
+    ].astype(
+        int
+    )
+
+    comparison[
+        "signed_difference"
+    ] = (
+        comparison[
+            "judge_score"
+        ]
+        - comparison[
+            "human_score"
+        ]
+    )
+
+    comparison[
+        "absolute_difference"
+    ] = comparison[
+        "signed_difference"
+    ].abs()
+
+    comparison[
+        "exact_match"
+    ] = (
+        comparison[
+            "human_score"
+        ]
+        == comparison[
+            "judge_score"
+        ]
+    )
+
+    comparison[
+        "within_one"
+    ] = (
+        comparison[
+            "absolute_difference"
+        ]
+        <= 1
+    )
+
+    comparison[
+        "human_relevant"
+    ] = (
+        comparison[
+            "human_score"
+        ]
+        > 0
+    )
+
+    comparison[
+        "judge_relevant"
+    ] = (
+        comparison[
+            "judge_score"
+        ]
+        > 0
+    )
+
+    return comparison
+
+
+# =============================================================================
+# Metric helpers
+# =============================================================================
+
+def score_distribution(
+    series: pd.Series,
+) -> dict[str, int]:
+    """
+    Return all five score buckets, including buckets with zero observations.
+    """
+
+    counts = series.value_counts()
+
+    return {
+        str(
+            score
+        ): int(
+            counts.get(
+                score,
+                0,
+            )
+        )
+        for score in range(
+            5
+        )
+    }
+
+
+def agreement_group_summary(
+    comparison: pd.DataFrame,
+    group_column: str,
+) -> pd.DataFrame:
+    """
+    Generic agreement breakdown for a diagnostic categorical column.
+    """
+
+    if group_column not in comparison.columns:
+        return pd.DataFrame()
+
+    working = comparison.copy()
+
+    working[
+        group_column
+    ] = working[
+        group_column
+    ].fillna(
+        "<none>"
+    ).astype(
+        str
+    )
+
+    return (
+        working
+        .groupby(
+            group_column,
+            as_index=False,
+            dropna=False,
+        )
+        .agg(
+            cases=(
+                "case_id",
+                "count",
+            ),
+            exact_agreement=(
+                "exact_match",
+                "mean",
+            ),
+            within_one_agreement=(
+                "within_one",
+                "mean",
+            ),
+            mean_absolute_difference=(
+                "absolute_difference",
+                "mean",
+            ),
+        )
+        .sort_values(
+            [
+                "cases",
+                group_column,
+            ],
+            ascending=[
+                False,
+                True,
+            ],
+        )
     )
 
 
 # =============================================================================
-# DeepEval/Ollama output normalization
+# Output naming
 # =============================================================================
 
-def unpack_generation(
-    generated,
-) -> JudgeVerdict:
+def build_output_suffix(
+    exclude_query_ids: list[str],
+) -> str:
     """
-    Normalize DeepEval structured generation into JudgeVerdict.
-
-    Depending on the DeepEval/model integration version, structured generation
-    may return:
-    - the Pydantic object directly,
-    - a dict,
-    - or a tuple whose first item is the structured result.
+    Produce stable filenames for full or subset analysis.
     """
 
-    if isinstance(
-        generated,
-        tuple,
-    ):
-        verdict = generated[0]
-    else:
-        verdict = generated
+    if not exclude_query_ids:
+        return "all"
 
-    if isinstance(
-        verdict,
-        dict,
-    ):
-        verdict = JudgeVerdict(
-            **verdict
+    safe_ids = "_".join(
+        sorted(
+            exclude_query_ids
         )
+    )
 
-    if not isinstance(
-        verdict,
-        JudgeVerdict,
-    ):
-        raise TypeError(
-            f"Unexpected judge response type: {type(verdict)!r}"
-        )
-
-    return verdict
+    return (
+        f"exclude_{safe_ids}"
+    )
 
 
 # =============================================================================
-# Main calibration loop
+# Main analysis
 # =============================================================================
 
 def main() -> None:
+
     parser = argparse.ArgumentParser(
         description=(
-            "Blindly score semantic relevance calibration cases "
-            "with Judge Config v0.4.0 using a local Ollama model."
+            "Compare semantic-relevance judge scores against frozen human "
+            "calibration labels using the artifact versions recorded by the run."
         )
     )
 
     parser.add_argument(
-        "--limit",
-        type=int,
-        default=None,
+        "--run",
+        required=True,
         help=(
-            "Score only the first N remaining cases. "
-            "Useful for smoke testing."
+            "Run directory created by run_judge_calibration.py. "
+            "Example: "
+            "evals/runs/semantic_relevance/20260910T045820Z"
         ),
     )
 
     parser.add_argument(
-        "--resume",
-        type=str,
-        default=None,
+        "--exclude-query-id",
+        action="append",
+        default=[],
+        dest="exclude_query_ids",
         help=(
-            "Resume an existing run directory instead of "
-            "creating a new run."
+            "Exclude a query ID from analysis. May be supplied multiple times. "
+            "This creates a diagnostic subset, not a new untouched holdout."
         ),
     )
 
     args = parser.parse_args()
 
-    # -------------------------------------------------------------------------
-    # 1. Ensure required versioned artifacts exist.
-    # -------------------------------------------------------------------------
-    for required_file in [
-        DATASET_FILE,
-        RUBRIC_FILE,
-        JUDGE_CONFIG_FILE,
-    ]:
-        if not required_file.exists():
-            raise FileNotFoundError(
-                f"Required file not found: {required_file}"
-            )
+    exclude_query_ids = [
+        str(
+            query_id
+        )
+        for query_id
+        in args.exclude_query_ids
+    ]
 
-    # -------------------------------------------------------------------------
-    # 2. Load dataset, rubric, and judge configuration.
-    # -------------------------------------------------------------------------
-    dataset = pd.read_csv(
-        DATASET_FILE,
-        dtype={
-            "isbn13": str,
-        },
-        encoding="utf-8",
-    )
+    # =========================================================================
+    # 1. Resolve run + metadata FIRST.
+    #
+    # Metadata owns the dataset version used by the run.
+    # =========================================================================
 
-    rubric = load_json(
-        RUBRIC_FILE
-    )
-
-    config = load_json(
-        JUDGE_CONFIG_FILE
-    )
-
-    validate_inputs(
-        dataset=dataset,
-        rubric=rubric,
-        config=config,
-    )
-
-    # -------------------------------------------------------------------------
-    # 3. Create or resume the run.
-    # -------------------------------------------------------------------------
-    run_dir = create_run_dir(
-        args.resume
+    run_dir = resolve_run_dir(
+        args.run
     )
 
     results_file = (
@@ -748,182 +699,964 @@ def main() -> None:
         / "judge_results.csv"
     )
 
-    if results_file.exists():
-        existing_results = pd.read_csv(
-            results_file,
-            encoding="utf-8",
+    metadata_file = (
+        run_dir
+        / "run_metadata.json"
+    )
+
+    if not results_file.exists():
+        raise FileNotFoundError(
+            f"Judge results not found: {results_file}"
         )
 
-        completed_case_ids = set(
-            existing_results[
-                "case_id"
-            ].astype(str)
+    if not metadata_file.exists():
+        raise FileNotFoundError(
+            "run_metadata.json is required for provenance-safe analysis: "
+            f"{metadata_file}"
         )
 
-        results = (
-            existing_results
-            .to_dict(
-                orient="records"
+    metadata = load_json(
+        metadata_file
+    )
+
+    dataset_version = dataset_version_from_metadata(
+        metadata
+    )
+
+    dataset_file = dataset_file_for_version(
+        dataset_version
+    )
+
+    if not dataset_file.exists():
+        raise FileNotFoundError(
+            "Gold dataset recorded by run metadata was not found: "
+            f"{dataset_file}"
+        )
+
+    # =========================================================================
+    # 2. Load exact gold dataset + blind judge results.
+    # =========================================================================
+
+    gold = pd.read_csv(
+        dataset_file,
+        dtype={
+            "case_id": str,
+            "query_id": str,
+            "isbn13": str,
+        },
+        encoding="utf-8",
+    )
+
+    judged = pd.read_csv(
+        results_file,
+        dtype={
+            "case_id": str,
+        },
+        encoding="utf-8",
+    )
+
+    validate_analysis_inputs(
+        gold=gold,
+        judged=judged,
+        metadata=metadata,
+        dataset_version=dataset_version,
+    )
+
+    # =========================================================================
+    # 3. Apply optional diagnostic exclusions.
+    # =========================================================================
+
+    scoped_gold = apply_exclusions(
+        gold=gold,
+        exclude_query_ids=exclude_query_ids,
+    )
+
+    # =========================================================================
+    # 4. Join human and judge data.
+    # =========================================================================
+
+    comparison = build_comparison(
+        gold=scoped_gold,
+        judged=judged,
+    )
+
+    scoped_gold_cases = len(
+        scoped_gold
+    )
+
+    compared_cases = len(
+        comparison
+    )
+
+    if compared_cases == 0:
+        raise ValueError(
+            "No judged cases matched the selected analysis scope."
+        )
+
+    # =========================================================================
+    # 5. Primary ordinal agreement metrics.
+    # =========================================================================
+
+    exact_agreement = float(
+        comparison[
+            "exact_match"
+        ].mean()
+    )
+
+    within_one_agreement = float(
+        comparison[
+            "within_one"
+        ].mean()
+    )
+
+    y_true = comparison[
+        "human_score"
+    ]
+
+    y_pred = comparison[
+        "judge_score"
+    ]
+
+    linear_weighted_kappa = float(
+        cohen_kappa_score(
+            y_true,
+            y_pred,
+            labels=[
+                0,
+                1,
+                2,
+                3,
+                4,
+            ],
+            weights="linear",
+        )
+    )
+
+    quadratic_weighted_kappa = float(
+        cohen_kappa_score(
+            y_true,
+            y_pred,
+            labels=[
+                0,
+                1,
+                2,
+                3,
+                4,
+            ],
+            weights="quadratic",
+        )
+    )
+
+    # =========================================================================
+    # 6. Confusion matrix.
+    # =========================================================================
+
+    matrix = confusion_matrix(
+        y_true,
+        y_pred,
+        labels=[
+            0,
+            1,
+            2,
+            3,
+            4,
+        ],
+    )
+
+    confusion_df = pd.DataFrame(
+        matrix,
+        index=[
+            f"human_{score}"
+            for score
+            in range(
+                5
             )
+        ],
+        columns=[
+            f"judge_{score}"
+            for score
+            in range(
+                5
+            )
+        ],
+    )
+
+    # =========================================================================
+    # 7. Agreement by human score.
+    # =========================================================================
+
+    agreement_by_human_score = (
+        comparison
+        .groupby(
+            "human_score",
+            as_index=False,
         )
+        .agg(
+            cases=(
+                "case_id",
+                "count",
+            ),
+            exact_agreement=(
+                "exact_match",
+                "mean",
+            ),
+            within_one_agreement=(
+                "within_one",
+                "mean",
+            ),
+            mean_absolute_difference=(
+                "absolute_difference",
+                "mean",
+            ),
+        )
+    )
 
-    else:
-        completed_case_ids = set()
-        results = []
+    # =========================================================================
+    # 8. Binary 0-vs->0 diagnostic.
+    #
+    # This is NOT a replacement for the ordinal metrics. It tells us whether a
+    # judge that is poorly calibrated on 0-4 might still be useful as a binary
+    # relevance detector.
+    # =========================================================================
 
-    remaining_cases = dataset[
-        ~dataset[
-            "case_id"
+    precision, recall, f1, _ = precision_recall_fscore_support(
+        comparison[
+            "human_relevant"
+        ].astype(
+            int
+        ),
+        comparison[
+            "judge_relevant"
+        ].astype(
+            int
+        ),
+        average="binary",
+        zero_division=0,
+    )
+
+    binary_tp = int(
+        (
+            comparison[
+                "human_relevant"
+            ]
+            & comparison[
+                "judge_relevant"
+            ]
+        ).sum()
+    )
+
+    binary_fp = int(
+        (
+            ~comparison[
+                "human_relevant"
+            ]
+            & comparison[
+                "judge_relevant"
+            ]
+        ).sum()
+    )
+
+    binary_fn = int(
+        (
+            comparison[
+                "human_relevant"
+            ]
+            & ~comparison[
+                "judge_relevant"
+            ]
+        ).sum()
+    )
+
+    binary_tn = int(
+        (
+            ~comparison[
+                "human_relevant"
+            ]
+            & ~comparison[
+                "judge_relevant"
+            ]
+        ).sum()
+    )
+
+    # =========================================================================
+    # 9. v0.7 structured-output / aggregation diagnostics.
+    # =========================================================================
+
+    agreement_by_generation_mode = agreement_group_summary(
+        comparison,
+        "semantic_generation_mode",
+    )
+
+    agreement_by_clear_rule = agreement_group_summary(
+        comparison,
+        "clear_rule_applied",
+    )
+
+    generation_mode_counts = (
+        comparison[
+            "semantic_generation_mode"
         ]
-        .astype(str)
-        .isin(completed_case_ids)
+        .fillna(
+            "<not-recorded>"
+        )
+        .astype(
+            str
+        )
+        .value_counts()
+        .to_dict()
+        if "semantic_generation_mode"
+        in comparison.columns
+        else {}
+    )
+
+    clear_rule_counts = (
+        comparison[
+            "clear_rule_applied"
+        ]
+        .fillna(
+            "<none>"
+        )
+        .astype(
+            str
+        )
+        .value_counts()
+        .to_dict()
+        if "clear_rule_applied"
+        in comparison.columns
+        else {}
+    )
+
+    # =========================================================================
+    # 10. Error slices for manual review.
+    # =========================================================================
+
+    false_zeros = comparison[
+        (
+            comparison[
+                "human_score"
+            ]
+            > 0
+        )
+        & (
+            comparison[
+                "judge_score"
+            ]
+            == 0
+        )
     ].copy()
 
-    # --limit applies only to currently unscored cases.
-    if args.limit is not None:
-        remaining_cases = remaining_cases.head(
-            args.limit
+    false_positive_relevance = comparison[
+        (
+            comparison[
+                "human_score"
+            ]
+            == 0
         )
+        & (
+            comparison[
+                "judge_score"
+            ]
+            > 0
+        )
+    ].copy()
 
-    # -------------------------------------------------------------------------
-    # 4. Initialize local Ollama judge.
-    # -------------------------------------------------------------------------
-    judge_model = OllamaModel(
-        model=config["model"],
-        base_url=config["base_url"],
-        temperature=config["temperature"],
+    severe_disagreements = comparison[
+        comparison[
+            "absolute_difference"
+        ]
+        >= 2
+    ].copy()
+
+    over_promotions = comparison[
+        comparison[
+            "signed_difference"
+        ]
+        >= 2
+    ].copy()
+
+    under_promotions = comparison[
+        comparison[
+            "signed_difference"
+        ]
+        <= -2
+    ].copy()
+
+    # =========================================================================
+    # 11. Summary JSON.
+    # =========================================================================
+
+    analysis_scope = (
+        "development_subset"
+        if exclude_query_ids
+        else "development_all_cases"
     )
 
-    rubric_text = format_rubric(
-        rubric
-    )
-
-    total_cases = len(
-        dataset
-    )
-
-    write_metadata(
-        run_dir=run_dir,
-        config=config,
-        status="RUNNING",
-        completed_cases=len(
-            completed_case_ids
+    summary = {
+        "analysis_scope": (
+            analysis_scope
         ),
-        total_cases=total_cases,
+        "methodology_note": (
+            "Q01-Q12 have all been inspected/used during judge development; "
+            "this analysis is development/calibration evidence, not an unseen "
+            "holdout generalization result."
+        ),
+        "excluded_query_ids": (
+            sorted(
+                exclude_query_ids
+            )
+        ),
+        "dataset_version_from_run_metadata": (
+            dataset_version
+        ),
+        "gold_dataset_file": (
+            str(
+                dataset_file
+                .relative_to(
+                    REPO_ROOT
+                )
+            )
+        ),
+        "gold_cases_in_scope": (
+            scoped_gold_cases
+        ),
+        "cases_compared": (
+            compared_cases
+        ),
+        "is_complete_for_scope": (
+            compared_cases
+            == scoped_gold_cases
+        ),
+        "exact_agreement": (
+            exact_agreement
+        ),
+        "within_one_agreement": (
+            within_one_agreement
+        ),
+        "linear_weighted_cohens_kappa": (
+            linear_weighted_kappa
+        ),
+        "quadratic_weighted_cohens_kappa": (
+            quadratic_weighted_kappa
+        ),
+        "max_absolute_difference": int(
+            comparison[
+                "absolute_difference"
+            ].max()
+        ),
+        "human_score_distribution": (
+            score_distribution(
+                comparison[
+                    "human_score"
+                ]
+            )
+        ),
+        "judge_score_distribution": (
+            score_distribution(
+                comparison[
+                    "judge_score"
+                ]
+            )
+        ),
+        "binary_relevance_0_vs_positive": {
+            "true_positive": (
+                binary_tp
+            ),
+            "false_positive": (
+                binary_fp
+            ),
+            "false_negative": (
+                binary_fn
+            ),
+            "true_negative": (
+                binary_tn
+            ),
+            "precision": float(
+                precision
+            ),
+            "recall": float(
+                recall
+            ),
+            "f1": float(
+                f1
+            ),
+        },
+        "error_counts": {
+            "false_zeros": int(
+                len(
+                    false_zeros
+                )
+            ),
+            "false_positive_relevance": int(
+                len(
+                    false_positive_relevance
+                )
+            ),
+            "absolute_difference_ge_2": int(
+                len(
+                    severe_disagreements
+                )
+            ),
+            "over_promotions_by_2_or_more": int(
+                len(
+                    over_promotions
+                )
+            ),
+            "under_promotions_by_2_or_more": int(
+                len(
+                    under_promotions
+                )
+            ),
+        },
+        "semantic_generation_mode_counts": {
+            str(
+                key
+            ): int(
+                value
+            )
+            for key, value
+            in generation_mode_counts.items()
+        },
+        "clear_rule_counts": {
+            str(
+                key
+            ): int(
+                value
+            )
+            for key, value
+            in clear_rule_counts.items()
+        },
+        "run_metadata": (
+            metadata
+        ),
+    }
+
+    # =========================================================================
+    # 12. Write analysis artifacts.
+    # =========================================================================
+
+    output_suffix = build_output_suffix(
+        exclude_query_ids
     )
 
-    # -------------------------------------------------------------------------
-    # 5. Score each remaining query-book pair.
-    # -------------------------------------------------------------------------
-    for _, row in remaining_cases.iterrows():
+    comparison_file = (
+        run_dir
+        / f"human_vs_judge.{output_suffix}.csv"
+    )
 
-        prompt = build_prompt(
-            row=row,
-            rubric_text=rubric_text,
-            config=config,
-        )
+    confusion_file = (
+        run_dir
+        / f"confusion_matrix.{output_suffix}.csv"
+    )
 
-        generated = judge_model.generate(
-            prompt=prompt,
-            schema=JudgeVerdict,
-        )
+    agreement_by_score_file = (
+        run_dir
+        / f"agreement_by_human_score.{output_suffix}.csv"
+    )
 
-        verdict = unpack_generation(
-            generated
-        )
+    summary_file = (
+        run_dir
+        / f"calibration_summary.{output_suffix}.json"
+    )
 
-        # Derive and validate the numeric score mechanically.
-        judge_score = validate_verdict(
-            verdict=verdict,
-            config=config,
-        )
+    false_zeros_file = (
+        run_dir
+        / f"false_zeros.{output_suffix}.csv"
+    )
 
-        results.append(
-            {
-                "case_id": str(
-                    row["case_id"]
-                ),
-                "has_relevant_evidence": (
-                    verdict.has_relevant_evidence
-                ),
-                "match_level": (
-                    verdict.match_level
-                ),
-                "judge_score": (
-                    judge_score
-                ),
-                "judge_reason": (
-                    verdict.reason
-                ),
-            }
-        )
+    false_positive_file = (
+        run_dir
+        / f"false_positive_relevance.{output_suffix}.csv"
+    )
 
-        # Persist after every case so long local-model runs are resumable.
-        pd.DataFrame(
-            results
-        ).to_csv(
-            results_file,
+    severe_file = (
+        run_dir
+        / f"severe_disagreements.{output_suffix}.csv"
+    )
+
+    generation_mode_file = (
+        run_dir
+        / f"agreement_by_generation_mode.{output_suffix}.csv"
+    )
+
+    clear_rule_file = (
+        run_dir
+        / f"agreement_by_clear_rule.{output_suffix}.csv"
+    )
+
+    comparison.sort_values(
+        [
+            "absolute_difference",
+            "case_id",
+        ],
+        ascending=[
+            False,
+            True,
+        ],
+    ).to_csv(
+        comparison_file,
+        index=False,
+        encoding="utf-8",
+    )
+
+    confusion_df.to_csv(
+        confusion_file,
+        encoding="utf-8",
+    )
+
+    agreement_by_human_score.to_csv(
+        agreement_by_score_file,
+        index=False,
+        encoding="utf-8",
+    )
+
+    false_zeros.sort_values(
+        [
+            "absolute_difference",
+            "case_id",
+        ],
+        ascending=[
+            False,
+            True,
+        ],
+    ).to_csv(
+        false_zeros_file,
+        index=False,
+        encoding="utf-8",
+    )
+
+    false_positive_relevance.sort_values(
+        [
+            "absolute_difference",
+            "case_id",
+        ],
+        ascending=[
+            False,
+            True,
+        ],
+    ).to_csv(
+        false_positive_file,
+        index=False,
+        encoding="utf-8",
+    )
+
+    severe_disagreements.sort_values(
+        [
+            "absolute_difference",
+            "case_id",
+        ],
+        ascending=[
+            False,
+            True,
+        ],
+    ).to_csv(
+        severe_file,
+        index=False,
+        encoding="utf-8",
+    )
+
+    if not agreement_by_generation_mode.empty:
+        agreement_by_generation_mode.to_csv(
+            generation_mode_file,
             index=False,
             encoding="utf-8",
         )
 
-        write_metadata(
-            run_dir=run_dir,
-            config=config,
-            status="RUNNING",
-            completed_cases=len(
-                results
-            ),
-            total_cases=total_cases,
+    if not agreement_by_clear_rule.empty:
+        agreement_by_clear_rule.to_csv(
+            clear_rule_file,
+            index=False,
+            encoding="utf-8",
         )
 
-        print(
-            f"{len(results):>2}/{total_cases} "
-            f"{row['case_id']}: "
-            f"evidence={verdict.has_relevant_evidence}, "
-            f"level={verdict.match_level}, "
-            f"score={judge_score}"
+    summary_file.write_text(
+        json.dumps(
+            summary,
+            indent=2,
+            ensure_ascii=False,
         )
-
-    # -------------------------------------------------------------------------
-    # 6. Finalize run status.
-    # -------------------------------------------------------------------------
-    unique_completed_cases = len(
-        {
-            str(
-                result["case_id"]
-            )
-            for result in results
-        }
+        + "\n",
+        encoding="utf-8",
     )
 
-    final_status = (
-        "COMPLETED"
-        if unique_completed_cases
-        == total_cases
-        else "PARTIAL"
+    # =========================================================================
+    # 13. Console report.
+    # =========================================================================
+
+    print(
+        "Calibration summary"
     )
 
-    write_metadata(
-        run_dir=run_dir,
-        config=config,
-        status=final_status,
-        completed_cases=(
-            unique_completed_cases
-        ),
-        total_cases=total_cases,
+    print(
+        "-------------------"
+    )
+
+    print(
+        f"Analysis scope:            {analysis_scope}"
+    )
+
+    print(
+        f"Dataset version:           {dataset_version}"
+    )
+
+    print(
+        "Excluded query IDs:        "
+        f"{sorted(exclude_query_ids) if exclude_query_ids else 'None'}"
+    )
+
+    print(
+        f"Cases compared:            "
+        f"{compared_cases}/{scoped_gold_cases}"
+    )
+
+    print(
+        f"Exact agreement:           "
+        f"{exact_agreement:.1%}"
+    )
+
+    print(
+        f"Within ±1 agreement:       "
+        f"{within_one_agreement:.1%}"
+    )
+
+    print(
+        f"Linear weighted kappa:     "
+        f"{linear_weighted_kappa:.3f}"
+    )
+
+    print(
+        f"Quadratic weighted kappa:  "
+        f"{quadratic_weighted_kappa:.3f}"
     )
 
     print()
+
     print(
-        f"Run directory: {run_dir}"
+        "Score distributions"
     )
+
     print(
-        f"Status: {final_status}"
+        "-------------------"
     )
+
     print(
-        f"Completed: "
-        f"{unique_completed_cases}/{total_cases}"
+        "Human: "
+        f"{summary['human_score_distribution']}"
+    )
+
+    print(
+        "Judge: "
+        f"{summary['judge_score_distribution']}"
+    )
+
+    print()
+
+    print(
+        "Binary relevance (0 vs >0)"
+    )
+
+    print(
+        "--------------------------"
+    )
+
+    print(
+        f"TP={binary_tp} FP={binary_fp} "
+        f"FN={binary_fn} TN={binary_tn}"
+    )
+
+    print(
+        f"Precision={precision:.1%} "
+        f"Recall={recall:.1%} "
+        f"F1={f1:.1%}"
+    )
+
+    print()
+
+    print(
+        "Error counts"
+    )
+
+    print(
+        "------------"
+    )
+
+    print(
+        f"False zeros:               {len(false_zeros)}"
+    )
+
+    print(
+        f"False-positive relevance:  {len(false_positive_relevance)}"
+    )
+
+    print(
+        f"|difference| >= 2:         {len(severe_disagreements)}"
+    )
+
+    print(
+        f"Over-promotions >= 2:      {len(over_promotions)}"
+    )
+
+    print(
+        f"Under-promotions >= 2:     {len(under_promotions)}"
+    )
+
+    print()
+
+    print(
+        "Confusion matrix"
+    )
+
+    print(
+        "----------------"
+    )
+
+    print(
+        confusion_df.to_string()
+    )
+
+    print()
+
+    print(
+        "Agreement by human score"
+    )
+
+    print(
+        "------------------------"
+    )
+
+    print(
+        agreement_by_human_score.to_string(
+            index=False
+        )
+    )
+
+    print()
+
+    if generation_mode_counts:
+
+        print(
+            "Semantic generation modes"
+        )
+
+        print(
+            "-------------------------"
+        )
+
+        print(
+            generation_mode_counts
+        )
+
+        if not agreement_by_generation_mode.empty:
+            print()
+            print(
+                agreement_by_generation_mode.to_string(
+                    index=False
+                )
+            )
+
+        print()
+
+    if clear_rule_counts:
+
+        print(
+            "Clear-score rule usage"
+        )
+
+        print(
+            "----------------------"
+        )
+
+        print(
+            clear_rule_counts
+        )
+
+        if not agreement_by_clear_rule.empty:
+            print()
+            print(
+                agreement_by_clear_rule.to_string(
+                    index=False
+                )
+            )
+
+        print()
+
+    print(
+        "Largest disagreements"
+    )
+
+    print(
+        "---------------------"
+    )
+
+    disagreements = comparison[
+        comparison[
+            "absolute_difference"
+        ]
+        > 0
+    ].sort_values(
+        [
+            "absolute_difference",
+            "case_id",
+        ],
+        ascending=[
+            False,
+            True,
+        ],
+    )
+
+    if disagreements.empty:
+        print(
+            "None"
+        )
+
+    else:
+        print(
+            disagreements[
+                [
+                    "case_id",
+                    "query_id",
+                    "title",
+                    "human_score",
+                    "judge_score",
+                    "signed_difference",
+                    "absolute_difference",
+                ]
+            ]
+            .head(
+                20
+            )
+            .to_string(
+                index=False
+            )
+        )
+
+    print()
+
+    print(
+        f"Detailed comparison:       {comparison_file}"
+    )
+
+    print(
+        f"Confusion matrix:          {confusion_file}"
+    )
+
+    print(
+        f"Agreement by score:        {agreement_by_score_file}"
+    )
+
+    print(
+        f"False-zero cases:          {false_zeros_file}"
+    )
+
+    print(
+        f"False-positive relevance:  {false_positive_file}"
+    )
+
+    print(
+        f"Severe disagreements:      {severe_file}"
+    )
+
+    print(
+        f"Summary:                   {summary_file}"
     )
 
 

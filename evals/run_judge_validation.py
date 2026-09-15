@@ -1,5 +1,5 @@
 """
-Run blind LLM-judge calibration for Semantic Recommendation Relevance v0.13.0.
+Run frozen Semantic Recommendation Relevance Judge v0.15.0 on the unseen validation set.
 
 Typical usage
 -------------
@@ -7,20 +7,20 @@ Deterministic scoring tests:
 
     uv run python evals/test_facet_scoring.py
 
-Targeted development diagnostics:
+Optional validation diagnostics:
 
-    uv run python evals/run_judge_calibration.py `
+    uv run python evals/run_judge_validation.py `
       --case-id Q02_R50 `
       --case-id Q04_R50 `
       --case-id Q07_R05
 
-Full development run:
+Full unseen validation run:
 
-    uv run python evals/run_judge_calibration.py
+    uv run python evals/run_judge_validation.py
 
 Resume an interrupted run:
 
-    uv run python evals/run_judge_calibration.py `
+    uv run python evals/run_judge_validation.py `
       --resume evals/runs/semantic_relevance/<RUN_ID>
 
 v0.13 architecture
@@ -39,7 +39,7 @@ v0.13 architecture
 
 The LLM never directly outputs the legacy facet support level or final score.
 
-Human gold labels remain blind to the judge.
+Human validation labels remain blind to every judge stage.
 """
 
 
@@ -84,10 +84,13 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.13.0"
-DATASET_VERSION = "0.4.0"
+JUDGE_CONFIG_VERSION = "0.15.0"
+EVALUATION_DATASET_VERSION = "1.0.0"
+JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
+EVALUATION_DATASET_ROLE = "validation"
+EVALUATION_SCOPE = "unseen_validation"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.3.0"
+FACET_SPEC_VERSION = "0.5.0"
 
 
 # =============================================================================
@@ -96,7 +99,7 @@ FACET_SPEC_VERSION = "0.3.0"
 #
 # Expected script location:
 #
-#     <repo>/evals/run_judge_calibration.py
+#     <repo>/evals/run_judge_validation.py
 #
 # Therefore parents[1] is the repository root.
 # =============================================================================
@@ -107,7 +110,7 @@ EVALS_DIR = REPO_ROOT / "evals"
 DATASET_FILE = (
     EVALS_DIR
     / "datasets"
-    / f"semantic_relevance_calibration.v{DATASET_VERSION}.csv"
+    / f"semantic_relevance_validation.v{EVALUATION_DATASET_VERSION}.csv"
 )
 
 RUBRIC_FILE = (
@@ -133,7 +136,7 @@ JUDGE_CONFIG_FILE = (
 RUNS_DIR = (
     EVALS_DIR
     / "runs"
-    / "semantic_relevance"
+    / "semantic_relevance_validation"
 )
 
 
@@ -375,6 +378,20 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
+    # Unseen-validation contract.
+    # -------------------------------------------------------------------------
+    if len(dataset) != 30:
+        raise ValueError(
+            "The frozen validation dataset must contain exactly 30 cases; "
+            f"found {len(dataset)}."
+        )
+
+    if not dataset["case_id"].astype(str).str.startswith("U_").all():
+        raise ValueError(
+            "Validation case IDs must use the frozen unseen-pool U_ prefix."
+        )
+
+    # -------------------------------------------------------------------------
     # Human gold-label completeness.
     # -------------------------------------------------------------------------
     if not dataset[
@@ -401,11 +418,11 @@ def validate_inputs(
             "dataset_version"
         ].astype(str)
     ) != {
-        DATASET_VERSION
+        EVALUATION_DATASET_VERSION
     }:
         raise ValueError(
-            "Dataset rows do not all declare "
-            f"dataset version {DATASET_VERSION}."
+            "Validation dataset rows do not all declare "
+            f"dataset version {EVALUATION_DATASET_VERSION}."
         )
 
     if set(
@@ -449,10 +466,12 @@ def validate_inputs(
         config.get(
             "dataset_version"
         )
-    ) != DATASET_VERSION:
+    ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge config dataset_version does not match "
-            f"{DATASET_VERSION}."
+            "Frozen Judge v0.15.0 config must remain pinned to its original "
+            "calibration/development dataset version "
+            f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
+            f"{config.get('dataset_version')!r}."
         )
 
     if str(
@@ -501,7 +520,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.13.0."
+            "Judge v0.15.0."
         )
 
     if str(
@@ -704,8 +723,19 @@ def validate_resume_metadata(
             JUDGE_CONFIG_VERSION
         ),
         "calibration_dataset_version": (
-            DATASET_VERSION
+            JUDGE_CALIBRATION_DATASET_VERSION
         ),
+        "evaluation_dataset_version": (
+            EVALUATION_DATASET_VERSION
+        ),
+        "evaluation_dataset_role": (
+            EVALUATION_DATASET_ROLE
+        ),
+        "evaluation_scope": (
+            EVALUATION_SCOPE
+        ),
+        "split_created_before_judge_outputs": True,
+        "judge_behavior_frozen": True,
         "rubric_version": (
             RUBRIC_VERSION
         ),
@@ -734,7 +764,7 @@ def validate_resume_metadata(
     if mismatches:
         raise ValueError(
             "Cannot resume this run because its provenance does not match "
-            "the current v0.9 runner:\n- "
+            "the frozen v0.13 validation runner:\n- "
             + "\n- ".join(
                 mismatches
             )
@@ -784,8 +814,19 @@ def write_metadata(
         ),
 
         "calibration_dataset_version": (
-            DATASET_VERSION
+            JUDGE_CALIBRATION_DATASET_VERSION
         ),
+        "evaluation_dataset_version": (
+            EVALUATION_DATASET_VERSION
+        ),
+        "evaluation_dataset_role": (
+            EVALUATION_DATASET_ROLE
+        ),
+        "evaluation_scope": (
+            EVALUATION_SCOPE
+        ),
+        "split_created_before_judge_outputs": True,
+        "judge_behavior_frozen": True,
 
         "judge_config_version": (
             JUDGE_CONFIG_VERSION
@@ -793,6 +834,10 @@ def write_metadata(
 
         "facet_spec_version": (
             FACET_SPEC_VERSION
+        ),
+
+        "evaluation_dataset_file": (
+            str(DATASET_FILE.relative_to(REPO_ROOT))
         ),
 
         "facet_scoring_module": (
@@ -1006,7 +1051,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.13.0. Missing columns: "
+            "Judge v0.15.0. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1018,15 +1063,15 @@ def load_existing_results(
 
 
 # =============================================================================
-# Main calibration loop
+# Main unseen-validation loop
 # =============================================================================
 
 def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Blindly evaluate semantic relevance with facet-based "
-            "Judge Config v0.13.0 using a local Ollama model."
+            "Run frozen facet-based Judge Config v0.15.0 on the "
+            "30-case unseen validation set using local Ollama."
         )
     )
 
@@ -1036,7 +1081,7 @@ def main() -> None:
         default=None,
         help=(
             "Score only the first N currently unscored cases. "
-            "Useful for development smoke tests."
+            "Useful for validation operational smoke tests."
         ),
     )
 
@@ -1047,7 +1092,7 @@ def main() -> None:
         dest="case_ids",
         help=(
             "Evaluate only the requested case ID. May be supplied multiple "
-            "times for a targeted development diagnostic slice."
+            "times for a targeted validation diagnostic slice."
         ),
     )
 
