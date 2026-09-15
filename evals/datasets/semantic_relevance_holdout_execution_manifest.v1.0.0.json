@@ -1,0 +1,53 @@
+{
+  "holdout_execution_manifest_version": "1.0.0",
+  "purpose": "Final untouched generalization evaluation for frozen semantic-relevance Judge v0.15.0.",
+  "frozen_after_validation_run_id": "20260915T074801Z",
+  "judge_behavior_frozen": true,
+  "holdout_is_unlocked_for_single_final_evaluation": true,
+  "no_further_tuning_on_holdout": true,
+  "versions": {
+    "judge_config_version": "0.15.0",
+    "facet_spec_version": "0.5.0",
+    "rubric_version": "0.1.0",
+    "judge_calibration_dataset_version": "0.5.0",
+    "evaluation_dataset_version": "1.0.0",
+    "split_version": "1.0.0"
+  },
+  "evaluation_contract": {
+    "evaluation_dataset_role": "final_holdout",
+    "evaluation_scope": "unseen_final_holdout",
+    "cases": 30,
+    "split_created_before_judge_outputs": true,
+    "judge_outputs_used_for_split": false,
+    "normal_execution_transport": "DeepEval OllamaModel wrapper",
+    "recovery_transport": "direct Ollama /api/chat only for the actually failed pending case",
+    "targeted_semantic_diagnostics_allowed": false,
+    "partial_case_selection_allowed": false,
+    "analyze_only_after_30_of_30": true
+  },
+  "files": {
+    "source_holdout_filename": "semantic_relevance_holdout.v1.0.0.DO_NOT_RUN_YET.csv",
+    "packaged_holdout_filename": "evals/datasets/semantic_relevance_final_holdout.v1.0.0.csv",
+    "source_split_manifest": "evals/datasets/semantic_relevance_unseen_split_manifest.v1.0.0.json"
+  },
+  "sha256": {
+    "final_holdout_csv": "3257da52c9b104be0122774bc9bead5b0f6925d1ad2cfc29931283b9408a31e0",
+    "split_manifest": "cf1c302c4706b1898d5725abaa5bf25e16887fa0d4553b82ebf9be74123be7cb",
+    "original_validation_csv_for_split_provenance": "65d3d0fa6aff7efe2b6a310cf881715b5703954aa81aa774522f1a36a406f0ba",
+    "judge_config_v0.15.0": "d12bfc34eb9356e8982e9b36935f6b6c1baf9a44f837e6d7e1fb30b99db8383e",
+    "facet_spec_v0.5.0": "5f1f9608f2e590402ed5f778fc3aa05b85f441ebeaec0e94c7bd333c3892824d",
+    "facet_scoring_module": "2261a8c845c41f4a8d891508604a52dee4c8ab72314e4f0dfb57acb5c6830fca",
+    "facet_judge_module": "602ac766826b845cc57911f374dba8835fce051199076e3341a07e32a595aa25"
+  },
+  "validation_era_reference_thresholds_descriptive_only": {
+    "within_one_min": 0.95,
+    "exact_min": 0.5,
+    "quadratic_kappa_min": 0.8,
+    "linear_kappa_min": 0.6,
+    "absolute_difference_ge_2_max_cases": 1,
+    "binary_precision_min": 0.9,
+    "binary_recall_min": 0.8,
+    "deterministic_cue_severe_false_positive_max": 0,
+    "note": "These are reported for comparison only. The final holdout result is not a tuning gate and must be accepted as observed."
+  }
+}
