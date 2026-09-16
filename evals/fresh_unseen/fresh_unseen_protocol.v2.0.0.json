@@ -1,0 +1,55 @@
+{
+  "protocol_version": "2.0.0",
+  "judge_config_version": "0.18.0",
+  "facet_spec_version": "0.6.0",
+  "rubric_version": "0.1.0",
+  "pool_version": "2.0.0",
+  "split_version": "2.0.0",
+  "pool_cases": 60,
+  "validation_cases": 30,
+  "holdout_cases": 30,
+  "target_ranks": [
+    2,
+    10,
+    30,
+    70
+  ],
+  "random_candidates_per_query": 1,
+  "search_depth": 500,
+  "pool_seed": 20260916,
+  "blind_order_seed": 20260917,
+  "split_seed": 20260918,
+  "reference_thresholds": {
+    "within_one_ge_0_95": 0.95,
+    "exact_ge_0_50": 0.5,
+    "quadratic_kappa_ge_0_80": 0.8,
+    "linear_kappa_ge_0_60": 0.6,
+    "absolute_difference_ge_2_le_1_case": 1,
+    "binary_precision_ge_0_90": 0.9,
+    "binary_recall_ge_0_80": 0.8,
+    "deterministic_cue_severe_false_positives_eq_0": 0
+  },
+  "behavior_file_sha256": {
+    "evals/judge_configs/semantic_relevance_judge.v0.18.0.json": "e37ddc877103b8baf2e3ae649db0c1a4570ecd2e4d4830e87724a3096874b1e9",
+    "evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.6.0.json": "d55bc9a28ad35a220cb9b6c04388f98e21043d64af3fda421c11245fbf793195",
+    "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json": "f5e939e6dc1422375366b71e3257a5d6e51a2ccdcfda84cb466aca70845e714e",
+    "evals/semantic_relevance_facet_judge.py": "2651c81e7ea39a45aaafc7a98b3f8694a572f5da7d055ee35382a21ebb164020",
+    "evals/semantic_relevance_facet_scoring.py": "d8c27cd5aba4e9c5257daa9a8ce3903dd459e920458bade317997144a404e24b"
+  },
+  "exclusion_manifest_json": "evals/datasets/semantic_relevance_exclusion_manifest.v2.0.0.json",
+  "exclusion_manifest_json_sha256": "390b01b006fab6f97dc3a86bdc3397a32e0d7f57ffd777166c763324a2bda51e",
+  "exclusion_manifest_csv": "evals/datasets/semantic_relevance_exclusion_manifest.v2.0.0.csv",
+  "exclusion_manifest_csv_sha256": "84f5dd2e3ae784e8a27321c292a15883d90cdd0e11f65ac94f257cce4ccc0de0",
+  "historical_cases_excluded": 120,
+  "distinct_isbns_excluded": 119,
+  "methodology": {
+    "same_12_queries": true,
+    "candidate_isbn_overlap_with_any_previous_case_allowed": false,
+    "human_labels_completed_before_split": true,
+    "split_created_before_judge_outputs": true,
+    "judge_outputs_used_for_split": false,
+    "validation_used_for_go_no_go": true,
+    "holdout_single_evaluation": true,
+    "holdout_locked_until_validation_release": true
+  }
+}

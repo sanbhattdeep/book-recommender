@@ -1,0 +1,121 @@
+source_role,source_file,case_id,query_id,isbn13,title
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q01_R01,Q01,9780785263715,Searching for God Knows What
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q01_R05,Q01,9780842356220,Redemption
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q01_R20,Q01,9781905177042,A Midwife's Story
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q01_R50,Q01,9780091883768,Who Moved My Cheese?
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q01_NEG,Q01,9780156272506,The Early Diary of Anaïs Nin: 1923-1927
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q02_R01,Q02,9780752857930,The Pusher
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q02_R05,Q02,9780446614832,3rd Degree
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q02_R20,Q02,9780743412629,The Second Time Around
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q02_R50,Q02,9780452275003,Zombie
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q02_NEG,Q02,9780060747220,Son of a Witch
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q03_R01,Q03,9781590302088,Making a Change for Good
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q03_R05,Q03,9780142000212,Bridget Jones's Guide to Life
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q03_R20,Q03,9780688052300,Zen and the Art of Motorcycle Maintenance
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q03_R50,Q03,9780684845777,Unlimited Power
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q03_NEG,Q03,9780446579780,The Coming Economic Collapse
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q04_R01,Q04,9780618894642,Children of Húrin
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q04_R05,Q04,9781416903437,Wild Magic
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q04_R20,Q04,9780441009657,The Mirror of Merlin
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q04_R50,Q04,9780425214244,Master of Dragons
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q04_NEG,Q04,9780425179611,It's Not About the Bike
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q05_R01,Q05,9780195119206,Ride of the Second Horseman
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q05_R05,Q05,9780375760525,Paris 1919
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q05_R20,Q05,9780143104902,Black Lamb and Grey Falcon
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q05_R50,Q05,9780340774779,"The Road to War, 1933-1939"
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q05_NEG,Q05,9780385491082,Lady Oracle
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q06_R01,Q06,9780765308702,What Dreams May Come
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q06_R05,Q06,9780375706332,The Tiny One
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q06_R20,Q06,9780449001172,Wartime Lies
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q06_R50,Q06,9780060977498,The God of Small Things
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q06_NEG,Q06,9780310259664,Journey into God's Word
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q07_R01,Q07,9780099429166,Turtle Moon
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q07_R05,Q07,9780802136688,This boy's life
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q07_R20,Q07,9780753819920,The Orange Girl
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q07_R50,Q07,9780140286274,The Deep End of the Ocean
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q07_NEG,Q07,9780143036661,March
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q08_R01,Q08,9780131871656,Astronomy
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q08_R05,Q08,9780465081981,Stephen Hawking's Universe
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q08_R20,Q08,9780553053401,A Brief History of Time
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q08_R50,Q08,9781414306346,Looking for God in Harry Potter
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q08_NEG,Q08,9781416909057,Amelia's Notebook
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q09_R01,Q09,9780452284234,1984
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q09_R05,Q09,9780312890384,Pacific Edge
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q09_R20,Q09,9780375703843,Glamorama
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q09_R50,Q09,9780349116303,Long Walk to Freedom
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q09_NEG,Q09,9780141000589,Sammlung
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q10_R01,Q10,9780743250979,The 7 Habits of Highly Effective People Personal Workbook
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q10_R05,Q10,9780060566104,Built to Last
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q10_R20,Q10,9780743269513,The 7 Habits of Highly Effective People
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q10_R50,Q10,9780861711765,Eight Mindful Steps to Happiness
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q10_NEG,Q10,9781593080037,Ward No. 6 and Other Stories
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q11_R01,Q11,9780618894642,Children of Húrin
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q11_R05,Q11,9781932796780,Dragons of Winter Night
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q11_R20,Q11,9780786809295,Tales from the Odyssey: The Land of the Dead - Book #2
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q11_R50,Q11,9780765343116,Pet Peeve
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q11_NEG,Q11,9780748702558,Romeo and Juliet
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q12_R01,Q12,9780495006855,Sociology in Our Times
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q12_R05,Q12,9780745628479,Political Philosophy: A Beginner's Guide for Students and Politicians
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q12_R20,Q12,9780761929949,The Politics of Injustice
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q12_R50,Q12,9780451217769,A Certain Justice
+original_calibration,semantic_relevance_calibration.v0.5.0.csv,Q12_NEG,Q12,9780060854096,Dates From Hell
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q01_T02,Q01,9781403356208,Lila's Child
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q01_T70,Q01,9781893007161,Alcoholics Anonymous
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q02_T10,Q02,9780375756603,Pipe Dream
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q02_T30,Q02,9780449001240,Naked Came the Manatee
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q02_T70,Q02,9780380732029,Killing Time
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q03_T02,Q03,9780824521233,Save the Date
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q03_T30,Q03,9781400078394,Learned Optimism
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q03_T70,Q03,9780830832941,Courageous Faith Through the Year
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q04_T10,Q04,9780062513342,The Valkyries
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q04_NEG,Q04,9780142003268,The Spy who Loved Me
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q05_T30,Q05,9780226677149,A Dance to the Music of Time
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q05_T70,Q05,9781420927320,The Trojan Women
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q06_T30,Q06,9780446694858,Three Weeks with My Brother
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q06_NEG,Q06,9781401204105,The Sgt. Rock Archives
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q07_T02,Q07,9780060956868,Joy in the Morning
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q07_T10,Q07,9780671003470,The Law of Enclosures
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q07_T30,Q07,9788122200850,"Cry, the Peacock"
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q08_T02,Q08,9780764584657,Astronomy For Dummies
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q08_T70,Q08,9780345439499,The Best of Lester Del Rey
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q08_NEG,Q08,9780571164660,The White Castle
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q09_T02,Q09,9780140157185,The Assault
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q09_T10,Q09,9781931082549,Democracy in America
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q10_T10,Q10,9780976694021,Behind Closed Doors
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q10_NEG,Q10,9780440236733,Gone for Good
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q11_T02,Q11,9780316341516,Mythology
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q11_T30,Q11,9780812534832,Demons Don't Dream
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q11_NEG,Q11,9780312194406,Bachelor Brothers' Bed & Breakfast Pillow Book
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q12_T10,Q12,9780262611350,"Development, Geography, and Economic Theory"
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q12_T70,Q12,9780195169249,Introduction to Philosophy
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q12_NEG,Q12,9781841591056,"Stiff Upper Lip, Jeeves"
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q01_T10,Q01,9780891906797,The Great Gatsby
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q01_T30,Q01,9780060927196,Success Stories
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q01_NEG,Q01,9780684849690,The Secret Diary of Anne Boleyn
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q02_T02,Q02,9780446604239,Exclusive
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q02_NEG,Q02,9780060543495,The Girls of Lighthouse Lane #3
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q03_T10,Q03,9780688140717,Trapped in T Mirror
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q03_NEG,Q03,9780805390476,The Feynman Lectures on Physics
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q04_T02,Q04,9780006486145,Well of Darkness
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q04_T30,Q04,9780802135780,Sexing the Cherry
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q04_T70,Q04,9781885865243,Through a Brazen Mirror
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q05_T02,Q05,9780684844077,Soul of the Sword
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q05_T10,Q05,9780375706363,Crucible of War
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q05_NEG,Q05,9780345448194,Boogaloo on 2nd Avenue
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q06_T02,Q06,9781595542328,A Time to Embrace
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q06_T10,Q06,9780449001134,In the Beginning
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q06_T70,Q06,9780330281720,Running in the Family
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q07_T70,Q07,9780440229087,Skellig
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q07_NEG,Q07,9780764555893,PHP and MySQL For Dummies
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q08_T10,Q08,9780553380163,A Brief History of Time
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q08_T30,Q08,9780140448153,Early Greek Philosophy
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q09_T30,Q09,9780140238280,The Tortilla Curtain
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q09_T70,Q09,9780099437598,In Watermelon Sugar
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q09_NEG,Q09,9780970998712,Dark Rivers of the Heart/Intensity/Sole Survivor
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q10_T02,Q10,9780688039691,Leadership and the One Minute Manager
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q10_T30,Q10,9780452288195,War and Peace and War
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q10_T70,Q10,9780736910194,Life Management for Busy Women
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q11_T10,Q11,9780786282258,The Lightning Thief
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q11_T70,Q11,9780142003718,I Should be Extremely Happy in Your Company
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q12_T02,Q12,9781929229482,A Framework for Understanding Poverty
+consumed_unseen_development,semantic_relevance_v0.18_development.v1.0.0.csv,U_Q12_T30,Q12,9780465081424,A Conflict Of Visions
