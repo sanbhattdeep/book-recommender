@@ -1,0 +1,75 @@
+"""Contract tests for v0.18 composite relation consistency."""
+
+from __future__ import annotations
+
+import json
+from pathlib import Path
+
+from semantic_relevance_facet_judge import (
+    CompositeEvidenceVerification,
+    JudgeOutputValidationError,
+    _validate_composite_result,
+)
+from semantic_relevance_facet_scoring import VerificationRelation
+
+EVALS_DIR = Path(__file__).resolve().parent
+config = json.loads(
+    (
+        EVALS_DIR
+        / "judge_configs"
+        / "semantic_relevance_judge.v0.18.0.json"
+    ).read_text(encoding="utf-8")
+)
+
+spans = {
+    "S1": "A major disruption occurs.",
+    "S2": "Later the characters resume their lives.",
+}
+
+entailed = CompositeEvidenceVerification(
+    supporting_span_ids=["S1", "S2"],
+    verification_relation=VerificationRelation.ENTAILED,
+    combined_evidence_summary="The disruption is followed by explicit resumption.",
+    missing_semantic_component=None,
+    reason="All required components are supplied.",
+)
+_validate_composite_result(entailed, spans, config)
+
+adjacent = CompositeEvidenceVerification(
+    supporting_span_ids=["S1", "S2"],
+    verification_relation=VerificationRelation.ADJACENT,
+    combined_evidence_summary="The spans show disruption and later activity.",
+    missing_semantic_component="The later activity is not established as recovery from the disruption.",
+    reason="One required causal/recovery component remains missing.",
+)
+_validate_composite_result(adjacent, spans, config)
+
+bad_adjacent = CompositeEvidenceVerification(
+    supporting_span_ids=["S1", "S2"],
+    verification_relation=VerificationRelation.ADJACENT,
+    combined_evidence_summary="The full facet is established.",
+    missing_semantic_component=None,
+    reason="Malformed adjacent output.",
+)
+try:
+    _validate_composite_result(bad_adjacent, spans, config)
+except JudgeOutputValidationError:
+    pass
+else:
+    raise AssertionError("ADJACENT without a missing semantic component must fail.")
+
+bad_entailed = CompositeEvidenceVerification(
+    supporting_span_ids=["S1", "S2"],
+    verification_relation=VerificationRelation.ENTAILED,
+    combined_evidence_summary="Nearly complete.",
+    missing_semantic_component="A required component is still absent.",
+    reason="Malformed entailed output.",
+)
+try:
+    _validate_composite_result(bad_entailed, spans, config)
+except JudgeOutputValidationError:
+    pass
+else:
+    raise AssertionError("ENTAILED with a missing semantic component must fail.")
+
+print("All v0.18.0 composite relation-consistency tests passed.")

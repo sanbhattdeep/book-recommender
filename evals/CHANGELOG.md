@@ -1,5 +1,299 @@
 # Evaluation Changelog
 
+# v0.18.0 changelog
+
+## Changed: composite architecture
+
+Removed the separate full-description composition selector introduced in v0.17.
+
+The composite verifier now sees the full numbered description and performs span
+selection and relation classification in one isolated call.
+
+This prevents a useful span from being excluded because an upstream selector
+failed to pass it forward.
+
+## Changed: ENTAILED vs ADJACENT contract
+
+Composite `ENTAILED` now explicitly means:
+
+- all required semantic components are supplied by the cited spans;
+- the facet follows through a short necessary inference;
+- exact facet wording is not required;
+- no single span needs to state the whole concept.
+
+Composite `ADJACENT` now requires
+`missing_semantic_component` to name the specific required component that is
+still absent or only plausible.
+
+## Added audit fields
+
+Per facet:
+
+- `composite_verification_attempted`
+- `composite_evidence_span_ids`
+- `composite_verification_relation`
+- `composite_combined_evidence_summary`
+- `composite_missing_semantic_component`
+- `composite_verification_reason`
+
+## Preserved
+
+- facet spec v0.6.0
+- rubric v0.1.0
+- v0.16 Q02 suspense boundary
+- polarity-aware deterministic cues
+- standalone evidence selection/verification
+- prominence behavior
+- composite ceiling = ENTAILED
+- deterministic support derivation
+- deterministic final scoring
+- model/provider/temperature
+
+# v0.17.1 changelog
+
+## Fixed
+
+Composition-selector structural noncompliance no longer aborts an otherwise
+valid evaluation case.
+
+The selector still requires either:
+
+- 2-4 unique real span IDs, or
+- exactly `["NONE"]`.
+
+After bounded repair attempts, continued structural invalidity now falls back
+to `NONE/no-composition`.
+
+## Unchanged
+
+- v0.17 independent full-description composition-selection architecture
+- Q02 suspense semantics
+- polarity-aware deterministic cues
+- facet spec v0.6.0
+- verifier relation semantics
+- prominence
+- support derivation
+- final 0-4 aggregation
+- model/provider/temperature
+
+This patch changes fault tolerance for malformed optional-stage output only; it
+does not change valid-output semantic behavior.
+
+# v0.17.0 changelog
+
+## Judge Config v0.17.0
+
+### Added
+
+A dedicated composition-specific evidence selector over the full numbered book
+description.
+
+The new selector runs only for core facets whose best standalone relation is
+`unsupported` or `adjacent`. It chooses the smallest complementary 2-4 span
+set and is intentionally independent of Stage-A standalone ranking.
+
+### Why
+
+v0.16 proved that conservative multi-span verification could execute yet still
+miss a facet because Stage A omitted a span that was weak alone but important
+when combined with an earlier event/impact span.
+
+The architecture therefore changes from:
+
+```text
+Stage-A candidates
+      ↓
+composite verifier
+```
+
+to:
+
+```text
+Stage-A standalone path
+      ↓
+weak result
+      ↓
+full-description composition selector
+      ↓
+composite verifier
+```
+
+### Preserved
+
+- facet spec v0.6.0
+- rubric v0.1.0
+- Q02 suspense boundary
+- polarity-aware deterministic cues
+- isolated verifier semantics
+- core prominence semantics
+- composite relation ceiling = ENTAILED
+- deterministic support derivation
+- deterministic final scoring
+- model/provider/temperature
+
+## Audit additions
+
+Per-facet:
+
+- `composite_selection_attempted`
+- `composite_candidate_span_ids`
+- `composite_selection_reason`
+- existing positive `composite_evidence_span_ids`
+- existing composite relation/reason
+
+Per-case:
+
+- `composite_selection_attempt_count`
+- `composite_verification_attempt_count`
+- `composite_verification_count`
+
+This distinguishes selector invocation, verifier invocation, and successful
+positive composite recovery.
+
+# v0.16.0 changelog entry
+
+## Judge Config v0.16.0
+
+### Added — polarity-aware deterministic DIRECT cue guard
+
+Deterministic cue matches are now checked for explicit local negation, absence,
+or contrast before they can establish `verification_relation=direct`.
+High-precision patterns cover constructions such as `no X`, `without X`,
+`lack of X`, `instead of X`, `rather than X`, and `X is absent/lacking`.
+
+A suppressed cue does not make the facet absent. It falls through to Stage A so
+the semantic pipeline can still evaluate the surrounding meaning.
+
+### Added — core-only multi-span composition recovery
+
+After Stage-A selection and isolated single-span verification, v0.16 may run a
+new composition verifier when:
+
+- the facet is core;
+- at least two candidate spans were selected; and
+- the strongest single-span relation is `unsupported` or `adjacent`.
+
+The composition verifier can use only 2–3 selected exact spans and may return
+`unsupported`, `adjacent`, or `entailed`. `direct` is mechanically rejected.
+Positive composite output must identify at least two contributing source-span
+IDs. The composed relation replaces the single-span relation only when it is
+strictly stronger.
+
+### Added — audit fields
+
+- `deterministic_cue_polarity_blocked_count`
+- `composite_verification_count`
+- per-facet composite span IDs / relation / reason in `facet_assessments_json`
+
+### Preserved
+
+- deterministic final scoring
+- v0.14 two-core aggregation guard
+- support derivation
+- qualifier behavior
+- model/provider/temperature
+- rubric v0.1.0
+- original calibration provenance v0.5.0
+
+---
+
+## Facet Spec v0.6.0
+
+### Changed — Q02 F1 `suspense`
+
+Clarified that suspense requires story-level narrative tension / anticipation.
+A difficult choice, moral dilemma, illness, deadline, interpersonal conflict,
+high stakes, danger, or generic uncertainty is not sufficient by itself.
+
+### Preserved
+
+All query decompositions and every non-Q02-F1 semantic definition remain
+unchanged from v0.5.0.
+
+---
+
+## Development Dataset v1.0.0
+
+Created `semantic_relevance_v0.16_development.v1.0.0.csv` by combining the
+previously consumed 30-case validation split and previously consumed 30-case
+final holdout.
+
+This 60-case set is explicitly development/regression data. Results on it are
+not unseen generalization evidence.
+
+# v0.15.0 changelog entry
+
+## Facet Spec v0.5.0
+
+### Changed
+
+Only Q03 semantic-definition boundaries changed; facet decomposition is
+unchanged.
+
+`personal growth` now explicitly distinguishes actual personal development from
+nearby spiritual/devotional concepts. Prayer, faith, spirituality, devotion,
+character, virtues, wisdom, knowing a deity more deeply, or discovering how a
+deity/external force works in a person do not themselves establish personal
+growth. Actual development/change must be independently stated or necessarily
+entailed by the exact evidence.
+
+`finding purpose` now requires the exact evidence itself to establish meaning,
+life direction, vocation/calling, goals, or values guiding life choices.
+Spiritual understanding or discovering how a deity/external force works in
+someone is insufficient unless that required connection is independently
+present in the evidence.
+
+### Why
+
+The retained v0.14 targeted run fixed the aggregation failure but
+`U_Q03_T70` still produced human 1 -> judge 3.
+
+The trace showed that the verifier read an exclusion-with-exception as
+permission to invent the exception condition:
+
+```text
+excluded near-concept
+    -> assumed downstream self-development / purpose
+    -> ENTAILED
+```
+
+The new definitions express generic semantic boundaries and contain no
+candidate title or case ID.
+
+---
+
+## Judge Config v0.15.0
+
+### Changed
+
+Strengthened generic verifier precedence:
+
+- explicit exclusions and exception clauses are hard gates;
+- if a definition says `X does not establish the facet unless Y`, Y must be
+  stated or necessarily entailed by the exact candidate evidence;
+- `unless` / `only when` / `provided that` cannot be satisfied by assuming a
+  plausible downstream benefit, likely outcome, interpretation, or real-world
+  association;
+- semantic-definition content is specification, not evidence;
+- ENTAILED explicitly excludes merely plausible consequences/associations.
+
+Stage-A ranking wording now clarifies that terms appearing only in
+negative/exclusion clauses are not positive literal matches. They can still be
+selected as lower-priority candidates so recall is preserved.
+
+### Preserved
+
+- calibration dataset v0.5.0
+- rubric v0.1.0
+- model `jeffnyman/ts-evaluator`, temperature 0
+- deterministic DIRECT cue rules
+- top-3 candidate architecture
+- prominence stage
+- support derivation
+- qualifier behavior
+- v0.14 two-core aggregation guard
+- final 0-4 scale
+
 # v0.14.0 changelog entry
 
 ## Calibration Dataset v0.5.0

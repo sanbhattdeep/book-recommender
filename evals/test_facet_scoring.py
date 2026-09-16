@@ -1,5 +1,5 @@
 """
-Deterministic scoring tests for Judge Config v0.15.0.
+Deterministic scoring tests for Judge Config v0.18.0.
 
 No LLM is called.
 """
@@ -359,7 +359,7 @@ assert r.score == 3
 assert r.strong_core_count == 2
 
 
-# v0.14: strong + absent on a two-core query remains partial.
+# v0.16: strong + absent on a two-core query remains partial.
 s = make_spec(
     "T_TWO",
     [
@@ -387,7 +387,7 @@ assert r.score == 2
 assert r.clear_rule_applied is None
 
 
-# v0.14: strong + incidental preserves the guarded two-core clear exception.
+# v0.16: strong + incidental preserves the guarded two-core clear exception.
 r = compute_facet_score(
     s,
     verdict(
@@ -577,4 +577,4 @@ r = compute_facet_score(
 assert r.score == 4
 
 
-print("All v0.15.0 facet scoring tests passed.")
+print("All v0.18.0 facet scoring tests passed.")

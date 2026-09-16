@@ -1,5 +1,5 @@
 """
-Deterministic prompt-contract tests for Judge Config v0.15.0.
+Deterministic prompt-contract tests for Judge Config v0.18.0.
 
 No LLM is called. These tests ensure the approved frozen semantic definition is
 actually present in every semantic LLM stage while the full query is not needed
@@ -23,7 +23,7 @@ EVALS_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = (
     EVALS_DIR
     / "judge_configs"
-    / "semantic_relevance_judge.v0.15.0.json"
+    / "semantic_relevance_judge.v0.18.0.json"
 )
 
 with CONFIG_FILE.open("r", encoding="utf-8") as f:
@@ -98,4 +98,4 @@ assert "literal_or_lexical_match" in selection_prompt
 assert "removal test" in prominence_instructions
 assert "incidental" in prominence_instructions
 
-print("All v0.15.0 semantic-definition/prompt-precedence tests passed.")
+print("All v0.18.0 semantic-definition/prompt-precedence tests passed.")

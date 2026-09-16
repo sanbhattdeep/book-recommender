@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "role": "post_holdout_v0_18_development_regression",
+  "source_note": "The same 60 previously consumed validation+final-holdout cases used for v0.16-v0.17 development. Development-only; not unseen generalization evidence.",
+  "source_files": [
+    "semantic_relevance_validation.v1.0.0.csv",
+    "semantic_relevance_final_holdout.v1.0.0.csv"
+  ],
+  "cases": 60,
+  "primary_failure_cases": [
+    "U_Q06_T02",
+    "U_Q02_NEG",
+    "U_Q10_T30"
+  ],
+  "regression_controls": [
+    "U_Q06_T30",
+    "U_Q02_T02",
+    "U_Q02_T10",
+    "U_Q10_T02",
+    "U_Q10_T10",
+    "U_Q10_NEG",
+    "U_Q03_T70",
+    "U_Q08_T02"
+  ],
+  "architecture_targets": {
+    "U_Q06_T02": "Full-context self-selecting composite verification should reduce the prior severe under-promotion. Target judge score >=3 and at least one ENTAILED positive composite recovery, with cited supporting spans chosen directly from the full description.",
+    "U_Q02_NEG": "Preserve the v0.16 suspense-boundary correction; target judge score <=1.",
+    "U_Q10_T30": "Preserve the v0.16 polarity guard: deterministic_direct_cue_count=0 and deterministic_cue_polarity_blocked_count>=1; target judge score <=1."
+  }
+}

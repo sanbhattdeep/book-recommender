@@ -1,7 +1,7 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.15.0.
+Deterministic scoring models for Semantic Recommendation Relevance v0.18.0.
 
-v0.15.0 preserves the v0.14 two-core aggregation guard unchanged. The v0.15 behavioral changes are semantic-boundary/verifier changes, not scoring changes.
+v0.18.0 preserves the v0.17.0 deterministic scoring behavior unchanged. v0.18 removes the separate composition selector and records a self-selecting full-context composite verifier for an independent composition-specific evidence selector; support derivation and final 0-4 aggregation are unchanged.
 
 v0.11.0 added an ADJACENT verification relation so weak but genuine facet-specific
 connections can map to score-1 incidental relevance without being promoted to
@@ -123,7 +123,7 @@ class CandidateVerificationRecord(BaseModel):
 
 class FacetPipelineAssessment(BaseModel):
     """
-    Final v0.15.0 result for one frozen facet.
+    Final v0.18.0 result for one frozen facet.
 
     `candidate_evidence_span_ids` contains the selector's ranked candidates.
 
@@ -159,6 +159,22 @@ class FacetPipelineAssessment(BaseModel):
     verification_reason: str = Field(min_length=1)
 
     prominence_reason: str | None = None
+
+    # v0.16+ audit: deterministic lexical cue matches suppressed because the
+    # local context explicitly negated/contrasted the matched concept.
+    deterministic_cue_polarity_blocked_count: int = Field(default=0, ge=0)
+
+    # v0.18 audit: the full-context composite verifier scans all numbered
+    # description spans and selects its own 2-4 supporting span IDs.
+    composite_verification_attempted: bool = False
+    composite_evidence_span_ids: list[str] = Field(
+        default_factory=list,
+        max_length=4,
+    )
+    composite_verification_relation: VerificationRelation | None = None
+    composite_combined_evidence_summary: str | None = None
+    composite_missing_semantic_component: str | None = None
+    composite_verification_reason: str | None = None
 
 
 class FacetJudgeVerdict(BaseModel):
@@ -289,7 +305,12 @@ def validate_facet_assessments(
                 f"{facet_id}: at most 3 candidate spans are allowed."
             )
 
-        # If Stage A found no candidate, the final relation must be unsupported.
+        composite_ids = assessment.composite_evidence_span_ids
+        composite_relation = assessment.composite_verification_relation
+        missing_component = assessment.composite_missing_semantic_component
+
+        # Stage-A may legitimately return NONE while the independent v0.18
+        # full-context composite verifier later recovers the facet.
         if assessment.candidate_evidence_span_id == "NONE":
 
             if candidates:
@@ -301,17 +322,74 @@ def validate_facet_assessments(
             if (
                 assessment.verification_relation
                 != VerificationRelation.UNSUPPORTED
+                and not composite_ids
             ):
                 raise ValueError(
-                    f"{facet_id}: NONE evidence requires "
-                    "verification_relation='unsupported'."
+                    f"{facet_id}: non-unsupported final relation with Stage-A NONE "
+                    "requires positive composite evidence."
                 )
 
         else:
             if assessment.candidate_evidence_span_id not in candidates:
                 raise ValueError(
-                    f"{facet_id}: winning span must appear in the ranked "
+                    f"{facet_id}: winning Stage-A span must appear in the ranked "
                     "candidate list."
+                )
+
+        if len(composite_ids) != len(set(composite_ids)):
+            raise ValueError(
+                f"{facet_id}: composite evidence span IDs must be unique."
+            )
+
+        if len(composite_ids) > 4:
+            raise ValueError(
+                f"{facet_id}: at most 4 composite supporting spans are allowed."
+            )
+
+        if composite_ids and not assessment.composite_verification_attempted:
+            raise ValueError(
+                f"{facet_id}: composite evidence requires "
+                "composite_verification_attempted=True."
+            )
+
+        if assessment.composite_verification_attempted and composite_relation is None:
+            raise ValueError(
+                f"{facet_id}: attempted composite verification requires a relation."
+            )
+
+        if composite_relation == VerificationRelation.DIRECT:
+            raise ValueError(
+                f"{facet_id}: composite verification may never be DIRECT."
+            )
+
+        if composite_relation in {
+            VerificationRelation.ADJACENT,
+            VerificationRelation.ENTAILED,
+        }:
+            if len(composite_ids) < 2:
+                raise ValueError(
+                    f"{facet_id}: positive composite verification requires "
+                    "at least two supporting spans."
+                )
+        elif composite_relation == VerificationRelation.UNSUPPORTED:
+            if composite_ids:
+                raise ValueError(
+                    f"{facet_id}: unsupported composite verification must not "
+                    "contain supporting span IDs."
+                )
+
+        if composite_relation == VerificationRelation.ADJACENT:
+            if not (missing_component and missing_component.strip()):
+                raise ValueError(
+                    f"{facet_id}: ADJACENT composite verification must identify "
+                    "a missing semantic component."
+                )
+
+        if composite_relation == VerificationRelation.ENTAILED:
+            if missing_component and missing_component.strip():
+                raise ValueError(
+                    f"{facet_id}: ENTAILED composite verification cannot declare "
+                    "a missing semantic component."
                 )
 
         if assessment.verification_relation in {

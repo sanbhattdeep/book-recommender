@@ -1,22 +1,15 @@
 """
-Deterministic-cue + isolated semantic facet judge for v0.15.0.
+Polarity-guarded deterministic cue + self-selecting full-context composition semantic facet judge for v0.18.0.
 
-v0.15.0 preserves the v0.13 execution architecture. The v0.14 behavioral
-changes live in the frozen Q03 facet definitions and deterministic aggregation;
-this module keeps the v0.13 cue/LLM stage boundaries.
+v0.18.0 removes the separate composition selector. When a core facet's best
+standalone relation is UNSUPPORTED or ADJACENT, one isolated composite call sees
+the full numbered description, selects its own 2-4 exact supporting spans, and
+returns UNSUPPORTED / ADJACENT / ENTAILED.
 
-Execution stages:
-
-    0. deterministic high-precision DIRECT cue scan
-    A. priority-ranked top-3 evidence selection when no cue fires
-    B. isolated evidence verification
-    C. deterministic best-candidate resolution
-    D. core-only prominence assessment
-    E. deterministic support derivation and 0-4 aggregation
-
-A deterministic cue is positive-only. It may establish relation=DIRECT for an
-exact description span, but it never decides core prominence or the final score.
-If no cue matches, the v0.13 LLM pipeline runs unchanged.
+ENTAILED is explicitly multi-span semantic entailment: exact wording is not
+required when the cited spans jointly supply every semantic component through a
+short necessary inference. ADJACENT requires an explicit missing semantic
+component. DIRECT remains forbidden for composite recovery.
 """
 
 from __future__ import annotations
@@ -44,6 +37,7 @@ from semantic_relevance_facet_scoring import (
 
 NO_EVIDENCE_SPAN = "NONE"
 MAX_EVIDENCE_CANDIDATES = 3
+MAX_COMPOSITE_CANDIDATES = 4
 MAX_STAGE_ATTEMPTS = 2
 
 
@@ -63,22 +57,70 @@ def _regex_matches(pattern: str, text: str) -> bool:
     return re.search(pattern, text, flags=re.IGNORECASE) is not None
 
 
-def find_deterministic_direct_cue(
+def _polarity_guard_blocks_match(
+    text: str,
+    match: re.Match[str],
+    config: dict[str, Any],
+) -> bool:
+    """Return True only for explicit local negation/absence/contrast."""
+
+    stage = config.get("deterministic_direct_cue_stage", {})
+    guard = stage.get("polarity_guard", {})
+
+    if not guard.get("enabled", False):
+        return False
+
+    pre_window = int(guard.get("pre_window_chars", 96))
+    post_window = int(guard.get("post_window_chars", 64))
+
+    prefix = text[max(0, match.start() - pre_window):match.start()]
+    suffix = text[match.end():match.end() + post_window]
+
+    for pattern in guard.get("negative_prefix_regex", []):
+        if re.search(pattern, prefix, flags=re.IGNORECASE):
+            return True
+
+    for pattern in guard.get("negative_suffix_regex", []):
+        if re.search(pattern, suffix, flags=re.IGNORECASE):
+            return True
+
+    return False
+
+
+def _first_positive_regex_match(
+    pattern: str,
+    text: str,
+    config: dict[str, Any],
+) -> tuple[re.Match[str] | None, int]:
+    """Return first polarity-safe match plus number of blocked occurrences."""
+
+    blocked = 0
+
+    for match in re.finditer(pattern, text, flags=re.IGNORECASE):
+        if _polarity_guard_blocks_match(text, match, config):
+            blocked += 1
+            continue
+        return match, blocked
+
+    return None, blocked
+
+
+def _scan_deterministic_direct_cue(
     spec_query_id: str,
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
-) -> DeterministicDirectCueMatch | None:
+) -> tuple[DeterministicDirectCueMatch | None, int]:
     """
-    Return the first configured high-precision DIRECT cue match.
+    Return the first configured polarity-safe DIRECT cue match plus a count of
+    suppressed lexical occurrences.
 
-    Rule order is configuration order; within a rule, the earliest exact source
-    span wins. No match has no negative semantic meaning and simply falls through
-    to Stage A.
+    A blocked cue is not negative evidence; it simply falls through to Stage A.
     """
 
     stage = config.get("deterministic_direct_cue_stage", {})
     rules = stage.get("rules", [])
+    blocked_count = 0
 
     for rule in rules:
         if rule.get("query_id") != spec_query_id:
@@ -91,24 +133,73 @@ def find_deterministic_direct_cue(
 
         for span_id, text in spans.items():
             for pattern in any_patterns:
-                if _regex_matches(pattern, text):
-                    return DeterministicDirectCueMatch(
-                        cue_id=str(rule["cue_id"]),
-                        evidence_span_id=span_id,
-                        evidence_text=text,
-                        matched_expression=pattern,
+                match, blocked = _first_positive_regex_match(
+                    pattern=pattern,
+                    text=text,
+                    config=config,
+                )
+                blocked_count += blocked
+                if match is not None:
+                    return (
+                        DeterministicDirectCueMatch(
+                            cue_id=str(rule["cue_id"]),
+                            evidence_span_id=span_id,
+                            evidence_text=text,
+                            matched_expression=pattern,
+                        ),
+                        blocked_count,
                     )
 
             for group in all_groups:
-                if group and all(_regex_matches(pattern, text) for pattern in group):
-                    return DeterministicDirectCueMatch(
-                        cue_id=str(rule["cue_id"]),
-                        evidence_span_id=span_id,
-                        evidence_text=text,
-                        matched_expression=" ALL ".join(group),
+                if not group:
+                    continue
+
+                group_matches: list[re.Match[str]] = []
+                group_blocked = 0
+
+                for pattern in group:
+                    match, blocked = _first_positive_regex_match(
+                        pattern=pattern,
+                        text=text,
+                        config=config,
+                    )
+                    group_blocked += blocked
+                    if match is None:
+                        group_matches = []
+                        break
+                    group_matches.append(match)
+
+                blocked_count += group_blocked
+
+                if len(group_matches) == len(group):
+                    return (
+                        DeterministicDirectCueMatch(
+                            cue_id=str(rule["cue_id"]),
+                            evidence_span_id=span_id,
+                            evidence_text=text,
+                            matched_expression=" ALL ".join(group),
+                        ),
+                        blocked_count,
                     )
 
-    return None
+    return None, blocked_count
+
+
+def find_deterministic_direct_cue(
+    spec_query_id: str,
+    facet: QueryFacet,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> DeterministicDirectCueMatch | None:
+    """Backward-compatible public helper returning only the positive cue match."""
+
+    match, _ = _scan_deterministic_direct_cue(
+        spec_query_id=spec_query_id,
+        facet=facet,
+        spans=spans,
+        config=config,
+    )
+    return match
 
 
 class JudgeOutputValidationError(ValueError):
@@ -138,6 +229,19 @@ class EvidenceVerification(BaseModel):
     reason: str = Field(min_length=1)
 
 
+class CompositeEvidenceVerification(BaseModel):
+    """Self-selecting full-context multi-span verification output."""
+
+    supporting_span_ids: list[str] = Field(
+        default_factory=list,
+        max_length=MAX_COMPOSITE_CANDIDATES,
+    )
+    verification_relation: VerificationRelation
+    combined_evidence_summary: str = Field(min_length=1)
+    missing_semantic_component: str | None = None
+    reason: str = Field(min_length=1)
+
+
 class ProminenceAssessment(BaseModel):
     """Structured output for one core-prominence assessment."""
 
@@ -153,14 +257,20 @@ class SemanticGenerationResult(BaseModel):
     # Winning/representative exact evidence used by legacy compatibility fields.
     evidence_by_id: dict[str, str]
 
-    # Every Stage-A candidate, retained for audit in facet_evidence_json.
+    # Every Stage-A candidate plus any full-context composite supporting spans, retained for audit in facet_evidence_json.
     candidate_evidence_by_id: dict[str, dict[str, str]]
 
-    generation_mode: str = "deterministic_cue_plus_isolated_precedence_pipeline"
+    generation_mode: str = "polarity_guarded_cue_plus_isolated_self_selecting_full_context_composite_pipeline"
 
     stage_retry_count: int = 0
 
     deterministic_direct_cue_count: int = 0
+
+    deterministic_cue_polarity_blocked_count: int = 0
+
+    composite_verification_attempt_count: int = 0
+
+    composite_verification_count: int = 0
 
 
 # =============================================================================
@@ -621,6 +731,234 @@ def verify_ranked_candidates(
 
 
 # =============================================================================
+# Stage C: self-selecting full-context composite verification
+# =============================================================================
+
+def build_composite_verification_prompt(
+    facet: QueryFacet,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> str:
+    """Build the full-context self-selecting multi-span composition prompt."""
+
+    stage = config["composite_verification_stage"]
+
+    scale = "\n".join(
+        f"- {name}: {definition}"
+        for name, definition
+        in stage["relation_scale"].items()
+    )
+
+    instructions = "\n".join(
+        f"{index}. {instruction}"
+        for index, instruction
+        in enumerate(stage["instructions"], start=1)
+    )
+
+    min_spans = int(stage.get("min_spans", 2))
+    max_spans = int(stage.get("max_spans", MAX_COMPOSITE_CANDIDATES))
+
+    return f"""
+Evaluate ONE core semantic facet using the FULL numbered book description.
+
+Your task has TWO inseparable parts:
+1. identify the smallest coherent set of exact source spans that jointly bears
+   on the facet; and
+2. decide whether those spans make the facet UNSUPPORTED, ADJACENT, or ENTAILED.
+
+FACET
+{facet.text}
+
+FROZEN SEMANTIC DEFINITION
+{facet.semantic_definition}
+
+FULL NUMBERED BOOK-DESCRIPTION SPANS
+{format_description_spans(spans)}
+
+COMPOSITE VERIFICATION SCALE
+{scale}
+
+INSTRUCTIONS
+{instructions}
+
+OUTPUT
+Return one CompositeEvidenceVerification with:
+
+supporting_span_ids:
+- [] for UNSUPPORTED
+- {min_spans}-{max_spans} UNIQUE supplied S# IDs for ADJACENT or ENTAILED
+
+verification_relation:
+- unsupported, adjacent, or entailed only
+
+combined_evidence_summary:
+- summarize only what the cited spans jointly establish
+- do not add facts not present in those spans
+
+missing_semantic_component:
+- null for ENTAILED
+- for ADJACENT, name the specific required facet component that remains
+  unstated or merely plausible
+- for UNSUPPORTED, null is preferred
+
+reason:
+- explain why the cited spans and missing-component field justify the relation
+
+DIRECT is forbidden.
+Do not require exact facet wording for ENTAILED.
+Do not use any information outside the facet, frozen definition, and supplied
+numbered description.
+""".strip()
+
+
+def _validate_composite_result(
+    result: CompositeEvidenceVerification,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> None:
+    """Deterministically validate v0.18 composite structure/consistency."""
+
+    stage = config["composite_verification_stage"]
+    min_spans = int(stage.get("min_spans", 2))
+    max_spans = int(stage.get("max_spans", MAX_COMPOSITE_CANDIDATES))
+    relation = result.verification_relation
+    ids = list(result.supporting_span_ids)
+
+    if relation == VerificationRelation.DIRECT:
+        raise JudgeOutputValidationError(
+            "Composite verification may not return DIRECT."
+        )
+
+    if len(ids) != len(set(ids)):
+        raise JudgeOutputValidationError(
+            "Composite supporting span IDs must be unique."
+        )
+
+    unknown = [span_id for span_id in ids if span_id not in spans]
+    if unknown:
+        raise JudgeOutputValidationError(
+            f"Composite verification returned unknown span IDs: {unknown}."
+        )
+
+    if relation in {
+        VerificationRelation.ADJACENT,
+        VerificationRelation.ENTAILED,
+    }:
+        if not (min_spans <= len(ids) <= max_spans):
+            raise JudgeOutputValidationError(
+                f"Positive composite verification requires {min_spans}-{max_spans} "
+                "supporting spans."
+            )
+    else:
+        if ids:
+            raise JudgeOutputValidationError(
+                "Unsupported composite verification must return no supporting span IDs."
+            )
+
+    missing = (
+        result.missing_semantic_component.strip()
+        if result.missing_semantic_component
+        else ""
+    )
+
+    if relation == VerificationRelation.ADJACENT and not missing:
+        raise JudgeOutputValidationError(
+            "ADJACENT composite verification must identify the missing semantic component."
+        )
+
+    if relation == VerificationRelation.ENTAILED and missing:
+        raise JudgeOutputValidationError(
+            "ENTAILED composite verification cannot declare a missing semantic component."
+        )
+
+
+def verify_composite_evidence(
+    judge_model: Any,
+    facet: QueryFacet,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> tuple[CompositeEvidenceVerification, int]:
+    """
+    Scan the full description, self-select 2-4 supporting spans, and determine
+    the composite relation in one isolated call.
+    """
+
+    validation_error: str | None = None
+
+    for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
+        prompt = build_composite_verification_prompt(
+            facet=facet,
+            spans=spans,
+            config=config,
+        )
+
+        if validation_error:
+            prompt += (
+                "\n\nPREVIOUS VALIDATION FAILURE\n"
+                f"{validation_error}\n"
+                "Return a corrected CompositeEvidenceVerification only. "
+                "Remember: ENTAILED => missing_semantic_component=null; "
+                "ADJACENT => explicitly identify the missing required component; "
+                "positive relations require 2-4 unique real span IDs."
+            )
+
+        # Transport/model-call failures intentionally propagate. Only generated
+        # structured-output validation failures are repaired/fallback-handled.
+        generated = judge_model.generate(
+            prompt=prompt,
+            schema=CompositeEvidenceVerification,
+        )
+
+        try:
+            result = unpack_generated_model(
+                generated,
+                CompositeEvidenceVerification,
+            )
+            assert isinstance(result, CompositeEvidenceVerification)
+            _validate_composite_result(
+                result=result,
+                spans=spans,
+                config=config,
+            )
+            return result, attempt - 1
+
+        except (JudgeOutputValidationError, ValueError, TypeError) as error:
+            validation_error = str(error)
+
+    # Composition is an optional recovery path. A malformed response after
+    # bounded retries must not create positive evidence or abort the case.
+    fallback = CompositeEvidenceVerification(
+        supporting_span_ids=[],
+        verification_relation=VerificationRelation.UNSUPPORTED,
+        combined_evidence_summary=(
+            "No valid composite evidence judgment was available after bounded "
+            "structured-output repair attempts."
+        ),
+        missing_semantic_component=None,
+        reason=(
+            "structured_output_recovery_fallback: treating optional composite "
+            "recovery as unsupported. Last validation error: "
+            f"{validation_error or 'unknown'}"
+        ),
+    )
+
+    return fallback, MAX_STAGE_ATTEMPTS
+
+
+
+def format_composite_evidence(
+    span_ids: list[str],
+    spans: dict[str, str],
+) -> str:
+    """Render exact composed evidence while preserving source-span IDs."""
+
+    return "\n".join(
+        f"{span_id}: {spans[span_id]}"
+        for span_id in span_ids
+    )
+
+
+# =============================================================================
 # Stage C: core prominence
 # v0.12.0 preserves the isolated stage boundary and adds explicit decision precedence.
 # =============================================================================
@@ -738,22 +1076,24 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run:
-        multi-candidate selection
-        -> isolated verification(s)
-        -> deterministic winner
+    Run v0.18 facet evaluation:
+
+        polarity-safe deterministic cue
+        -> Stage-A standalone candidate selection
+        -> isolated single-span verification(s)
+        -> self-selecting full-context composite verification when eligible
         -> optional prominence
 
     Returns:
         final assessment
         winning/representative evidence text
-        every selected candidate's exact source text
+        exact text for every Stage-A OR composition-selected candidate
         total structured-output retry count
     """
 
     total_retries = 0
 
-    cue_match = find_deterministic_direct_cue(
+    cue_match, polarity_blocked_count = _scan_deterministic_direct_cue(
         spec_query_id=query_id,
         facet=facet,
         spans=spans,
@@ -788,6 +1128,7 @@ def evaluate_one_facet(
                     evidence_selection_reason=reason,
                     verification_reason=reason,
                     prominence_reason=None,
+                    deterministic_cue_polarity_blocked_count=polarity_blocked_count,
                 ),
                 cue_match.evidence_text,
                 candidate_texts,
@@ -814,76 +1155,151 @@ def evaluate_one_facet(
                 evidence_selection_reason=reason,
                 verification_reason=reason,
                 prominence_reason=prominence_result.reason,
+                deterministic_cue_polarity_blocked_count=polarity_blocked_count,
             ),
             cue_match.evidence_text,
             candidate_texts,
             total_retries,
         )
 
+    # ------------------------------------------------------------------
+    # Stage A/B: standalone evidence path.
+    # ------------------------------------------------------------------
     selection, candidate_ids, retries = select_candidate_evidence(
         judge_model=judge_model,
         facet=facet,
         spans=spans,
         config=config,
     )
-
     total_retries += retries
 
     candidate_texts = {
         span_id: spans[span_id]
-        for span_id
-        in candidate_ids
+        for span_id in candidate_ids
     }
 
-    # No plausible candidate from Stage A.
-    if not candidate_ids:
-
-        return (
-            FacetPipelineAssessment(
-                facet_id=facet.facet_id,
-                candidate_evidence_span_ids=[],
-                candidate_verifications=[],
-                candidate_evidence_span_id=NO_EVIDENCE_SPAN,
-                verification_relation=VerificationRelation.UNSUPPORTED,
-                prominence=FacetProminence.NOT_APPLICABLE,
-                evidence_selection_reason=selection.reason,
-                verification_reason=(
-                    "Evidence selector returned NONE; verification skipped."
-                ),
-                prominence_reason=None,
-            ),
-            None,
-            candidate_texts,
-            total_retries,
-        )
-
-    best, verification_records, retries = verify_ranked_candidates(
-        judge_model=judge_model,
-        facet=facet,
-        candidate_ids=candidate_ids,
-        spans=spans,
-        config=config,
+    verification_records: list[CandidateVerificationRecord] = []
+    winning_span_id = NO_EVIDENCE_SPAN
+    winning_evidence_text: str | None = None
+    relation = VerificationRelation.UNSUPPORTED
+    best_single_reason = (
+        "Evidence selector returned NONE; isolated single-span verification skipped."
     )
 
-    total_retries += retries
+    if candidate_ids:
+        best, verification_records, retries = verify_ranked_candidates(
+            judge_model=judge_model,
+            facet=facet,
+            candidate_ids=candidate_ids,
+            spans=spans,
+            config=config,
+        )
+        total_retries += retries
 
-    winning_span_id = best.evidence_span_id
-    winning_evidence_text = spans[winning_span_id]
-    relation = best.verification_relation
+        winning_span_id = best.evidence_span_id
+        winning_evidence_text = spans[winning_span_id]
+        relation = best.verification_relation
+        best_single_reason = best.verification_reason
 
-    # Candidate(s) existed but none established the facet.
+    # ------------------------------------------------------------------
+    # Stage C: self-selecting full-context composition recovery.
+    # ------------------------------------------------------------------
+    composite_verification_attempted = False
+    composite_span_ids: list[str] = []
+    composite_relation: VerificationRelation | None = None
+    composite_summary: str | None = None
+    composite_missing_component: str | None = None
+    composite_reason: str | None = None
+
+    verifier_stage = config.get("composite_verification_stage", {})
+
+    eligible_relations = {
+        VerificationRelation(value)
+        for value in verifier_stage.get(
+            "eligible_when_best_single_relation",
+            ["unsupported", "adjacent"],
+        )
+    }
+
+    if (
+        verifier_stage
+        and facet.facet_type == "core"
+        and relation in eligible_relations
+    ):
+        composite_verification_attempted = True
+
+        composite_result, retries = verify_composite_evidence(
+            judge_model=judge_model,
+            facet=facet,
+            spans=spans,
+            config=config,
+        )
+        total_retries += retries
+
+        composite_relation = composite_result.verification_relation
+        composite_summary = composite_result.combined_evidence_summary
+        composite_missing_component = (
+            composite_result.missing_semantic_component
+        )
+        composite_reason = composite_result.reason
+        composite_span_ids = list(
+            composite_result.supporting_span_ids
+        )
+
+        # Persist exact full-context evidence chosen by the composite verifier,
+        # including spans Stage A never selected.
+        for span_id in composite_span_ids:
+            candidate_texts[span_id] = spans[span_id]
+
+        # Composition is recovery-only. It replaces the standalone relation
+        # only when strictly stronger. DIRECT remains impossible here.
+        if (
+            VERIFICATION_STRENGTH[composite_relation]
+            > VERIFICATION_STRENGTH[relation]
+        ):
+            relation = composite_relation
+            winning_evidence_text = format_composite_evidence(
+                composite_span_ids,
+                spans,
+            )
+
+    final_verification_reason = best_single_reason
+
+    if (
+        composite_relation is not None
+        and VERIFICATION_STRENGTH[composite_relation]
+        > VERIFICATION_STRENGTH[
+            (
+                verification_records
+                and choose_best_verified_candidate(verification_records).verification_relation
+            )
+            or VerificationRelation.UNSUPPORTED
+        ]
+    ):
+        final_verification_reason = composite_reason or best_single_reason
+
+    common_kwargs = dict(
+        facet_id=facet.facet_id,
+        candidate_evidence_span_ids=candidate_ids,
+        candidate_verifications=verification_records,
+        candidate_evidence_span_id=winning_span_id,
+        verification_relation=relation,
+        evidence_selection_reason=selection.reason,
+        verification_reason=final_verification_reason,
+        deterministic_cue_polarity_blocked_count=polarity_blocked_count,
+        composite_verification_attempted=composite_verification_attempted,
+        composite_evidence_span_ids=composite_span_ids,
+        composite_verification_relation=composite_relation,
+        composite_combined_evidence_summary=composite_summary,
+        composite_missing_semantic_component=composite_missing_component,
+        composite_verification_reason=composite_reason,
+    )
+
     if relation == VerificationRelation.UNSUPPORTED:
-
         return (
             FacetPipelineAssessment(
-                facet_id=facet.facet_id,
-                candidate_evidence_span_ids=candidate_ids,
-                candidate_verifications=verification_records,
-                candidate_evidence_span_id=winning_span_id,
-                verification_relation=relation,
+                **common_kwargs,
                 prominence=FacetProminence.NOT_APPLICABLE,
-                evidence_selection_reason=selection.reason,
-                verification_reason=best.verification_reason,
                 prominence_reason=None,
             ),
             winning_evidence_text,
@@ -891,22 +1307,14 @@ def evaluate_one_facet(
             total_retries,
         )
 
-    # Adjacent core evidence is already the weak/incidental semantic region.
-    # Do not ask prominence to turn an incomplete semantic match into a stronger one.
     if (
         relation == VerificationRelation.ADJACENT
         and facet.facet_type == "core"
     ):
         return (
             FacetPipelineAssessment(
-                facet_id=facet.facet_id,
-                candidate_evidence_span_ids=candidate_ids,
-                candidate_verifications=verification_records,
-                candidate_evidence_span_id=winning_span_id,
-                verification_relation=relation,
+                **common_kwargs,
                 prominence=FacetProminence.NOT_APPLICABLE,
-                evidence_selection_reason=selection.reason,
-                verification_reason=best.verification_reason,
                 prominence_reason=None,
             ),
             winning_evidence_text,
@@ -914,25 +1322,19 @@ def evaluate_one_facet(
             total_retries,
         )
 
-    # Qualifiers remain relation-only; prominence is intentionally irrelevant.
     if facet.facet_type == "qualifier":
-
         return (
             FacetPipelineAssessment(
-                facet_id=facet.facet_id,
-                candidate_evidence_span_ids=candidate_ids,
-                candidate_verifications=verification_records,
-                candidate_evidence_span_id=winning_span_id,
-                verification_relation=relation,
+                **common_kwargs,
                 prominence=FacetProminence.NOT_APPLICABLE,
-                evidence_selection_reason=selection.reason,
-                verification_reason=best.verification_reason,
                 prominence_reason=None,
             ),
             winning_evidence_text,
             candidate_texts,
             total_retries,
         )
+
+    assert winning_evidence_text is not None
 
     prominence_result, retries = assess_core_prominence(
         judge_model=judge_model,
@@ -941,19 +1343,12 @@ def evaluate_one_facet(
         spans=spans,
         config=config,
     )
-
     total_retries += retries
 
     return (
         FacetPipelineAssessment(
-            facet_id=facet.facet_id,
-            candidate_evidence_span_ids=candidate_ids,
-            candidate_verifications=verification_records,
-            candidate_evidence_span_id=winning_span_id,
-            verification_relation=relation,
+            **common_kwargs,
             prominence=prominence_result.prominence,
-            evidence_selection_reason=selection.reason,
-            verification_reason=best.verification_reason,
             prominence_reason=prominence_result.reason,
         ),
         winning_evidence_text,
@@ -970,7 +1365,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.15.0 for every frozen facet.
+    Run v0.18.0 for every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1073,12 +1468,32 @@ def generate_validated_semantic_verdict(
         for assessment in assessments
     )
 
+    deterministic_cue_polarity_blocked_count = sum(
+        assessment.deterministic_cue_polarity_blocked_count
+        for assessment in assessments
+    )
+
+    composite_verification_attempt_count = sum(
+        assessment.composite_verification_attempted
+        for assessment in assessments
+    )
+
+    composite_verification_count = sum(
+        bool(assessment.composite_evidence_span_ids)
+        for assessment in assessments
+    )
+
     return SemanticGenerationResult(
         verdict=verdict,
         evidence_by_id=evidence_by_id,
         candidate_evidence_by_id=candidate_evidence_by_id,
         stage_retry_count=total_retries,
         deterministic_direct_cue_count=deterministic_direct_cue_count,
+        deterministic_cue_polarity_blocked_count=(
+            deterministic_cue_polarity_blocked_count
+        ),
+        composite_verification_attempt_count=composite_verification_attempt_count,
+        composite_verification_count=composite_verification_count,
     )
 
 
@@ -1140,6 +1555,29 @@ def serialize_facet_assessments(
                 "prominence_reason": (
                     assessment.prominence_reason
                 ),
+                "deterministic_cue_polarity_blocked_count": (
+                    assessment.deterministic_cue_polarity_blocked_count
+                ),
+                "composite_verification_attempted": (
+                    assessment.composite_verification_attempted
+                ),
+                "composite_evidence_span_ids": (
+                    assessment.composite_evidence_span_ids
+                ),
+                "composite_verification_relation": (
+                    assessment.composite_verification_relation.value
+                    if assessment.composite_verification_relation is not None
+                    else None
+                ),
+                "composite_combined_evidence_summary": (
+                    assessment.composite_combined_evidence_summary
+                ),
+                "composite_missing_semantic_component": (
+                    assessment.composite_missing_semantic_component
+                ),
+                "composite_verification_reason": (
+                    assessment.composite_verification_reason
+                ),
             }
         )
 
@@ -1153,9 +1591,9 @@ def serialize_facet_evidence(
     candidate_evidence_by_id: dict[str, dict[str, str]],
 ) -> str:
     """
-    Persist exact text for ALL Stage-A candidates, not only the winning span.
+    Persist exact text for ALL Stage-A candidates and composite supporting spans, not only the winning span.
 
-    This makes evidence-selection recall failures auditable after the run.
+    This makes standalone and composition evidence-selection failures auditable after the run.
     """
 
     return json.dumps(

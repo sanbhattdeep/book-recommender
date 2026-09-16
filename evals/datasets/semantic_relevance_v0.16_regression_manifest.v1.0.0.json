@@ -1,0 +1,30 @@
+{
+  "version": "1.0.0",
+  "role": "post_holdout_development_regression",
+  "source_note": "Combines the previously consumed 30-case validation split and the previously consumed 30-case final holdout. This dataset is development-only and must never be reported as unseen generalization evidence.",
+  "source_files": [
+    "semantic_relevance_validation.v1.0.0.csv",
+    "semantic_relevance_final_holdout.v1.0.0.csv"
+  ],
+  "cases": 60,
+  "primary_failure_cases": [
+    "U_Q06_T02",
+    "U_Q02_NEG",
+    "U_Q10_T30"
+  ],
+  "regression_controls": [
+    "U_Q02_T02",
+    "U_Q02_T10",
+    "U_Q06_T30",
+    "U_Q10_T02",
+    "U_Q10_T10",
+    "U_Q10_NEG",
+    "U_Q03_T70",
+    "U_Q08_T02"
+  ],
+  "architecture_targets": {
+    "U_Q06_T02": "multi-span composition should reduce the severe under-promotion; target within \u00b11 of human score.",
+    "U_Q02_NEG": "suspense boundary should prevent a personal dilemma/illness from becoming substantive suspense; target <=1.",
+    "U_Q10_T30": "polarity guard must suppress the deterministic cooperation cue in negative/contrast context. Final semantic score is secondary because the LLM may independently find teamwork-like collective action."
+  }
+}
