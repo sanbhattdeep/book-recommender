@@ -17,7 +17,7 @@ config = json.loads(
     (
         EVALS_DIR
         / "judge_configs"
-        / "semantic_relevance_judge.v0.21.0.json"
+        / "semantic_relevance_judge.v0.21.1.json"
     ).read_text(encoding="utf-8")
 )
 
@@ -83,4 +83,4 @@ except JudgeOutputValidationError:
 else:
     raise AssertionError("ENTAILED with a missing semantic component must fail.")
 
-print("All v0.21.0 composite relation-consistency tests passed.")
+print("All v0.21.1 composite relation-consistency tests passed.")

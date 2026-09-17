@@ -1,9 +1,7 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.21.0.
+Deterministic scoring models for Semantic Recommendation Relevance v0.21.1.
 
-v0.21.0 preserves the deterministic support derivation and final 0-4
-aggregation unchanged. It adds a full-description hard-exclusion precheck and
-auditable decomposed role signals before deterministic prominence derivation.
+v0.20.0 preserves the deterministic support derivation and final 0-4 aggregation unchanged. It adds auditable inference-kind and context-role fields used by the semantic stages before deterministic support derivation.
 
 v0.11.0 added an ADJACENT verification relation so weak but genuine facet-specific
 connections can map to score-1 incidental relevance without being promoted to
@@ -159,7 +157,7 @@ class CandidateVerificationRecord(BaseModel):
 
 class FacetPipelineAssessment(BaseModel):
     """
-    Final v0.21.0 result for one frozen facet.
+    Final v0.21.1 result for one frozen facet.
 
     `candidate_evidence_span_ids` contains the selector's ranked candidates.
 
@@ -193,30 +191,25 @@ class FacetPipelineAssessment(BaseModel):
     hard_exclusion_triggered: bool = False
     hard_exclusion_id: str | None = None
 
-    # v0.21 audit: a full-description negative-boundary gate executes before
-    # deterministic cues, candidate selection, or positive verification.
+    # v0.21+ full-description negative-boundary precheck audit.
     hard_exclusion_precheck_attempted: bool = False
     hard_exclusion_precheck_triggered: bool = False
     hard_exclusion_precheck_id: str | None = None
-    hard_exclusion_precheck_supporting_span_ids: list[str] = Field(
-        default_factory=list,
-        max_length=4,
-    )
+    hard_exclusion_precheck_supporting_span_ids: list[str] = Field(default_factory=list, max_length=4)
     hard_exclusion_precheck_reason: str | None = None
 
     prominence: FacetProminence
 
+    # Context role remains an audit field, but in v0.21+ it is derived
+    # deterministically in Python from decomposed role signals.
     context_role: FacetContextRole = FacetContextRole.NOT_APPLICABLE
-
-    # v0.21 audit: the LLM emits independent role signals. Python applies the
-    # frozen precedence and stores the derived compatibility context_role above.
     primary_subject_summary: str | None = None
     is_primary_subject: bool = False
     is_background_cause_or_factor: bool = False
     is_example_or_illustration: bool = False
     is_meta_discussion: bool = False
     is_substantively_examined: bool = False
-    role_supporting_span_ids: list[str] = Field(default_factory=list, max_length=4)
+    role_supporting_span_ids: list[str] = Field(default_factory=list, max_length=6)
 
     evidence_selection_reason: str = Field(min_length=1)
 
@@ -362,54 +355,6 @@ def validate_facet_assessments(
 
         candidates = assessment.candidate_evidence_span_ids
 
-        precheck_ids = assessment.hard_exclusion_precheck_supporting_span_ids
-        if len(precheck_ids) != len(set(precheck_ids)):
-            raise ValueError(
-                f"{facet_id}: hard-exclusion precheck span IDs must be unique."
-            )
-        if assessment.hard_exclusion_precheck_triggered:
-            if not assessment.hard_exclusion_precheck_attempted:
-                raise ValueError(
-                    f"{facet_id}: triggered hard-exclusion precheck must be attempted."
-                )
-            if not assessment.hard_exclusion_precheck_id:
-                raise ValueError(
-                    f"{facet_id}: triggered hard-exclusion precheck requires an ID."
-                )
-            valid_exclusion_ids = {
-                item.exclusion_id for item in facet.hard_exclusions
-            }
-            if assessment.hard_exclusion_precheck_id not in valid_exclusion_ids:
-                raise ValueError(
-                    f"{facet_id}: precheck ID must name a frozen hard exclusion."
-                )
-            if assessment.hard_exclusion_id != assessment.hard_exclusion_precheck_id:
-                raise ValueError(
-                    f"{facet_id}: final and precheck hard-exclusion IDs must match."
-                )
-            if not precheck_ids:
-                raise ValueError(
-                    f"{facet_id}: triggered hard-exclusion precheck requires evidence spans."
-                )
-            if assessment.verification_relation != VerificationRelation.UNSUPPORTED:
-                raise ValueError(
-                    f"{facet_id}: triggered hard-exclusion precheck requires UNSUPPORTED."
-                )
-            if candidates or assessment.candidate_verifications:
-                raise ValueError(
-                    f"{facet_id}: precheck short-circuit must precede candidate selection."
-                )
-        elif assessment.hard_exclusion_precheck_id is not None or precheck_ids:
-            raise ValueError(
-                f"{facet_id}: non-triggered hard-exclusion precheck cannot carry an ID or spans."
-            )
-
-        role_ids = assessment.role_supporting_span_ids
-        if len(role_ids) != len(set(role_ids)):
-            raise ValueError(
-                f"{facet_id}: role supporting span IDs must be unique."
-            )
-
         if len(candidates) != len(set(candidates)):
             raise ValueError(
                 f"{facet_id}: candidate evidence span IDs must be unique."
@@ -528,14 +473,6 @@ def validate_facet_assessments(
             if assessment.prominence == FacetProminence.NOT_APPLICABLE:
                 raise ValueError(
                     f"{facet_id}: supported core facets require prominence."
-                )
-            if not (assessment.primary_subject_summary or "").strip():
-                raise ValueError(
-                    f"{facet_id}: supported core facets require a primary-subject summary."
-                )
-            if not assessment.role_supporting_span_ids:
-                raise ValueError(
-                    f"{facet_id}: supported core facets require role supporting spans."
                 )
 
     return assessment_by_id

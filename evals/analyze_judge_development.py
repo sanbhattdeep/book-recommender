@@ -6,7 +6,7 @@ Windows Application Control blocks SciPy native DLLs.
 
 Usage:
     uv run python evals/analyze_judge_development.py `
-      --run evals/runs/semantic_relevance_v0_21_development/<RUN_ID>
+      --run evals/runs/semantic_relevance_v0_20_development/<RUN_ID>
 """
 
 from __future__ import annotations
@@ -20,7 +20,7 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-EXPECTED_JUDGE_CONFIG_VERSION = "0.21.0"
+EXPECTED_JUDGE_CONFIG_VERSION = "0.19.0"
 EXPECTED_EVALUATION_DATASET_VERSION = "2.0.0"
 EXPECTED_EVALUATION_DATASET_ROLE = "post_holdout_development"
 EXPECTED_EVALUATION_SCOPE = "consumed_unseen_pool_development"
@@ -28,7 +28,7 @@ REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.21_regression_manifest.v1.0.0.json"
+    / "semantic_relevance_v0.20_regression_manifest.v1.0.0.json"
 )
 
 
@@ -474,8 +474,6 @@ def main() -> None:
             "deterministic_cue_polarity_blocked_count": int(item.get("deterministic_cue_polarity_blocked_count", 0) or 0),
             "composite_verification_attempt_count": int(item.get("composite_verification_attempt_count", 0) or 0),
             "composite_verification_count": int(item.get("composite_verification_count", 0) or 0),
-            "hard_exclusion_precheck_attempt_count": int(item.get("hard_exclusion_precheck_attempt_count", 0) or 0),
-            "hard_exclusion_precheck_trigger_count": int(item.get("hard_exclusion_precheck_trigger_count", 0) or 0),
         }
 
 

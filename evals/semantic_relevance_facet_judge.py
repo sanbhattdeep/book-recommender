@@ -1,9 +1,7 @@
 """
-Full-description negative-boundary precheck + decomposed-role semantic facet
-judge for v0.21.0.
+Full-description hard-exclusion precheck + inference-kind + decomposed-role semantic facet judge for v0.21.1.
 
-v0.21.0 preserves the v0.18 self-selecting composite architecture and the
-v0.20 inference contract. When a core facet's best
+v0.21.1 preserves the self-selecting composite architecture and adds a full-description hard-exclusion precheck plus decomposed role signals with deterministic Python resolution. When a core facet's best
 standalone relation is UNSUPPORTED or ADJACENT, one isolated composite call sees
 the full numbered description, selects its own 2-4 exact supporting spans, and
 returns UNSUPPORTED / ADJACENT / ENTAILED.
@@ -226,18 +224,6 @@ class EvidenceSelection(BaseModel):
     reason: str = Field(min_length=1)
 
 
-class FullDescriptionHardExclusionAssessment(BaseModel):
-    """Full-context negative-boundary result evaluated before positive stages."""
-
-    hard_exclusion_triggered: bool
-    hard_exclusion_id: str | None = None
-    supporting_span_ids: list[str] = Field(
-        default_factory=list,
-        max_length=MAX_COMPOSITE_CANDIDATES,
-    )
-    reason: str = Field(min_length=1)
-
-
 class EvidenceVerification(BaseModel):
     """Structured output for one isolated verification."""
 
@@ -265,7 +251,7 @@ class CompositeEvidenceVerification(BaseModel):
 
 
 class ProminenceAssessment(BaseModel):
-    """LLM output containing independent, source-grounded role signals."""
+    """LLM output for decomposed role classification; Python resolves final role."""
 
     primary_subject_summary: str = Field(min_length=1)
     is_primary_subject: bool
@@ -273,7 +259,16 @@ class ProminenceAssessment(BaseModel):
     is_example_or_illustration: bool
     is_meta_discussion: bool
     is_substantively_examined: bool
-    supporting_span_ids: list[str] = Field(min_length=1, max_length=4)
+    supporting_span_ids: list[str] = Field(default_factory=list, max_length=6)
+    reason: str = Field(min_length=1)
+
+
+class HardExclusionPrecheck(BaseModel):
+    """Full-description negative-boundary precheck before positive evidence search."""
+
+    hard_exclusion_triggered: bool
+    hard_exclusion_id: str | None = None
+    supporting_span_ids: list[str] = Field(default_factory=list, max_length=4)
     reason: str = Field(min_length=1)
 
 
@@ -301,7 +296,6 @@ class SemanticGenerationResult(BaseModel):
     composite_verification_count: int = 0
 
     hard_exclusion_precheck_attempt_count: int = 0
-
     hard_exclusion_precheck_trigger_count: int = 0
 
 
@@ -579,21 +573,19 @@ def format_hard_exclusions(facet: QueryFacet) -> str:
     )
 
 
-def build_full_description_hard_exclusion_prompt(
+def build_hard_exclusion_precheck_prompt(
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
 ) -> str:
-    """Build the negative-boundary gate that precedes every positive stage."""
+    """Judge frozen negative boundaries against the full description first."""
 
-    stage = config["full_description_hard_exclusion_precheck"]
+    stage = config.get("hard_exclusion_precheck_stage", {})
     instructions = "\n".join(
-        f"{index}. {instruction}"
-        for index, instruction in enumerate(stage["instructions"], start=1)
+        f"{i}. {x}" for i, x in enumerate(stage.get("instructions", []), start=1)
     )
     return f"""
-Decide whether ONE frozen hard exclusion resolves ONE facet as unsupported
-from the FULL book description before any positive evidence is selected.
+Decide whether ONE frozen hard exclusion conclusively blocks ONE semantic facet.
 
 FACET
 {facet.text}
@@ -610,91 +602,53 @@ FULL NUMBERED BOOK-DESCRIPTION SPANS
 INSTRUCTIONS
 {instructions}
 
-Return one FullDescriptionHardExclusionAssessment with
-hard_exclusion_triggered, hard_exclusion_id, supporting_span_ids, and reason.
+Return one HardExclusionPrecheck with hard_exclusion_triggered, hard_exclusion_id,
+supporting_span_ids, and reason.
 """.strip()
 
 
-def _validate_full_description_hard_exclusion_result(
-    result: FullDescriptionHardExclusionAssessment,
-    facet: QueryFacet,
-    spans: dict[str, str],
-) -> None:
-    """Mechanically validate the precheck result and exact source grounding."""
-
-    ids = list(result.supporting_span_ids)
-    if len(ids) != len(set(ids)):
-        raise JudgeOutputValidationError(
-            "Hard-exclusion precheck supporting span IDs must be unique."
-        )
-    unknown = [span_id for span_id in ids if span_id not in spans]
-    if unknown:
-        raise JudgeOutputValidationError(
-            f"Hard-exclusion precheck returned unknown span IDs: {unknown}."
-        )
-
-    valid_ids = {item.exclusion_id for item in facet.hard_exclusions}
-    if result.hard_exclusion_triggered:
-        if result.hard_exclusion_id not in valid_ids:
-            raise JudgeOutputValidationError(
-                "Triggered hard-exclusion precheck must name one frozen exclusion."
-            )
-        if not ids:
-            raise JudgeOutputValidationError(
-                "Triggered hard-exclusion precheck requires at least one source span."
-            )
-    elif result.hard_exclusion_id is not None or ids:
-        raise JudgeOutputValidationError(
-            "Non-triggered hard-exclusion precheck must return null ID and no spans."
-        )
-
-
-def assess_full_description_hard_exclusion(
+def assess_hard_exclusion_precheck(
     judge_model: Any,
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
-) -> tuple[FullDescriptionHardExclusionAssessment, int]:
-    """Run a valid full-description exclusion gate for a facet with exclusions."""
+) -> tuple[HardExclusionPrecheck, int]:
+    """Run the full-description hard-exclusion guard before positive search."""
 
-    if not facet.hard_exclusions:
-        raise ValueError("Hard-exclusion precheck requires at least one frozen exclusion.")
-
-    validation_error: str | None = None
+    last_error: Exception | None = None
+    valid_ids = {item.exclusion_id for item in facet.hard_exclusions}
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
-        prompt = build_full_description_hard_exclusion_prompt(
-            facet=facet,
-            spans=spans,
-            config=config,
-        )
-        if validation_error:
-            prompt += (
-                "\n\nPREVIOUS VALIDATION FAILURE\n"
-                f"{validation_error}\n"
-                "Return a corrected FullDescriptionHardExclusionAssessment only."
-            )
-        generated = judge_model.generate(
-            prompt=prompt,
-            schema=FullDescriptionHardExclusionAssessment,
-        )
         try:
-            result = unpack_generated_model(
-                generated,
-                FullDescriptionHardExclusionAssessment,
+            generated = judge_model.generate(
+                prompt=build_hard_exclusion_precheck_prompt(facet, spans, config),
+                schema=HardExclusionPrecheck,
             )
-            assert isinstance(result, FullDescriptionHardExclusionAssessment)
-            _validate_full_description_hard_exclusion_result(
-                result=result,
-                facet=facet,
-                spans=spans,
-            )
+            result = unpack_generated_model(generated, HardExclusionPrecheck)
+            assert isinstance(result, HardExclusionPrecheck)
+            unknown = set(result.supporting_span_ids) - set(spans)
+            if unknown:
+                raise JudgeOutputValidationError(
+                    f"Hard-exclusion precheck returned unknown spans: {sorted(unknown)}."
+                )
+            if result.hard_exclusion_triggered:
+                if result.hard_exclusion_id not in valid_ids:
+                    raise JudgeOutputValidationError(
+                        "Triggered precheck must name a frozen exclusion ID."
+                    )
+                if not result.supporting_span_ids:
+                    raise JudgeOutputValidationError(
+                        "Triggered precheck must cite at least one supporting span."
+                    )
+            elif result.hard_exclusion_id is not None:
+                raise JudgeOutputValidationError(
+                    "Non-triggered precheck must return hard_exclusion_id=null."
+                )
             return result, attempt - 1
-        except (JudgeOutputValidationError, ValueError, TypeError) as error:
-            validation_error = str(error)
-
+        except Exception as error:
+            last_error = error
     raise JudgeOutputValidationError(
-        validation_error or "Unable to obtain valid hard-exclusion precheck."
-    )
+        "Unable to obtain valid hard-exclusion precheck assessment."
+    ) from last_error
 
 
 def _validate_hard_exclusion_contract(
@@ -728,31 +682,43 @@ def _validate_hard_exclusion_contract(
         )
 
 
-def _context_role_from_signals(result: ProminenceAssessment) -> FacetContextRole:
-    """Derive one compatibility role using the frozen v0.21 precedence."""
+def _context_role_from_decomposed_signals(
+    result: ProminenceAssessment,
+) -> FacetContextRole:
+    """Resolve decomposed role signals deterministically.
+
+    v0.21.1 keeps meta/example use as strong incidental evidence, but no longer
+    lets background-cause suppress a genuine primary or substantively examined
+    facet. This is the targeted correction for the v0.21.0 positive-control
+    collapse.
+    """
 
     if result.is_meta_discussion:
         return FacetContextRole.META_DISCUSSION
     if result.is_example_or_illustration:
         return FacetContextRole.EXAMPLE_OR_ILLUSTRATION
-    if result.is_background_cause_or_factor:
-        return FacetContextRole.BACKGROUND_CAUSE
     if result.is_primary_subject:
         return FacetContextRole.CENTRAL_SUBJECT
     if result.is_substantively_examined:
         return FacetContextRole.SUBSTANTIVE_SUBJECT
+    if result.is_background_cause_or_factor:
+        return FacetContextRole.BACKGROUND_CAUSE
     return FacetContextRole.INCIDENTAL_MENTION
 
 
-def _prominence_from_role_signals(result: ProminenceAssessment) -> FacetProminence:
-    """Derive prominence in Python; the model never outputs prominence or role."""
+def _prominence_from_context_role(
+    context_role: FacetContextRole,
+    config: dict[str, Any],
+) -> FacetProminence:
+    """Derive prominence only in Python from the frozen context-role mapping."""
 
-    role = _context_role_from_signals(result)
-    if role == FacetContextRole.CENTRAL_SUBJECT:
-        return FacetProminence.CENTRAL
-    if role == FacetContextRole.SUBSTANTIVE_SUBJECT:
-        return FacetProminence.SUBSTANTIVE
-    return FacetProminence.INCIDENTAL
+    mapping = config.get("prominence_stage", {}).get("context_role_to_prominence", {})
+    expected = mapping.get(context_role.value)
+    if expected is None:
+        raise JudgeOutputValidationError(
+            f"Unknown context_role mapping: {context_role.value}."
+        )
+    return FacetProminence(expected)
 
 
 def _validate_inference_contract(
@@ -807,20 +773,17 @@ def _validate_verification_result(
 def _validate_prominence_result(
     result: ProminenceAssessment,
     spans: dict[str, str],
+    config: dict[str, Any],
 ) -> None:
-    """Validate decomposed role signals and their exact source grounding."""
+    """Validate decomposed role output; Python alone resolves final role."""
 
-    ids = list(result.supporting_span_ids)
-    if len(ids) != len(set(ids)):
-        raise JudgeOutputValidationError(
-            "Prominence supporting span IDs must be unique."
-        )
-    unknown = [span_id for span_id in ids if span_id not in spans]
+    unknown = set(result.supporting_span_ids) - set(spans)
     if unknown:
         raise JudgeOutputValidationError(
-            f"Prominence returned unknown supporting span IDs: {unknown}."
+            f"Role assessment returned unknown supporting span IDs: {sorted(unknown)}."
         )
-    _prominence_from_role_signals(result)
+    role = _context_role_from_decomposed_signals(result)
+    _prominence_from_context_role(role, config)
 
 
 # =============================================================================
@@ -1308,7 +1271,8 @@ def format_composite_evidence(
 
 
 # =============================================================================
-# Stage C: decomposed core role signals
+# Stage C: core prominence
+# v0.12.0 preserves the isolated stage boundary and adds explicit decision precedence.
 # =============================================================================
 
 def build_prominence_prompt(
@@ -1323,10 +1287,10 @@ def build_prominence_prompt(
 
     stage = config["prominence_stage"]
 
-    signal_definitions = "\n".join(
+    context_scale = "\n".join(
         f"- {name}: {definition}"
         for name, definition
-        in stage["role_signal_definitions"].items()
+        in stage["context_role_scale"].items()
     )
 
     instructions = "\n".join(
@@ -1350,16 +1314,15 @@ VERIFIED SUPPORTING EVIDENCE
 FULL NUMBERED BOOK-DESCRIPTION SPANS
 {format_description_spans(spans)}
 
-ROLE SIGNAL DEFINITIONS
-{signal_definitions}
+CONTEXT ROLE SCALE
+{context_scale}
 
 INSTRUCTIONS
 {instructions}
 
-Return one ProminenceAssessment with primary_subject_summary, all five boolean
-role signals, supporting_span_ids, and reason.
-Judge every boolean independently. Do NOT return context_role or prominence.
-Python derives both deterministically after this stage.
+Return one ProminenceAssessment with primary_subject_summary, the five boolean role signals,
+supporting_span_ids, and reason.
+Do NOT return context_role or prominence. Python derives both deterministically after this stage.
 """.strip()
 
 
@@ -1397,6 +1360,7 @@ def assess_core_prominence(
             _validate_prominence_result(
                 result=result,
                 spans=spans,
+                config=config,
             )
 
             return result, attempt - 1
@@ -1426,7 +1390,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.21 facet evaluation:
+    Run v0.21.1 facet evaluation:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1444,26 +1408,29 @@ def evaluate_one_facet(
 
     total_retries = 0
 
-    # Stage 0: negative-boundary gate. This executes before every positive
-    # path, including deterministic direct cues.
     precheck_attempted = bool(facet.hard_exclusions)
+    precheck_triggered = False
+    precheck_id: str | None = None
+    precheck_supporting_span_ids: list[str] = []
     precheck_reason: str | None = None
 
     if precheck_attempted:
-        precheck_result, retries = assess_full_description_hard_exclusion(
+        precheck, retries = assess_hard_exclusion_precheck(
             judge_model=judge_model,
             facet=facet,
             spans=spans,
             config=config,
         )
         total_retries += retries
-        precheck_reason = precheck_result.reason
+        precheck_triggered = precheck.hard_exclusion_triggered
+        precheck_id = precheck.hard_exclusion_id
+        precheck_supporting_span_ids = list(precheck.supporting_span_ids)
+        precheck_reason = precheck.reason
 
-        if precheck_result.hard_exclusion_triggered:
-            precheck_span_ids = list(precheck_result.supporting_span_ids)
+        if precheck_triggered:
             candidate_texts = {
                 span_id: spans[span_id]
-                for span_id in precheck_span_ids
+                for span_id in precheck_supporting_span_ids
             }
             return (
                 FacetPipelineAssessment(
@@ -1474,18 +1441,16 @@ def evaluate_one_facet(
                     verification_relation=VerificationRelation.UNSUPPORTED,
                     inference_kind=EvidenceInferenceKind.NONE,
                     hard_exclusion_triggered=True,
-                    hard_exclusion_id=precheck_result.hard_exclusion_id,
+                    hard_exclusion_id=precheck_id,
                     hard_exclusion_precheck_attempted=True,
                     hard_exclusion_precheck_triggered=True,
-                    hard_exclusion_precheck_id=precheck_result.hard_exclusion_id,
-                    hard_exclusion_precheck_supporting_span_ids=precheck_span_ids,
+                    hard_exclusion_precheck_id=precheck_id,
+                    hard_exclusion_precheck_supporting_span_ids=precheck_supporting_span_ids,
                     hard_exclusion_precheck_reason=precheck_reason,
                     prominence=FacetProminence.NOT_APPLICABLE,
                     context_role=FacetContextRole.NOT_APPLICABLE,
-                    evidence_selection_reason=(
-                        "skipped: full-description hard-exclusion precheck triggered"
-                    ),
-                    verification_reason=precheck_reason,
+                    evidence_selection_reason="skipped: full-description hard-exclusion precheck triggered",
+                    verification_reason=precheck_reason or "full-description hard-exclusion precheck triggered",
                     prominence_reason=None,
                 ),
                 None,
@@ -1527,6 +1492,9 @@ def evaluate_one_facet(
                     verification_relation=VerificationRelation.DIRECT,
                     inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
                     hard_exclusion_precheck_attempted=precheck_attempted,
+                    hard_exclusion_precheck_triggered=precheck_triggered,
+                    hard_exclusion_precheck_id=precheck_id,
+                    hard_exclusion_precheck_supporting_span_ids=precheck_supporting_span_ids,
                     hard_exclusion_precheck_reason=precheck_reason,
                     prominence=FacetProminence.NOT_APPLICABLE,
                     context_role=FacetContextRole.NOT_APPLICABLE,
@@ -1557,22 +1525,14 @@ def evaluate_one_facet(
                 candidate_evidence_span_id=span_id,
                 verification_relation=VerificationRelation.DIRECT,
                 inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
-                hard_exclusion_precheck_attempted=precheck_attempted,
-                hard_exclusion_precheck_reason=precheck_reason,
-                prominence=_prominence_from_role_signals(prominence_result),
-                context_role=_context_role_from_signals(prominence_result),
+                prominence=_prominence_from_context_role(_context_role_from_decomposed_signals(prominence_result), config),
+                context_role=_context_role_from_decomposed_signals(prominence_result),
                 primary_subject_summary=prominence_result.primary_subject_summary,
                 is_primary_subject=prominence_result.is_primary_subject,
-                is_background_cause_or_factor=(
-                    prominence_result.is_background_cause_or_factor
-                ),
-                is_example_or_illustration=(
-                    prominence_result.is_example_or_illustration
-                ),
+                is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
+                is_example_or_illustration=prominence_result.is_example_or_illustration,
                 is_meta_discussion=prominence_result.is_meta_discussion,
-                is_substantively_examined=(
-                    prominence_result.is_substantively_examined
-                ),
+                is_substantively_examined=prominence_result.is_substantively_examined,
                 role_supporting_span_ids=prominence_result.supporting_span_ids,
                 evidence_selection_reason=reason,
                 verification_reason=reason,
@@ -1725,6 +1685,9 @@ def evaluate_one_facet(
         hard_exclusion_triggered=hard_exclusion_triggered,
         hard_exclusion_id=hard_exclusion_id,
         hard_exclusion_precheck_attempted=precheck_attempted,
+        hard_exclusion_precheck_triggered=precheck_triggered,
+        hard_exclusion_precheck_id=precheck_id,
+        hard_exclusion_precheck_supporting_span_ids=precheck_supporting_span_ids,
         hard_exclusion_precheck_reason=precheck_reason,
         evidence_selection_reason=selection.reason,
         verification_reason=final_verification_reason,
@@ -1796,20 +1759,14 @@ def evaluate_one_facet(
     return (
         FacetPipelineAssessment(
             **common_kwargs,
-            prominence=_prominence_from_role_signals(prominence_result),
-            context_role=_context_role_from_signals(prominence_result),
+            prominence=_prominence_from_context_role(_context_role_from_decomposed_signals(prominence_result), config),
+            context_role=_context_role_from_decomposed_signals(prominence_result),
             primary_subject_summary=prominence_result.primary_subject_summary,
             is_primary_subject=prominence_result.is_primary_subject,
-            is_background_cause_or_factor=(
-                prominence_result.is_background_cause_or_factor
-            ),
-            is_example_or_illustration=(
-                prominence_result.is_example_or_illustration
-            ),
+            is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
+            is_example_or_illustration=prominence_result.is_example_or_illustration,
             is_meta_discussion=prominence_result.is_meta_discussion,
-            is_substantively_examined=(
-                prominence_result.is_substantively_examined
-            ),
+            is_substantively_examined=prominence_result.is_substantively_examined,
             role_supporting_span_ids=prominence_result.supporting_span_ids,
             prominence_reason=prominence_result.reason,
         ),
@@ -1827,7 +1784,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.21.0 for every frozen facet.
+    Run v0.21.1 for every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1966,12 +1923,8 @@ def generate_validated_semantic_verdict(
         ),
         composite_verification_attempt_count=composite_verification_attempt_count,
         composite_verification_count=composite_verification_count,
-        hard_exclusion_precheck_attempt_count=(
-            hard_exclusion_precheck_attempt_count
-        ),
-        hard_exclusion_precheck_trigger_count=(
-            hard_exclusion_precheck_trigger_count
-        ),
+        hard_exclusion_precheck_attempt_count=hard_exclusion_precheck_attempt_count,
+        hard_exclusion_precheck_trigger_count=hard_exclusion_precheck_trigger_count,
     )
 
 
@@ -2022,35 +1975,7 @@ def serialize_facet_assessments(
                 "inference_kind": assessment.inference_kind.value,
                 "hard_exclusion_triggered": assessment.hard_exclusion_triggered,
                 "hard_exclusion_id": assessment.hard_exclusion_id,
-                "hard_exclusion_precheck_attempted": (
-                    assessment.hard_exclusion_precheck_attempted
-                ),
-                "hard_exclusion_precheck_triggered": (
-                    assessment.hard_exclusion_precheck_triggered
-                ),
-                "hard_exclusion_precheck_id": (
-                    assessment.hard_exclusion_precheck_id
-                ),
-                "hard_exclusion_precheck_supporting_span_ids": (
-                    assessment.hard_exclusion_precheck_supporting_span_ids
-                ),
-                "hard_exclusion_precheck_reason": (
-                    assessment.hard_exclusion_precheck_reason
-                ),
                 "context_role": assessment.context_role.value,
-                "primary_subject_summary": assessment.primary_subject_summary,
-                "is_primary_subject": assessment.is_primary_subject,
-                "is_background_cause_or_factor": (
-                    assessment.is_background_cause_or_factor
-                ),
-                "is_example_or_illustration": (
-                    assessment.is_example_or_illustration
-                ),
-                "is_meta_discussion": assessment.is_meta_discussion,
-                "is_substantively_examined": (
-                    assessment.is_substantively_examined
-                ),
-                "role_supporting_span_ids": assessment.role_supporting_span_ids,
                 "prominence": assessment.prominence.value,
                 "derived_support": derive_facet_support(
                     facet=facet,

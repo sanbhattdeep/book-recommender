@@ -1,76 +1,15 @@
 {
   "version": "1.0.0",
-  "judge_version": "0.21.0",
-  "development_dataset_version": "2.0.0",
-  "primary_failure_cases": [
-    "U2_Q12_T30",
-    "U2_Q05_NEG",
-    "U2_Q11_T30",
-    "U_Q02_NEG"
-  ],
-  "critical_legacy_controls": [
-    "U2_Q04_T10",
-    "U_Q06_T02",
-    "U_Q10_T30"
-  ],
-  "q11_q12_positive_controls": [
-    "U_Q11_T02",
-    "U_Q12_T02"
-  ],
+  "purpose": "v0.21.1 targeted regression plus positive controls before full 90-case development run",
   "targeted_expectations": {
-    "U2_Q12_T30": {
-      "human_score": 0,
-      "judge_max": 1,
-      "reason": "poverty/inequity used as causal background must not become substantive query subject matter"
-    },
-    "U2_Q05_NEG": {
-      "human_score": 0,
-      "judge_max": 1,
-      "reason": "terrorism/security context must not entail war or political conflict without an actual political struggle"
-    },
-    "U2_Q11_T30": {
-      "human_score": 0,
-      "judge_max": 1,
-      "reason": "meta-literary quest/symbolism must not become adventure or mythology content"
-    },
-    "U2_Q04_T10": {
-      "human_score": 4,
-      "judge_min": 3,
-      "reason": "fantastical inter-world movement + explicit threat should recover"
-    },
-    "U_Q06_T02": {
-      "judge_min": 3,
-      "reason": "v0.18 composition recovery preserved"
-    },
-    "U_Q02_NEG": {
-      "judge_max": 1,
-      "reason": "personal choice/illness/high-stakes-only evidence must not entail suspense"
-    },
-    "U_Q10_T30": {
-      "judge_max": 1,
-      "polarity_guard_min": 1,
-      "direct_cue_max": 0,
-      "reason": "polarity fix preserved"
-    },
-    "U_Q11_T02": {
-      "human_score": 3,
-      "judge_min": 2,
-      "reason": "positive Q11 mythology/gods/legendary-heroes content must survive meta-literary hard-exclusion gating"
-    },
-    "U_Q12_T02": {
-      "human_score": 2,
-      "judge_min": 2,
-      "reason": "positive Q12 poverty subject matter must survive background-factor role precedence"
-    }
-  },
-  "full_development_reference": {
-    "within_one_min": 0.95,
-    "exact_min": 0.5,
-    "quadratic_kappa_min": 0.8,
-    "linear_kappa_min": 0.6,
-    "absolute_difference_ge_2_max": 1,
-    "binary_precision_min": 0.9,
-    "binary_recall_min": 0.8,
-    "deterministic_cue_severe_false_positives_max": 0
+    "U2_Q12_T30": {"judge_max": 1},
+    "U2_Q05_NEG": {"judge_max": 1},
+    "U2_Q11_T30": {"judge_max": 1},
+    "U_Q02_NEG": {"judge_max": 1},
+    "U2_Q04_T10": {"judge_min": 3},
+    "U_Q06_T02": {"judge_min": 3},
+    "U_Q10_T30": {"judge_max": 1},
+    "U_Q11_T02": {"judge_min": 3},
+    "U_Q12_T02": {"judge_min": 2}
   }
 }

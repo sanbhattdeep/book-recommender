@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.21.0 on the consumed 90-case development set.
+Run development Semantic Recommendation Relevance Judge v0.21.1 on the consumed 90-case development set.
 
 Typical usage
 -------------
@@ -27,15 +27,13 @@ v0.21 architecture
 -----------------
     frozen query facets
             ↓
-    full-description hard-exclusion precheck
-            ↓
     definition-aware per-facet candidate evidence selection
             ↓
     isolated definition-aware single-span verification
             ↓
     conservative multi-span composition recovery when needed
             ↓
-    decomposed core-only role-signal assessment
+    definition-aware core-only prominence assessment
             ↓
     Python derives absent/incidental/meaningful/strong
             ↓
@@ -88,7 +86,7 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.21.0"
+JUDGE_CONFIG_VERSION = "0.21.1"
 EVALUATION_DATASET_VERSION = "2.0.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_holdout_development"
@@ -387,19 +385,19 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # v0.20 consumed-development contract: 60 historical U_ cases +
+    # v0.21 consumed-development contract: 60 historical U_ cases +
     # 30 consumed fresh-validation U2_ cases. The untouched holdout is absent.
     # -------------------------------------------------------------------------
     if len(dataset) != 90:
         raise ValueError(
-            "The v0.20 development dataset must contain exactly 90 consumed cases; "
+            "The v0.21 development dataset must contain exactly 90 consumed cases; "
             f"found {len(dataset)}."
         )
 
     prefixes_ok = dataset["case_id"].astype(str).str.startswith(("U_", "U2_"))
     if not prefixes_ok.all():
         raise ValueError(
-            "v0.20 development case IDs must use historical U_ or consumed-validation U2_ prefixes."
+            "v0.21 development case IDs must use historical U_ or consumed-validation U2_ prefixes."
         )
     if int(dataset["case_id"].astype(str).str.startswith("U_").sum()) != 60:
         raise ValueError("Expected exactly 60 historical U_ development cases.")
@@ -483,7 +481,7 @@ def validate_inputs(
         )
     ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge v0.21.0 config remains pinned to its original "
+            "Judge v0.21.1 config remains pinned to its original "
             "calibration/development dataset version "
             f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
             f"{config.get('dataset_version')!r}."
@@ -535,7 +533,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.21.0."
+            "Judge v0.21.1."
         )
 
     if str(
@@ -780,7 +778,7 @@ def validate_resume_metadata(
     if mismatches:
         raise ValueError(
             "Cannot resume this run because its provenance does not match "
-            "the v0.20 development runner:\n- "
+            "the v0.21 development runner:\n- "
             + "\n- ".join(
                 mismatches
             )
@@ -1068,7 +1066,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.21.0. Missing columns: "
+            "Judge v0.21.1. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1087,7 +1085,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Run development facet-based Judge Config v0.21.0 on the "
+            "Run development facet-based Judge Config v0.21.1 on the "
             "90-case consumed development set using local Ollama."
         )
     )

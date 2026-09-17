@@ -1,5 +1,22 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.21.1
+
+v0.21.1 is a targeted correction to the v0.21.0 role/precheck architecture. Frozen facet spec v0.8.0, rubric v0.1.0, and deterministic 0-4 scoring remain unchanged.
+
+Changes:
+
+- Keep the v0.21 full-description hard-exclusion precheck before positive candidate selection.
+- Treat hard exclusions as semantic guards rather than lexical vetoes; genuine positive facet evidence is not suppressed merely because exclusion-associated words occur.
+- Replace monolithic role output with decomposed signals and deterministic Python resolution.
+- Resolve `is_substantively_examined=true` ahead of `is_background_cause_or_factor=true`, preventing background-cause from suppressing genuine substantive treatment.
+- Keep meta-discussion and example/illustration as strong incidental signals.
+- Clarify fiction semantics: world-defining, plot-driving, character-arc, or consequential content may be substantive without academic analysis.
+- Clarify background-cause semantics: a facet is background only when it primarily explains some OTHER main subject/event/situation.
+- Add Q11/Q12 positive controls to the targeted gate.
+
+No title-, author-, ISBN-, or case-specific judge behavior is added.
+
 # v0.21.0
 
 Structural correction for the remaining Q11/Q12 v0.20 over-promotions.

@@ -1,5 +1,5 @@
 """
-Unit tests for v0.21.0 deterministic multi-candidate resolution.
+Unit tests for v0.20.0 deterministic multi-candidate resolution.
 
 No LLM is called.
 """
@@ -68,7 +68,7 @@ best = choose_best_verified_candidate(
 assert best.evidence_span_id == "S7"
 
 
-print("All v0.21.0 candidate-resolution tests passed.")
+print("All v0.20.0 candidate-resolution tests passed.")
 
 
 # ENTAILED beats ADJACENT.

@@ -1,4 +1,4 @@
-"""Check the preregistered v0.21 gates, including Q11/Q12 positive controls."""
+"""Check the preregistered v0.21 targeted regression on a partial run."""
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
@@ -31,7 +31,7 @@ def main() -> None:
     if missing:
         raise ValueError(f"Targeted run is missing required cases: {missing}")
 
-    print("v0.21 targeted regression and positive controls")
+    print("v0.21 targeted regression")
     print("-------------------------")
     all_pass=True
     for cid, exp in expectations.items():
