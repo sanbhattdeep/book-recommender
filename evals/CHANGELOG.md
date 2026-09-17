@@ -1,5 +1,24 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.22.0
+
+## Why this is a minor-version architecture change
+
+v0.21.2 still showed facet-conditioned subject drift: a background inequality factor could be promoted to `central`, while story-defining fantasy/magic/danger could collapse to `incidental`. Further prompt-only patching would preserve the same source of instability.
+
+## Changes
+
+- Add a facet-independent `BookSubjectAnalysis` stage that runs once per query-book case before facet role classification.
+- The book-subject stage sees only the numbered description: no user query, no facet text, no semantic definition, no human label.
+- Freeze `primary_subject_summary` and `primary_subject_span_ids` once and reuse them unchanged for every core-facet role call.
+- Core-facet role classification is now explicitly comparative: judge the verified facet against the frozen book subject instead of constructing a new primary subject from the facet-conditioned prompt.
+- Preserve the existing deterministic role resolver precedence and all deterministic scoring rules.
+- Persist book-subject analysis and full decomposed role signals/reasons for audit.
+- Add static contracts preventing query/facet leakage into book-subject extraction.
+- Keep the same nine preregistered targeted acceptance gates before the 90-case development run.
+
+No title-, author-, ISBN-, case-, or query-specific production behavior is added.
+
 # Semantic relevance judge v0.21.2
 
 v0.21.2 is a narrow follow-up to v0.21.1. The v0.21.1 targeted run passed 8/9 gates; the remaining failure exposed an over-broad interpretation of `is_substantively_examined` for causal/background factors.

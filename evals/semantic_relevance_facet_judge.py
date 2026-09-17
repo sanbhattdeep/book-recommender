@@ -1,15 +1,15 @@
 """
-Full-description hard-exclusion precheck + inference-kind + decomposed-role semantic facet judge for v0.21.2.
+Semantic facet judge v0.22.0 with facet-independent book-subject extraction.
 
-v0.21.2 preserves the self-selecting composite architecture and adds a full-description hard-exclusion precheck plus decomposed role signals with deterministic Python resolution. When a core facet's best
-standalone relation is UNSUPPORTED or ADJACENT, one isolated composite call sees
-the full numbered description, selects its own 2-4 exact supporting spans, and
-returns UNSUPPORTED / ADJACENT / ENTAILED.
+The key v0.22.0 change is architectural: the model analyzes each book description
+ONCE without seeing the user query or any facet, producing a frozen book-level
+primary-subject/premise summary. Every later core-facet role decision receives
+that exact frozen analysis. This prevents the current facet from redefining the
+book's primary subject differently from one facet call to another.
 
-ENTAILED is explicitly multi-span semantic entailment: exact wording is not
-required when the cited spans jointly supply every semantic component through a
-short necessary inference. ADJACENT requires an explicit missing semantic
-component. DIRECT remains forbidden for composite recovery.
+Candidate selection, isolated verification, composite recovery, full-description
+hard-exclusion prechecks, deterministic role resolution, and deterministic 0-4
+scoring remain otherwise unchanged from v0.21.2.
 """
 
 from __future__ import annotations
@@ -250,10 +250,17 @@ class CompositeEvidenceVerification(BaseModel):
     reason: str = Field(min_length=1)
 
 
-class ProminenceAssessment(BaseModel):
-    """LLM output for decomposed role classification; Python resolves final role."""
+class BookSubjectAnalysis(BaseModel):
+    """Facet-independent book-level subject/premise analysis, frozen once per case."""
 
     primary_subject_summary: str = Field(min_length=1)
+    primary_subject_span_ids: list[str] = Field(min_length=1, max_length=6)
+    reason: str = Field(min_length=1)
+
+
+class ProminenceAssessment(BaseModel):
+    """Facet role signals evaluated against the already-frozen book subject."""
+
     is_primary_subject: bool
     is_background_cause_or_factor: bool
     is_example_or_illustration: bool
@@ -283,7 +290,11 @@ class SemanticGenerationResult(BaseModel):
     # Every Stage-A candidate plus any full-context composite supporting spans, retained for audit in facet_evidence_json.
     candidate_evidence_by_id: dict[str, dict[str, str]]
 
-    generation_mode: str = "full_description_hard_exclusion_precheck_plus_inference_kind_plus_decomposed_role_pipeline"
+    book_subject_analysis: BookSubjectAnalysis
+
+    subject_analysis_retry_count: int = 0
+
+    generation_mode: str = "facet_independent_book_subject_plus_full_description_hard_exclusion_precheck_plus_inference_kind_plus_decomposed_role_pipeline"
 
     stage_retry_count: int = 0
 
@@ -687,9 +698,9 @@ def _context_role_from_decomposed_signals(
 ) -> FacetContextRole:
     """Resolve decomposed role signals deterministically.
 
-    v0.21.2 preserves the v0.21.1 resolver precedence: meta/example use stays
+    v0.22.0 preserves the v0.21.1 resolver precedence: meta/example use stays
     incidental, while a genuinely primary or substantively examined facet is
-    not suppressed by background-cause. v0.21.2 tightens the upstream LLM role
+    not suppressed by background-cause. v0.22.0 tightens the upstream LLM role
     classification rather than changing this deterministic resolver.
     """
 
@@ -768,6 +779,24 @@ def _validate_verification_result(
         config=config,
         stage_name="single-span verification",
     )
+
+
+def _validate_book_subject_result(
+    result: BookSubjectAnalysis,
+    spans: dict[str, str],
+) -> None:
+    """Mechanically validate the frozen subject analysis against source spans."""
+
+    ids = result.primary_subject_span_ids
+    if len(ids) != len(set(ids)):
+        raise JudgeOutputValidationError(
+            "Book subject analysis returned duplicate primary_subject_span_ids."
+        )
+    unknown = set(ids) - set(spans)
+    if unknown:
+        raise JudgeOutputValidationError(
+            f"Book subject analysis returned unknown span IDs: {sorted(unknown)}."
+        )
 
 
 def _validate_prominence_result(
@@ -1271,36 +1300,97 @@ def format_composite_evidence(
 
 
 # =============================================================================
-# Stage C: core prominence
-# v0.12.0 preserves the isolated stage boundary and adds explicit decision precedence.
+# Stage C0: facet-independent book subject extraction
+# =============================================================================
+
+def build_book_subject_prompt(
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> str:
+    """Build a book-level subject prompt that contains no query or facet."""
+
+    stage = config["book_subject_stage"]
+    instructions = "\n".join(
+        f"{index}. {instruction}"
+        for index, instruction in enumerate(stage["instructions"], start=1)
+    )
+
+    return f"""
+Analyze ONE supplied book description to identify what the BOOK ITSELF is primarily about.
+
+IMPORTANT ISOLATION RULE
+No user query or query facet is available at this stage. Base the answer only on the supplied description.
+
+FULL NUMBERED BOOK-DESCRIPTION SPANS
+{format_description_spans(spans)}
+
+INSTRUCTIONS
+{instructions}
+
+Return one BookSubjectAnalysis with primary_subject_summary,
+primary_subject_span_ids, and reason.
+""".strip()
+
+
+def assess_book_subject(
+    judge_model: Any,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> tuple[BookSubjectAnalysis, int]:
+    """Analyze/freeze the book-level subject exactly once for this case."""
+
+    last_error: Exception | None = None
+
+    for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
+        try:
+            generated = judge_model.generate(
+                prompt=build_book_subject_prompt(spans=spans, config=config),
+                schema=BookSubjectAnalysis,
+            )
+            result = unpack_generated_model(generated, BookSubjectAnalysis)
+            assert isinstance(result, BookSubjectAnalysis)
+            _validate_book_subject_result(result=result, spans=spans)
+            return result, attempt - 1
+        except Exception as error:
+            last_error = error
+
+    raise JudgeOutputValidationError(
+        "Unable to obtain valid facet-independent book subject analysis."
+    ) from last_error
+
+
+# =============================================================================
+# Stage C1: core facet role against the frozen book subject
 # =============================================================================
 
 def build_prominence_prompt(
     facet: QueryFacet,
     evidence_text: str,
+    book_subject: BookSubjectAnalysis,
     spans: dict[str, str],
     config: dict[str, Any],
 ) -> str:
-    """
-    Judge prominence only after a core facet has passed verification.
-    """
+    """Judge a verified core facet relative to the frozen case-level subject."""
 
     stage = config["prominence_stage"]
 
     context_scale = "\n".join(
         f"- {name}: {definition}"
-        for name, definition
-        in stage["context_role_scale"].items()
+        for name, definition in stage["context_role_scale"].items()
     )
 
     instructions = "\n".join(
         f"{index}. {instruction}"
-        for index, instruction
-        in enumerate(stage["instructions"], start=1)
+        for index, instruction in enumerate(stage["instructions"], start=1)
+    )
+
+    frozen_subject_evidence = format_composite_evidence(
+        book_subject.primary_subject_span_ids,
+        spans,
     )
 
     return f"""
-Assess the prominence of ONE already-verified semantic facet in a book description.
+Assess the role/prominence of ONE already-verified semantic facet in a book description.
 
 FACET
 {facet.text}
@@ -1308,8 +1398,14 @@ FACET
 FROZEN SEMANTIC DEFINITION
 {facet.semantic_definition}
 
-VERIFIED SUPPORTING EVIDENCE
+VERIFIED FACET EVIDENCE
 {evidence_text}
+
+FROZEN FACET-INDEPENDENT BOOK SUBJECT
+{book_subject.primary_subject_summary}
+
+BOOK-SUBJECT SUPPORTING SPANS
+{frozen_subject_evidence}
 
 FULL NUMBERED BOOK-DESCRIPTION SPANS
 {format_description_spans(spans)}
@@ -1320,9 +1416,10 @@ CONTEXT ROLE SCALE
 INSTRUCTIONS
 {instructions}
 
-Return one ProminenceAssessment with primary_subject_summary, the five boolean role signals,
+Return one ProminenceAssessment with the five boolean role signals,
 supporting_span_ids, and reason.
-Do NOT return context_role or prominence. Python derives both deterministically after this stage.
+Do NOT return or redefine the book subject. Python derives final context_role
+and prominence after this stage.
 """.strip()
 
 
@@ -1330,46 +1427,35 @@ def assess_core_prominence(
     judge_model: Any,
     facet: QueryFacet,
     evidence_text: str,
+    book_subject: BookSubjectAnalysis,
     spans: dict[str, str],
     config: dict[str, Any],
 ) -> tuple[ProminenceAssessment, int]:
-    """Get one valid core prominence classification."""
+    """Get one valid core-facet role classification against frozen subject."""
 
     last_error: Exception | None = None
 
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
-
         try:
             generated = judge_model.generate(
                 prompt=build_prominence_prompt(
                     facet=facet,
                     evidence_text=evidence_text,
+                    book_subject=book_subject,
                     spans=spans,
                     config=config,
                 ),
                 schema=ProminenceAssessment,
             )
-
-            result = unpack_generated_model(
-                generated,
-                ProminenceAssessment,
-            )
-
+            result = unpack_generated_model(generated, ProminenceAssessment)
             assert isinstance(result, ProminenceAssessment)
-
-            _validate_prominence_result(
-                result=result,
-                spans=spans,
-                config=config,
-            )
-
+            _validate_prominence_result(result=result, spans=spans, config=config)
             return result, attempt - 1
-
         except Exception as error:
             last_error = error
 
     raise JudgeOutputValidationError(
-        "Unable to obtain valid core prominence assessment."
+        "Unable to obtain valid core prominence assessment against frozen book subject."
     ) from last_error
 
 
@@ -1383,6 +1469,7 @@ def evaluate_one_facet(
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
+    book_subject: BookSubjectAnalysis | None = None,
 ) -> tuple[
     FacetPipelineAssessment,
     str | None,
@@ -1390,7 +1477,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.21.2 facet evaluation:
+    Run v0.22.0 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1508,10 +1595,15 @@ def evaluate_one_facet(
                 total_retries,
             )
 
+        if book_subject is None:
+            raise JudgeOutputValidationError(
+                "Verified core facet requires frozen book subject analysis."
+            )
         prominence_result, retries = assess_core_prominence(
             judge_model=judge_model,
             facet=facet,
             evidence_text=cue_match.evidence_text,
+            book_subject=book_subject,
             spans=spans,
             config=config,
         )
@@ -1527,13 +1619,15 @@ def evaluate_one_facet(
                 inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
                 prominence=_prominence_from_context_role(_context_role_from_decomposed_signals(prominence_result), config),
                 context_role=_context_role_from_decomposed_signals(prominence_result),
-                primary_subject_summary=prominence_result.primary_subject_summary,
+                primary_subject_summary=book_subject.primary_subject_summary,
+                primary_subject_span_ids=book_subject.primary_subject_span_ids,
                 is_primary_subject=prominence_result.is_primary_subject,
                 is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
                 is_example_or_illustration=prominence_result.is_example_or_illustration,
                 is_meta_discussion=prominence_result.is_meta_discussion,
                 is_substantively_examined=prominence_result.is_substantively_examined,
                 role_supporting_span_ids=prominence_result.supporting_span_ids,
+                role_reason=prominence_result.reason,
                 evidence_selection_reason=reason,
                 verification_reason=reason,
                 prominence_reason=prominence_result.reason,
@@ -1747,10 +1841,15 @@ def evaluate_one_facet(
 
     assert winning_evidence_text is not None
 
+    if book_subject is None:
+        raise JudgeOutputValidationError(
+            "Verified core facet requires frozen book subject analysis."
+        )
     prominence_result, retries = assess_core_prominence(
         judge_model=judge_model,
         facet=facet,
         evidence_text=winning_evidence_text,
+        book_subject=book_subject,
         spans=spans,
         config=config,
     )
@@ -1761,13 +1860,15 @@ def evaluate_one_facet(
             **common_kwargs,
             prominence=_prominence_from_context_role(_context_role_from_decomposed_signals(prominence_result), config),
             context_role=_context_role_from_decomposed_signals(prominence_result),
-            primary_subject_summary=prominence_result.primary_subject_summary,
+            primary_subject_summary=book_subject.primary_subject_summary,
+                primary_subject_span_ids=book_subject.primary_subject_span_ids,
             is_primary_subject=prominence_result.is_primary_subject,
             is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
             is_example_or_illustration=prominence_result.is_example_or_illustration,
             is_meta_discussion=prominence_result.is_meta_discussion,
             is_substantively_examined=prominence_result.is_substantively_examined,
             role_supporting_span_ids=prominence_result.supporting_span_ids,
+            role_reason=prominence_result.reason,
             prominence_reason=prominence_result.reason,
         ),
         winning_evidence_text,
@@ -1784,7 +1885,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.21.2 for every frozen facet.
+    Run v0.22.0 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1801,6 +1902,14 @@ def generate_validated_semantic_verdict(
         raise JudgeOutputValidationError(
             f"Description is empty for case {row['case_id']}."
         )
+
+    # v0.22.0: freeze one facet-independent subject analysis before ANY facet
+    # role classification. No query/facet is visible to this call.
+    book_subject, subject_retries = assess_book_subject(
+        judge_model=judge_model,
+        spans=spans,
+        config=config,
+    )
 
     assessments: list[FacetPipelineAssessment] = []
 
@@ -1826,6 +1935,7 @@ def generate_validated_semantic_verdict(
             facet=facet,
             spans=spans,
             config=config,
+            book_subject=book_subject,
         )
 
         assessments.append(assessment)
@@ -1916,6 +2026,8 @@ def generate_validated_semantic_verdict(
         verdict=verdict,
         evidence_by_id=evidence_by_id,
         candidate_evidence_by_id=candidate_evidence_by_id,
+        book_subject_analysis=book_subject,
+        subject_analysis_retry_count=subject_retries,
         stage_retry_count=total_retries,
         deterministic_direct_cue_count=deterministic_direct_cue_count,
         deterministic_cue_polarity_blocked_count=(
@@ -1976,7 +2088,17 @@ def serialize_facet_assessments(
                 "hard_exclusion_triggered": assessment.hard_exclusion_triggered,
                 "hard_exclusion_id": assessment.hard_exclusion_id,
                 "context_role": assessment.context_role.value,
+                "resolved_context_role": assessment.context_role.value,
                 "prominence": assessment.prominence.value,
+                "primary_subject_summary": assessment.primary_subject_summary,
+                "primary_subject_span_ids": assessment.primary_subject_span_ids,
+                "is_primary_subject": assessment.is_primary_subject,
+                "is_background_cause_or_factor": assessment.is_background_cause_or_factor,
+                "is_example_or_illustration": assessment.is_example_or_illustration,
+                "is_meta_discussion": assessment.is_meta_discussion,
+                "is_substantively_examined": assessment.is_substantively_examined,
+                "role_supporting_span_ids": assessment.role_supporting_span_ids,
+                "role_reason": assessment.role_reason,
                 "derived_support": derive_facet_support(
                     facet=facet,
                     assessment=assessment,

@@ -19,7 +19,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.2.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.22.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 facet = QueryFacet(
@@ -92,4 +92,4 @@ assert assessment.composite_verification_reason.startswith(
 assert evidence == spans["S1"]
 assert candidate_texts == {"S1": spans["S1"]}
 
-print("v0.21.2 malformed full-context composite fallback test passed.")
+print("v0.22.0 malformed full-context composite fallback test passed.")

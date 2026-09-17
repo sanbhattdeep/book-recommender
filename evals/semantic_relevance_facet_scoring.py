@@ -1,5 +1,5 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.21.1.
+Deterministic scoring models for Semantic Recommendation Relevance v0.22.0.
 
 v0.20.0 preserves the deterministic support derivation and final 0-4 aggregation unchanged. It adds auditable inference-kind and context-role fields used by the semantic stages before deterministic support derivation.
 
@@ -157,7 +157,7 @@ class CandidateVerificationRecord(BaseModel):
 
 class FacetPipelineAssessment(BaseModel):
     """
-    Final v0.21.1 result for one frozen facet.
+    Final v0.22.0 result for one frozen facet.
 
     `candidate_evidence_span_ids` contains the selector's ranked candidates.
 
@@ -204,12 +204,14 @@ class FacetPipelineAssessment(BaseModel):
     # deterministically in Python from decomposed role signals.
     context_role: FacetContextRole = FacetContextRole.NOT_APPLICABLE
     primary_subject_summary: str | None = None
+    primary_subject_span_ids: list[str] = Field(default_factory=list, max_length=6)
     is_primary_subject: bool = False
     is_background_cause_or_factor: bool = False
     is_example_or_illustration: bool = False
     is_meta_discussion: bool = False
     is_substantively_examined: bool = False
     role_supporting_span_ids: list[str] = Field(default_factory=list, max_length=6)
+    role_reason: str | None = None
 
     evidence_selection_reason: str = Field(min_length=1)
 
