@@ -1,23 +1,18 @@
 from semantic_relevance_facet_judge import ProminenceAssessment, _context_role_from_decomposed_signals
-from semantic_relevance_facet_scoring import FacetContextRole
+from semantic_relevance_facet_scoring import FacetContextRole, SubjectRelation
 
-def role(**kw):
-    base=dict(
-        is_primary_subject=False,
-        is_background_cause_or_factor=False,
-        is_example_or_illustration=False,
-        is_meta_discussion=False,
-        is_substantively_examined=False,
+def role(relation, substantive=False):
+    return _context_role_from_decomposed_signals(ProminenceAssessment(
+        subject_relation=relation,
+        is_substantively_examined=substantive,
         supporting_span_ids=["S1"],
-        reason="x",
-    )
-    base.update(kw)
-    return _context_role_from_decomposed_signals(ProminenceAssessment(**base))
+        reason="synthetic",
+    ))
 
-assert role(is_background_cause_or_factor=True, is_substantively_examined=True) == FacetContextRole.SUBSTANTIVE_SUBJECT
-assert role(is_primary_subject=True, is_background_cause_or_factor=True) == FacetContextRole.CENTRAL_SUBJECT
-assert role(is_meta_discussion=True, is_primary_subject=True) == FacetContextRole.META_DISCUSSION
-assert role(is_example_or_illustration=True, is_substantively_examined=True) == FacetContextRole.EXAMPLE_OR_ILLUSTRATION
-assert role(is_background_cause_or_factor=True) == FacetContextRole.BACKGROUND_CAUSE
-assert role() == FacetContextRole.INCIDENTAL_MENTION
-print("v0.22.0 decomposed role precedence contract passed")
+assert role(SubjectRelation.SAME_AS_PRIMARY_SUBJECT) == FacetContextRole.CENTRAL_SUBJECT
+assert role(SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER) == FacetContextRole.SUBSTANTIVE_SUBJECT
+assert role(SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND) == FacetContextRole.BACKGROUND_CAUSE
+assert role(SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND, True) == FacetContextRole.SUBSTANTIVE_SUBJECT
+assert role(SubjectRelation.EXAMPLE_OR_META) == FacetContextRole.EXAMPLE_OR_ILLUSTRATION
+assert role(SubjectRelation.OTHER) == FacetContextRole.INCIDENTAL_MENTION
+print("v0.22.1 explicit subject-relation resolver contract passed")

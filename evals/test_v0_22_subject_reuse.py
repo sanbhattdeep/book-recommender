@@ -17,10 +17,11 @@ from semantic_relevance_facet_scoring import (
     QueryFacet,
     QueryFacetSpec,
     VerificationRelation,
+    SubjectRelation,
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.22.0.json').read_text())
+config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.22.1.json').read_text())
 
 spec = QueryFacetSpec(
     query_id='SYN',
@@ -68,19 +69,13 @@ class Model:
             assert FROZEN in prompt
             if self.role_calls == 1:
                 return ProminenceAssessment(
-                    is_primary_subject=True,
-                    is_background_cause_or_factor=False,
-                    is_example_or_illustration=False,
-                    is_meta_discussion=False,
+                    subject_relation=SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
                     is_substantively_examined=True,
                     supporting_span_ids=['S1'],
                     reason='alpha is the defining premise',
                 )
             return ProminenceAssessment(
-                is_primary_subject=False,
-                is_background_cause_or_factor=True,
-                is_example_or_illustration=False,
-                is_meta_discussion=False,
+                subject_relation=SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND,
                 is_substantively_examined=False,
                 supporting_span_ids=['S2'],
                 reason='beta is contextual background',

@@ -1,5 +1,21 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.22.1
+
+## Changed
+
+Stage B now classifies each verified core facet with one mutually exclusive relationship to the frozen v0.22 book subject: same primary subject, defining content/narrative driver, causal/contextual background, example/meta, or other.
+
+The deterministic resolver maps those relationships to existing context roles. A causal/background facet can still resolve substantive only when the role stage explicitly finds independent substantive development beyond the causal role.
+
+## Why
+
+v0.22.0 correctly separated book-subject extraction from facet-conditioned role judgment, fixing the persistent Outsiders Within false positive. Diagnostics then showed Stage B contradicting otherwise-correct frozen subjects: constituent mythology content, story-defining fantasy/journey content, and poverty itself could be mislabeled background. The explicit relationship taxonomy removes that ambiguity without changing Stage A, verification, exclusions, or scoring.
+
+## Audit
+
+Facet audit records now include `subject_relation` and `subject_relation_reason`, while legacy role booleans remain derived for backward inspection.
+
 # Semantic relevance judge v0.22.0
 
 ## Why this is a minor-version architecture change

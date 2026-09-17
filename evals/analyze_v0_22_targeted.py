@@ -1,11 +1,11 @@
-"""Check the preregistered v0.22.0 targeted regression on a partial run."""
+"""Check the preregistered v0.22.1 targeted regression on a partial run."""
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.22_regression_manifest.v1.0.0.json"
+MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.22_regression_manifest.v1.1.0.json"
 DATASET = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.22_development.v2.0.0.csv"
 
 
@@ -31,7 +31,7 @@ def main() -> None:
     if missing:
         raise ValueError(f"Targeted run is missing required cases: {missing}")
 
-    print("v0.22.0 targeted regression")
+    print("v0.22.1 targeted regression")
     print("-------------------------")
     all_pass=True
     for cid, exp in expectations.items():

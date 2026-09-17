@@ -1,7 +1,7 @@
 """
-Semantic facet judge v0.22.0 with facet-independent book-subject extraction.
+Semantic facet judge v0.22.1 with explicit facet-to-subject relationship classification.
 
-The key v0.22.0 change is architectural: the model analyzes each book description
+The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
 primary-subject/premise summary. Every later core-facet role decision receives
 that exact frozen analysis. This prevents the current facet from redefining the
@@ -29,6 +29,7 @@ from semantic_relevance_facet_scoring import (
     FacetPipelineAssessment,
     FacetProminence,
     FacetSupport,
+    SubjectRelation,
     QueryFacet,
     QueryFacetSpec,
     VerificationRelation,
@@ -259,13 +260,10 @@ class BookSubjectAnalysis(BaseModel):
 
 
 class ProminenceAssessment(BaseModel):
-    """Facet role signals evaluated against the already-frozen book subject."""
+    """Explicit facet relationship to the already-frozen book subject."""
 
-    is_primary_subject: bool
-    is_background_cause_or_factor: bool
-    is_example_or_illustration: bool
-    is_meta_discussion: bool
-    is_substantively_examined: bool
+    subject_relation: SubjectRelation
+    is_substantively_examined: bool = False
     supporting_span_ids: list[str] = Field(default_factory=list, max_length=6)
     reason: str = Field(min_length=1)
 
@@ -294,7 +292,7 @@ class SemanticGenerationResult(BaseModel):
 
     subject_analysis_retry_count: int = 0
 
-    generation_mode: str = "facet_independent_book_subject_plus_full_description_hard_exclusion_precheck_plus_inference_kind_plus_decomposed_role_pipeline"
+    generation_mode: str = "facet_independent_book_subject_plus_explicit_subject_relation_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline"
 
     stage_retry_count: int = 0
 
@@ -696,26 +694,44 @@ def _validate_hard_exclusion_contract(
 def _context_role_from_decomposed_signals(
     result: ProminenceAssessment,
 ) -> FacetContextRole:
-    """Resolve decomposed role signals deterministically.
+    """Resolve the explicit facet-to-frozen-subject relationship deterministically.
 
-    v0.22.0 preserves the v0.21.1 resolver precedence: meta/example use stays
-    incidental, while a genuinely primary or substantively examined facet is
-    not suppressed by background-cause. v0.22.0 tightens the upstream LLM role
-    classification rather than changing this deterministic resolver.
+    v0.22.1 makes the mutually exclusive subject_relation the primary structural
+    signal. The legacy substantive override is retained only for causal/background
+    material that is independently developed beyond its causal role.
     """
 
-    if result.is_meta_discussion:
-        return FacetContextRole.META_DISCUSSION
-    if result.is_example_or_illustration:
+    relation = result.subject_relation
+
+    if relation == SubjectRelation.EXAMPLE_OR_META:
         return FacetContextRole.EXAMPLE_OR_ILLUSTRATION
-    if result.is_primary_subject:
+    if relation == SubjectRelation.SAME_AS_PRIMARY_SUBJECT:
         return FacetContextRole.CENTRAL_SUBJECT
-    if result.is_substantively_examined:
+    if relation == SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER:
         return FacetContextRole.SUBSTANTIVE_SUBJECT
-    if result.is_background_cause_or_factor:
+    if (
+        relation == SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND
+        and result.is_substantively_examined
+    ):
+        return FacetContextRole.SUBSTANTIVE_SUBJECT
+    if relation == SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND:
         return FacetContextRole.BACKGROUND_CAUSE
     return FacetContextRole.INCIDENTAL_MENTION
 
+
+def _legacy_role_flags(
+    result: ProminenceAssessment,
+) -> dict[str, bool]:
+    """Derive backward-compatible audit booleans from subject_relation."""
+
+    relation = result.subject_relation
+    return {
+        "is_primary_subject": relation == SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
+        "is_background_cause_or_factor": relation == SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND,
+        "is_example_or_illustration": relation == SubjectRelation.EXAMPLE_OR_META,
+        "is_meta_discussion": relation == SubjectRelation.EXAMPLE_OR_META,
+        "is_substantively_examined": result.is_substantively_examined,
+    }
 
 def _prominence_from_context_role(
     context_role: FacetContextRole,
@@ -1376,7 +1392,7 @@ def build_prominence_prompt(
 
     context_scale = "\n".join(
         f"- {name}: {definition}"
-        for name, definition in stage["context_role_scale"].items()
+        for name, definition in stage["subject_relation_scale"].items()
     )
 
     instructions = "\n".join(
@@ -1410,16 +1426,16 @@ BOOK-SUBJECT SUPPORTING SPANS
 FULL NUMBERED BOOK-DESCRIPTION SPANS
 {format_description_spans(spans)}
 
-CONTEXT ROLE SCALE
+SUBJECT RELATION SCALE
 {context_scale}
 
 INSTRUCTIONS
 {instructions}
 
-Return one ProminenceAssessment with the five boolean role signals,
-supporting_span_ids, and reason.
-Do NOT return or redefine the book subject. Python derives final context_role
-and prominence after this stage.
+Return one ProminenceAssessment with exactly one subject_relation,
+is_substantively_examined, supporting_span_ids, and reason.
+Do NOT return or redefine the book subject. Python derives backward-compatible
+role booleans, final context_role, and prominence after this stage.
 """.strip()
 
 
@@ -1477,7 +1493,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.22.0 facet evaluation against one frozen book subject:
+    Run v0.22.1 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1621,11 +1637,9 @@ def evaluate_one_facet(
                 context_role=_context_role_from_decomposed_signals(prominence_result),
                 primary_subject_summary=book_subject.primary_subject_summary,
                 primary_subject_span_ids=book_subject.primary_subject_span_ids,
-                is_primary_subject=prominence_result.is_primary_subject,
-                is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
-                is_example_or_illustration=prominence_result.is_example_or_illustration,
-                is_meta_discussion=prominence_result.is_meta_discussion,
-                is_substantively_examined=prominence_result.is_substantively_examined,
+                subject_relation=prominence_result.subject_relation,
+                subject_relation_reason=prominence_result.reason,
+                **_legacy_role_flags(prominence_result),
                 role_supporting_span_ids=prominence_result.supporting_span_ids,
                 role_reason=prominence_result.reason,
                 evidence_selection_reason=reason,
@@ -1862,11 +1876,9 @@ def evaluate_one_facet(
             context_role=_context_role_from_decomposed_signals(prominence_result),
             primary_subject_summary=book_subject.primary_subject_summary,
                 primary_subject_span_ids=book_subject.primary_subject_span_ids,
-            is_primary_subject=prominence_result.is_primary_subject,
-            is_background_cause_or_factor=prominence_result.is_background_cause_or_factor,
-            is_example_or_illustration=prominence_result.is_example_or_illustration,
-            is_meta_discussion=prominence_result.is_meta_discussion,
-            is_substantively_examined=prominence_result.is_substantively_examined,
+            subject_relation=prominence_result.subject_relation,
+            subject_relation_reason=prominence_result.reason,
+            **_legacy_role_flags(prominence_result),
             role_supporting_span_ids=prominence_result.supporting_span_ids,
             role_reason=prominence_result.reason,
             prominence_reason=prominence_result.reason,
@@ -1885,7 +1897,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.22.0 with one frozen book-subject analysis followed by every frozen facet.
+    Run v0.22.1 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1903,7 +1915,7 @@ def generate_validated_semantic_verdict(
             f"Description is empty for case {row['case_id']}."
         )
 
-    # v0.22.0: freeze one facet-independent subject analysis before ANY facet
+    # v0.22.1: freeze one facet-independent subject analysis before ANY facet
     # role classification. No query/facet is visible to this call.
     book_subject, subject_retries = assess_book_subject(
         judge_model=judge_model,
@@ -2089,6 +2101,8 @@ def serialize_facet_assessments(
                 "hard_exclusion_id": assessment.hard_exclusion_id,
                 "context_role": assessment.context_role.value,
                 "resolved_context_role": assessment.context_role.value,
+                "subject_relation": (assessment.subject_relation.value if assessment.subject_relation is not None else None),
+                "subject_relation_reason": assessment.subject_relation_reason,
                 "prominence": assessment.prominence.value,
                 "primary_subject_summary": assessment.primary_subject_summary,
                 "primary_subject_span_ids": assessment.primary_subject_span_ids,

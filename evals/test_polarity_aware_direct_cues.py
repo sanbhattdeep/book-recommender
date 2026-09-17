@@ -13,7 +13,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.22.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.22.1.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 teamwork = QueryFacet(

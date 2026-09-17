@@ -1,0 +1,730 @@
+{
+  "judge_id": "semantic-relevance-judge",
+  "version": "0.22.1",
+  "status": "development",
+  "provider": "ollama",
+  "model": "jeffnyman/ts-evaluator",
+  "base_url": "http://localhost:11434",
+  "temperature": 0.0,
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_version": "0.5.0",
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "facet_spec_version": "0.8.0",
+  "evaluation_unit": "one user query x one recommended book",
+  "pipeline": "facet_independent_book_subject_plus_explicit_subject_relation_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline",
+  "evidence_selection_stage": {
+    "owner": "llm_recall_oriented_top_k",
+    "visible_inputs": [
+      "one frozen facet",
+      "its frozen semantic definition",
+      "numbered description spans"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "human_score",
+      "human_reason",
+      "retrieval rank"
+    ],
+    "max_candidates": 3,
+    "instructions": [
+      "Return up to three UNIQUE source spans that are the best candidates for supporting the target facet, ordered best-first.",
+      "Follow CANDIDATE RANKING PRIORITY strictly. Higher-priority evidence must rank before weaker indirect evidence.",
+      "If any span literally names the facet, a normal lexical/morphological variant, or a clearly included concept from the frozen semantic definition, include it and normally rank it first.",
+      "A term or concept mentioned only inside a negative, exclusion, or boundary clause of the semantic definition is NOT a positive literal match. It may still be returned as a lower-priority candidate when there is a plausible facet-specific connection, because the isolated verifier makes the final relation decision.",
+      "For relational facets, prioritize spans that directly describe the relevant people/entities and their relationship or interaction before unrelated backstory or downstream events.",
+      "For process/action facets, prioritize spans that describe the process or action itself. For example, clues being examined, questions being pursued, fingerprints being checked, or an actor trying to determine who/why are stronger investigation candidates than a crime scene alone.",
+      "For broad subject facets, prioritize direct subject statements such as 'introduction to astronomy' before supporting technical details.",
+      "Favor recall after applying the ranking priorities. A candidate does not need to prove the facet; the isolated verifier decides whether support is real.",
+      "If more than one span could plausibly support the facet, include additional plausible spans instead of stopping after the first one.",
+      "Use the frozen semantic definition to understand the intended meaning and boundaries, but do not perform final relation classification in Stage A.",
+      "When no single span appears sufficient but two or more spans plausibly provide complementary context for the facet, include those spans among the candidates; the later composition stage decides whether they jointly establish the facet.",
+      "Do not invent text or use external knowledge.",
+      "Do not decide support level, verification relation, prominence, or final score.",
+      "Return exactly [\"NONE\"] only when no supplied span has even a plausible facet-specific connection."
+    ],
+    "candidate_priority": [
+      {
+        "priority": 1,
+        "name": "literal_or_lexical_match",
+        "rule": "Prefer spans that literally name the facet, use a normal morphological/derivational variant, or directly name a POSITIVELY INCLUDED concept from the frozen semantic definition. Terms appearing only in exclusion/boundary examples must not be treated as positive literal matches."
+      },
+      {
+        "priority": 2,
+        "name": "unmistakable_concrete_instance",
+        "rule": "Next prefer spans that unmistakably instantiate the facet through a concrete event, action, relationship, condition, role, or property."
+      },
+      {
+        "priority": 3,
+        "name": "full_facet_entailment",
+        "rule": "Then prefer spans from which the complete facet follows through one short, necessary semantic inference."
+      },
+      {
+        "priority": 4,
+        "name": "specific_adjacent_connection",
+        "rule": "Then include spans with a genuine facet-specific but incomplete connection that could support ADJACENT."
+      },
+      {
+        "priority": 5,
+        "name": "indirect_context",
+        "rule": "Use indirect/background context only when no stronger candidate span exists. Broad-domain overlap alone is not a valid candidate."
+      }
+    ]
+  },
+  "verification_stage": {
+    "owner": "llm_isolated",
+    "visible_inputs": [
+      "one frozen facet",
+      "its frozen semantic definition",
+      "its frozen hard exclusions",
+      "one exact candidate evidence span"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "title",
+      "authors",
+      "other description spans",
+      "human_score",
+      "human_reason"
+    ],
+    "relation_scale": {
+      "unsupported": "The evidence does not establish the facet, a close semantic equivalent, an unmistakable concrete instance, or a specific weak semantic connection. Broad domain overlap, generic possibility, or merely sharing a topic area is insufficient.",
+      "adjacent": "The evidence has a genuine, specific, but incomplete or weaker semantic connection to the facet. It is more than broad topical overlap, yet the full facet does not follow. This is the relation used for weak/incidental relevance rather than full semantic support.",
+      "entailed": "The full facet follows naturally and specifically through one short NECESSARY semantic inference. The inference may not introduce an unstated target entity, event, theme, relationship, process, or interpretation. If the target is merely something the evidence could symbolize, may represent, is often associated with, or could plausibly imply, it is not ENTAILED.",
+      "direct": "The evidence directly states, directly paraphrases, morphologically expresses, or unmistakably instantiates the facet under the frozen semantic definition. Exact wording is not required."
+    },
+    "instructions": [
+      "Apply HARD EXCLUSIONS before considering DIRECT, ENTAILED, or ADJACENT. If the evidence connection is covered by a hard exclusion, set hard_exclusion_triggered=true, name its exclusion_id, and return UNSUPPORTED with inference_kind=none.",
+      "Do not treat a fact named inside a hard exclusion as positive support merely because the same word appears in the evidence.",
+      "Apply DECISION PRECEDENCE in order A -> B -> C -> D -> E. Do not skip directly to ADJACENT.",
+      "Use only the facet, its frozen semantic definition, and the exact evidence shown in this verification prompt.",
+      "Treat the semantic definition as the authoritative meaning boundary, but not as an exhaustive checklist of words that must all appear.",
+      "Treat explicit exclusions, negative boundaries, and exception clauses in the semantic definition as hard gates. If the definition says concept X does not establish the facet unless condition Y is present, X alone is UNSUPPORTED unless the exact evidence itself states or necessarily entails Y.",
+      "Do not satisfy an 'unless', 'only when', 'provided that', or equivalent condition by assuming a plausible downstream benefit, interpretation, typical outcome, or real-world association. The required condition must be established by the exact evidence itself.",
+      "The semantic definition supplies meaning and boundaries; it is not evidence. Do not treat words, examples, or possible connections that appear only in the definition as though they were stated in the candidate evidence.",
+      "For ENTAILED, distinguish NECESSARY inference from PLAUSIBLE inference. If the facet could reasonably follow from the evidence but need not be true, do not return ENTAILED. Use ADJACENT only when the semantic definition permits a genuine incomplete connection; otherwise use UNSUPPORTED.",
+      "If the evidence literally names the facet in the intended sense, DIRECT is the default. Do not downgrade a literal facet mention merely because the span does not restate every example in the semantic definition.",
+      "Normal morphological and derivational variants are DIRECT when used in the intended sense: suspenseful -> suspense, redeem -> redemption, magical -> magic.",
+      "Ordinary lexical entailments are DIRECT when they unmistakably instantiate the facet without outside knowledge: orphaned -> loss of parent(s), drug pusher -> crime, a god -> gods/deity, a murder -> crime.",
+      "Concrete investigative actions are DIRECT for investigation: detectives examining clues, checking fingerprints, trying to determine who committed murders, or explicitly pursuing who/why.",
+      "A direct broad-subject statement can establish a broad facet. 'Introduction to astronomy' directly establishes astronomy subject matter; it need not separately restate every cosmology example in the definition.",
+      "For beginner-friendly explanation, introductory framing plus explicit clarity/accessibility/teaching language is strong direct evidence when the description presents the material as accessible instruction.",
+      "Use ENTAILED only when the FULL facet necessarily follows in one short semantic step.",
+      "Use ADJACENT only for a specific incomplete connection to the actual facet. It is not a fallback for something that is merely related.",
+      "If the semantic definition explicitly says a near-concept does not establish the facet, evidence containing only that near-concept is UNSUPPORTED, not ADJACENT.",
+      "Examples of excluded-near-concept guardrails: adapting to change alone is not redemption; generic individual injustice alone is not social/economic inequality; crime alone is not investigation; generic conflict alone is not war.",
+      "Do not infer an investigation merely because there is a death, injury, mystery, suspicious event, or unanswered question; there must be an investigative action/process.",
+      "Do not infer redemption from generic recovery, adaptation, self-improvement, or personal transformation when restoration after wrongdoing/failure/damage is absent.",
+      "Do not infer social/economic inequality from generic unfairness or one person's unjust treatment.",
+      "For narrative-effect or genre-like facets such as suspense, do not equate generic stakes, a difficult choice, illness, danger, or ordinary uncertainty with the requested narrative effect. Apply the frozen semantic definition and require the story-level reading experience it specifies.",
+      "When the evidence explicitly contains BOTH a weak excluded concept and genuine direct facet evidence, judge the genuine facet evidence; the exclusion rule blocks only evidence whose sole connection is the excluded concept.",
+      "When uncertain between UNSUPPORTED and ADJACENT, choose UNSUPPORTED unless the connection is specific to the actual facet.",
+      "When uncertain between ADJACENT and ENTAILED, choose ADJACENT unless the complete facet necessarily follows.",
+      "When uncertain between ENTAILED and DIRECT, choose DIRECT when the evidence itself states, paraphrases, lexically expresses, or unmistakably instantiates the facet.",
+      "Return an inference_kind that matches the relation: DIRECT=explicit_components; ENTAILED=necessary_semantic_inference; ADJACENT=incomplete_connection; UNSUPPORTED=none, symbolic_possibility, or associative_world_knowledge.",
+      "A target introduced only as one possible symbol, metaphor, interpretation, typical association, or world-knowledge bridge is not ENTAILED. Use UNSUPPORTED with inference_kind=symbolic_possibility or associative_world_knowledge unless there is a separate genuine incomplete connection permitted by the semantic definition.",
+      "For ENTAILED, your reason must describe a necessary inference. Do not justify ENTAILED with 'could', 'might', 'may represent', 'can symbolize', 'can indicate', or equivalent possibility language.",
+      "Return hard_exclusion_triggered and hard_exclusion_id with every result. If no hard exclusion applies, return false and null."
+    ],
+    "decision_precedence": [
+      {
+        "step": "A",
+        "name": "excluded_or_wrong_sense_gate",
+        "rule": "First apply every explicit exclusion/boundary in the semantic definition. If the evidence's only connection is a near-concept the definition says is insufficient, return UNSUPPORTED. When an exclusion has an exception such as 'unless Y', the exception applies only if the exact evidence independently states or necessarily entails Y; never assume Y as a plausible consequence. Also return UNSUPPORTED for literal words used in the wrong sense. Do not use ADJACENT to bypass an explicit exclusion."
+      },
+      {
+        "step": "B",
+        "name": "direct_gate",
+        "rule": "If the evidence directly states, directly paraphrases, morphologically/lexically expresses, or unmistakably concretely instantiates the facet, return DIRECT."
+      },
+      {
+        "step": "C",
+        "name": "entailed_gate",
+        "rule": "Otherwise, if the FULL facet follows through one short necessary inference without inventing an unstated event/theme/process, return ENTAILED."
+      },
+      {
+        "step": "D",
+        "name": "adjacent_gate",
+        "rule": "Otherwise, if there is a genuine facet-specific but incomplete connection to the ACTUAL facet, and that connection is not explicitly excluded by the semantic definition, return ADJACENT."
+      },
+      {
+        "step": "E",
+        "name": "unsupported_default",
+        "rule": "Otherwise return UNSUPPORTED."
+      }
+    ]
+  },
+  "prominence_stage": {
+    "owner": "llm_subject_relation_against_frozen_book_subject_python_role_and_prominence",
+    "visible_inputs": [
+      "one already-verified core facet",
+      "its frozen semantic definition",
+      "verified supporting evidence",
+      "the frozen facet-independent book-subject analysis",
+      "full numbered description"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "human_score",
+      "human_reason"
+    ],
+    "prominence_scale": {
+      "incidental": "The verified facet is genuinely present but functions mainly as background, context, a passing detail, or a minor side element. Removing that facet from the description would leave the main subject, plot, or purpose essentially unchanged.",
+      "substantive": "The verified facet materially contributes to the described book's subject, plot, theme, or purpose. Removing it would noticeably weaken the description, but the book is not clearly organized around it as a defining focus.",
+      "central": "The verified facet is a major premise, defining subject, recurring driver, or primary focus of the supplied description. The description is substantially organized around it."
+    },
+    "instructions": [
+      "Treat the supplied FROZEN BOOK SUBJECT ANALYSIS as fixed case-level context. Do not redefine, replace, narrow, or re-summarize the book subject from the perspective of the current facet.",
+      "Classify the verified facet using exactly one subject_relation. The relationship labels are mutually exclusive.",
+      "SAME AS PRIMARY SUBJECT: use when the verified facet is itself one of the principal subjects explicitly stated or necessarily represented by the frozen subject. It need not be the only principal subject.",
+      "DEFINING CONTENT OR NARRATIVE DRIVER: use when the facet is constituent content of the frozen primary subject or a defining premise, world rule, central conflict, major theme, recurring narrative driver, character-arc driver, or defining kind of content. It does not need to be the standalone subject of the book.",
+      "CAUSAL OR CONTEXTUAL BACKGROUND: use when the facet mainly explains why some OTHER primary subject, event, population, or situation exists or occurs, and the facet itself is not independently developed as defining content.",
+      "EXAMPLE OR META: use when the facet occurs mainly as an example, analogy, teaching device, symbolic illustration, literary criticism, interpretation, scholarship, instruction, or discussion of other works rather than as content of the described work itself.",
+      "OTHER: use only for verified content that does not fit the four relationships above.",
+      "Do not classify constituent content as causal background. If the frozen subject is myths and legends, the gods and mythic/legendary heroes whose stories constitute those myths are defining content, not causes of mythology.",
+      "Do not classify story-defining content as background merely because it sets up later events. A magical world rule, threat, quest structure, or journey can be defining content when it materially forms the described narrative premise.",
+      "Do not override the frozen subject. If the frozen subject explicitly says the book focuses on understanding poverty and its effects, poverty is same_as_primary_subject even if educators or interventions are also mentioned.",
+      "For causal/contextual background only, separately set is_substantively_examined=true when the description independently develops, explores, portrays, or gives sustained attention to that facet beyond its causal/contextual role. Mere listing, importance, or consequences for another subject are insufficient.",
+      "Use the exact numbered description spans to support the relationship judgment. Cite role-supporting span IDs.",
+      "Return subject_relation, is_substantively_examined, supporting_span_ids, and reason. Python derives legacy boolean audit fields, final context_role, and prominence."
+    ],
+    "context_role_scale": {
+      "central_subject": "The facet is a defining premise, principal subject, recurring driver, or major organizing theme of the described work.",
+      "substantive_subject": "The facet is genuinely part of what the work materially examines, develops, portrays, or is about, but is not a defining organizing focus.",
+      "background_cause": "The facet primarily appears as a reason, cause, factor, background condition, or explanation for why the actual subject/event/situation exists. Causal importance does not make it substantive subject matter.",
+      "example_or_illustration": "The facet is used as an example, analogy, teaching device, symbolic illustration, or sample instance rather than substantive content of the described work.",
+      "meta_discussion": "The work discusses how the facet functions in other works, criticism, interpretation, scholarship, instruction, or analysis rather than presenting the facet as its own narrative/subject content.",
+      "incidental_mention": "The facet is a passing detail or minor side element."
+    },
+    "context_role_to_prominence": {
+      "central_subject": "central",
+      "substantive_subject": "substantive",
+      "background_cause": "incidental",
+      "example_or_illustration": "incidental",
+      "meta_discussion": "incidental",
+      "incidental_mention": "incidental"
+    },
+    "decomposed_role_resolution": {
+      "precedence": [
+        "meta_discussion",
+        "example_or_illustration",
+        "primary_subject",
+        "substantively_examined",
+        "background_cause_or_factor",
+        "incidental_default"
+      ],
+      "mapping": {
+        "meta_discussion": "meta_discussion",
+        "example_or_illustration": "example_or_illustration",
+        "primary_subject": "central_subject",
+        "substantively_examined": "substantive_subject",
+        "background_cause_or_factor": "background_cause",
+        "incidental_default": "incidental_mention"
+      }
+    },
+    "subject_relation_scale": {
+      "same_as_primary_subject": "The facet is itself one of the principal subjects stated or necessarily represented by the frozen book subject.",
+      "defining_content_or_narrative_driver": "The facet is constituent content of the primary subject or a defining premise, world rule, theme, conflict, plot driver, character-arc driver, or defining kind of content.",
+      "causal_or_contextual_background": "The facet primarily explains why some other primary subject, event, population, or situation exists or occurs, without itself being defining content.",
+      "example_or_meta": "The facet appears mainly as an example, analogy, teaching device, symbolic illustration, criticism, interpretation, scholarship, instruction, or discussion of other works.",
+      "other": "Verified content that does not fit the relationships above."
+    },
+    "subject_relation_resolution": {
+      "precedence": [
+        "example_or_meta",
+        "same_as_primary_subject",
+        "defining_content_or_narrative_driver",
+        "substantively_examined_background",
+        "causal_or_contextual_background",
+        "other"
+      ],
+      "mapping": {
+        "example_or_meta": "example_or_illustration",
+        "same_as_primary_subject": "central_subject",
+        "defining_content_or_narrative_driver": "substantive_subject",
+        "substantively_examined_background": "substantive_subject",
+        "causal_or_contextual_background": "background_cause",
+        "other": "incidental_mention"
+      }
+    }
+  },
+  "support_derivation": {
+    "owner": "deterministic_python",
+    "core": {
+      "unsupported": "absent",
+      "adjacent": "incidental",
+      "entailed_or_direct_plus_incidental_prominence": "incidental",
+      "entailed_plus_substantive_or_central": "meaningful",
+      "direct_plus_substantive": "meaningful",
+      "direct_plus_central": "strong"
+    },
+    "qualifier": {
+      "unsupported_or_adjacent": "absent",
+      "entailed": "meaningful",
+      "direct": "strong"
+    }
+  },
+  "scoring_stage": {
+    "owner": "deterministic_python",
+    "module": "evals/semantic_relevance_facet_scoring.py",
+    "function": "compute_facet_score",
+    "aggregation_version": "v0.14_two_core_absence_guard",
+    "rules": {
+      "0_none": "All core facets derive to absent.",
+      "1_incidental": "At least one core facet derives to incidental and none derive to meaningful/strong.",
+      "2_partial": "At least one core facet derives to meaningful/strong but neither clear-score rule is met.",
+      "3_clear_general": "At least two-thirds of core facets derive to meaningful/strong while not all core facets are strong.",
+      "3_clear_two_core_exception": "For exactly two core facets, one strong facet is sufficient for score 3 only when the other core facet is at least incidental. If either core facet is absent, a strong match on the other facet remains partial (score 2).",
+      "4_strong": "All core facets derive to strong.",
+      "qualifier_cap": "Qualifiers cannot promote relevance. If any required qualifier is absent, cap a provisional score of 3 or 4 to 2. If all qualifiers are at least meaningful but any is not strong, cap a provisional 4 to 3."
+    }
+  },
+  "structured_output_recovery": {
+    "max_attempts_per_stage": 2,
+    "full_context_composite_invalid_output_policy": "Retry malformed composite output. If all bounded retries still fail deterministic structural/consistency validation, conservatively treat composite recovery as unsupported and continue the case. This fallback can never create positive evidence."
+  },
+  "primary_metrics": [
+    "exact_agreement",
+    "within_one_agreement",
+    "linear_weighted_cohens_kappa"
+  ],
+  "secondary_metrics": [
+    "quadratic_weighted_cohens_kappa",
+    "confusion_matrix",
+    "agreement_by_human_score"
+  ],
+  "candidate_resolution_stage": {
+    "owner": "deterministic_python",
+    "relation_precedence": [
+      "direct",
+      "entailed",
+      "adjacent",
+      "unsupported"
+    ],
+    "tie_break": "When candidates have the same verification relation, the lower selector rank wins.",
+    "early_stop": "Stop verifying later candidates after DIRECT is found because no later relation can outrank DIRECT."
+  },
+  "calibration_change": {
+    "version": "0.19.0",
+    "type": "behavioral_semantic_and_audit_change",
+    "from_version": "0.18.0",
+    "motivation": "Fresh unseen validation exposed four severe disagreements caused by background/meta-discussion prominence inflation, over-broad war entailment, speculative symbolic entailment, and Q04 within-scenario composition under-recognition.",
+    "changes": [
+      "Add structured inference_kind to single-span and composite verification and deterministically restrict which inference kinds are compatible with each relation.",
+      "Reject ENTAILED when its justification uses configured speculative bridge language such as could/might/can symbolize.",
+      "Add structured context_role to core prominence and deterministically map background causes, examples, meta-discussion, and incidental mentions to INCIDENTAL prominence.",
+      "Facet spec v0.7.0 tightens Q05 war, Q11 meta-literary/gods boundaries, and Q04 within-scenario composition semantics.",
+      "Restore and package the complete frozen rubric v0.1.0 instead of the accidental version-only placeholder."
+    ],
+    "preserved": [
+      "rubric semantics v0.1.0",
+      "deterministic 0-4 scoring rules",
+      "v0.16 polarity-aware deterministic cue behavior",
+      "v0.18 self-selecting full-context composite architecture",
+      "composite support capped at ENTAILED",
+      "model/provider/temperature"
+    ]
+  },
+  "deterministic_direct_cue_stage": {
+    "owner": "deterministic_python_positive_only",
+    "purpose": "Resolve only high-confidence lexical or concrete DIRECT evidence before Stage A. v0.16 adds a conservative polarity/contrast guard so a lexical cue cannot become positive DIRECT evidence when the matched concept is explicitly negated, absent, or contrasted away in its local context. A cue can establish relation=direct only; core prominence and final score remain separate.",
+    "matching": {
+      "scope": "exact numbered description spans only",
+      "case_sensitive": false,
+      "regex_engine": "python_re",
+      "selection": "first matching rule in config order, then earliest matching span",
+      "negative_behavior": "No cue match is evidence of nothing; fall through to LLM. Cues are positive-only.",
+      "polarity_guard": "enabled"
+    },
+    "guardrails": [
+      "Cues must be query/facet-derived and reusable across books; never author a cue from a candidate title or one calibration example.",
+      "Use only high-precision lexical, morphological, or unmistakable concrete-instance cues.",
+      "A cue establishes verification relation=direct only. Core prominence is still judged separately by the LLM.",
+      "Qualifier cues must be especially strict because direct qualifier support is strong without a prominence stage.",
+      "Do not create negative cues. Explicit exclusion boundaries remain the responsibility of the normal verifier when no positive cue fires.",
+      "A lexical cue must be positively asserted in its local context. Explicit negation, absence, or contrast such as no X, without X, lack of X, instead of X, or rather than X suppresses that cue and falls through to the LLM pipeline.",
+      "Facets with context-sensitive lexical terms whose meaning can be meta-discursive must bypass deterministic DIRECT cues and use semantic verification."
+    ],
+    "rules": [
+      {
+        "cue_id": "Q01_F1_forgiveness_lexical",
+        "query_id": "Q01",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bforgiveness\\b",
+          "\\bforgiv(?:e|es|en|ing)\\b",
+          "\\bpardon(?:s|ed|ing)?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q01_F2_redemption_lexical",
+        "query_id": "Q01",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bredemption\\b",
+          "\\bredeem(?:s|ed|ing)?\\b",
+          "\\batonement\\b"
+        ]
+      },
+      {
+        "cue_id": "Q02_F1_suspense_lexical",
+        "query_id": "Q02",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bsuspense\\b",
+          "\\bsuspenseful\\b"
+        ]
+      },
+      {
+        "cue_id": "Q02_F2_crime_unmistakable",
+        "query_id": "Q02",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bcrime(?:s)?\\b",
+          "\\bcriminal(?:s|ity)?\\b",
+          "\\bmurder(?:s|ed|er|ers|ing)?\\b",
+          "\\bhomicide\\b"
+        ]
+      },
+      {
+        "cue_id": "Q02_F3_investigation_lexical",
+        "query_id": "Q02",
+        "facet_id": "F3",
+        "any_regex": [
+          "\\binvestigat(?:e|es|ed|ing|ion|ions|or|ors)\\b"
+        ],
+        "all_regex_groups": [
+          [
+            "\\bdetective(?:s)?\\b",
+            "\\b(?:fingerprints?|clues?|evidence)\\b"
+          ],
+          [
+            "\\b(?:figure|find) out\\b",
+            "\\b(?:who|why)\\b",
+            "\\bmurder(?:s|ed|er|ers|ing)?\\b"
+          ]
+        ]
+      },
+      {
+        "cue_id": "Q04_F2_magic_lexical",
+        "query_id": "Q04",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bmagic(?:al|ally)?\\b",
+          "\\bsorcer(?:er|ess|y)\\b",
+          "\\bspell(?:s)?\\b",
+          "\\benchant(?:ed|ment|ments|ing)?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q06_F1_grief_lexical",
+        "query_id": "Q06",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bgrief\\b",
+          "\\bgriev(?:e|es|ed|ing)\\b",
+          "\\bmourn(?:s|ed|ing)?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q06_F2_loss_unmistakable",
+        "query_id": "Q06",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bloss\\b",
+          "\\borphan(?:ed|s)?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q08_F1_astronomy_subject",
+        "query_id": "Q08",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bastronomy\\b",
+          "\\bcosmology\\b",
+          "\\bgalax(?:y|ies)\\b",
+          "\\bblack holes?\\b",
+          "\\bbig bang\\b",
+          "\\bwormholes?\\b",
+          "\\bspacetime\\b"
+        ]
+      },
+      {
+        "cue_id": "Q08_F2_beginner_explicit",
+        "query_id": "Q08",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bbeginner(?:-friendly)?\\b",
+          "\\bfor beginners\\b",
+          "\\bintroductory\\b"
+        ],
+        "all_regex_groups": [
+          [
+            "\\bintroduction\\b",
+            "\\b(?:clear|accessible|student(?:s)?)\\b"
+          ]
+        ]
+      },
+      {
+        "cue_id": "Q09_F1_authoritarian_lexical",
+        "query_id": "Q09",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bauthoritarian\\b",
+          "\\btotalitarian\\b",
+          "\\bdictatorship\\b",
+          "\\bsurveillance state\\b"
+        ]
+      },
+      {
+        "cue_id": "Q09_F2_resistance_lexical",
+        "query_id": "Q09",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bresistan(?:ce|t)\\b",
+          "\\brebell(?:ion|ing|ious)\\b",
+          "\\buprising\\b",
+          "\\bdissident(?:s)?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q09_F3_dystopian_lexical",
+        "query_id": "Q09",
+        "facet_id": "F3",
+        "any_regex": [
+          "\\bdystopi(?:a|an)\\b"
+        ]
+      },
+      {
+        "cue_id": "Q10_F1_leadership_lexical",
+        "query_id": "Q10",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\bleadership\\b"
+        ]
+      },
+      {
+        "cue_id": "Q10_F2_teamwork_lexical",
+        "query_id": "Q10",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bteamwork\\b",
+          "\\bcollaborat(?:e|es|ed|ing|ion|ive)\\b",
+          "\\bcooperat(?:e|es|ed|ing|ion|ive)\\b"
+        ]
+      },
+      {
+        "cue_id": "Q11_F2_mythology_lexical",
+        "query_id": "Q11",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bmytholog(?:y|ical)\\b",
+          "\\bmythic\\b"
+        ]
+      },
+      {
+        "cue_id": "Q11_F3_gods_lexical",
+        "query_id": "Q11",
+        "facet_id": "F3",
+        "any_regex": [
+          "\\bgods?\\b",
+          "\\bgoddess(?:es)?\\b",
+          "\\bdeit(?:y|ies)\\b"
+        ]
+      },
+      {
+        "cue_id": "Q11_F4_legendary_heroes_lexical",
+        "query_id": "Q11",
+        "facet_id": "F4",
+        "any_regex": [
+          "\\blegendary heroes?\\b",
+          "\\bmythic heroes?\\b"
+        ]
+      },
+      {
+        "cue_id": "Q12_F1_inequality_lexical",
+        "query_id": "Q12",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\binequalit(?:y|ies)\\b",
+          "\\bwealth gap\\b",
+          "\\bincome gap\\b",
+          "\\beconomic disparit(?:y|ies)\\b"
+        ]
+      },
+      {
+        "cue_id": "Q12_F2_poverty_lexical",
+        "query_id": "Q12",
+        "facet_id": "F2",
+        "any_regex": [
+          "\\bpoverty\\b",
+          "\\bimpoverished\\b"
+        ]
+      },
+      {
+        "cue_id": "Q12_F3_wealth_distribution_lexical",
+        "query_id": "Q12",
+        "facet_id": "F3",
+        "any_regex": [
+          "\\bwealth distribution\\b",
+          "\\bdistribution of wealth\\b",
+          "\\bincome distribution\\b",
+          "\\bredistribution of wealth\\b"
+        ]
+      }
+    ],
+    "polarity_guard": {
+      "enabled": true,
+      "pre_window_chars": 96,
+      "post_window_chars": 64,
+      "negative_prefix_regex": [
+        "\\b(?:no|never|without|not(?!\\s+only\\b))\\s+(?:[\\w-]+\\W+){0,3}$",
+        "\\b(?:lack(?:s|ed|ing)?|absence)\\s+(?:of\\s+)?(?:[\\w-]+\\W+){0,3}$",
+        "\\b(?:instead\\s+of|rather\\s+than)\\s+(?:[\\w-]+\\W+){0,3}$",
+        "\\b(?:fail(?:s|ed|ing)?\\s+to)\\s+(?:[\\w-]+\\W+){0,3}$"
+      ],
+      "negative_suffix_regex": [
+        "^\\s*(?:is|are|was|were|be|being|becomes?|remains?)?\\s*(?:absent|missing|lacking|declining|decreasing|not\\s+present)\\b"
+      ]
+    }
+  },
+  "composite_verification_stage": {
+    "owner": "llm_full_context_self_selecting_multi_span_core_only",
+    "purpose": "When the best standalone relation for a core facet is unsupported or adjacent, inspect the full numbered description, select the smallest coherent set of 2-4 exact supporting spans, and decide whether those spans jointly establish the facet. Selection and verification happen in one isolated call so a useful span cannot be lost by an upstream composition selector.",
+    "visible_inputs": [
+      "one frozen core facet",
+      "its frozen semantic definition",
+      "its frozen hard exclusions",
+      "all numbered description spans"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "other facets",
+      "title",
+      "authors",
+      "human_score",
+      "human_reason",
+      "retrieval rank",
+      "Stage-A candidate rankings",
+      "single-span verification results"
+    ],
+    "eligible_when_best_single_relation": [
+      "unsupported",
+      "adjacent"
+    ],
+    "min_spans": 2,
+    "max_spans": 4,
+    "max_output_relation": "entailed",
+    "relation_scale": {
+      "unsupported": "The full description does not provide a coherent 2-4 span set that establishes a genuine facet-specific connection without inventing an unstated event, theme, relationship, or causal bridge.",
+      "adjacent": "A coherent 2-4 span set provides a genuine facet-specific connection, but at least one required semantic component remains unstated or merely plausible. The missing component must be identified explicitly.",
+      "entailed": "A coherent 2-4 span set supplies all semantic components and the full facet follows through a short NECESSARY inference. Exact wording is not required, but the cited spans may not introduce the target merely as a possible symbol, association, metaphor, or outside-world interpretation."
+    },
+    "instructions": [
+      "Apply HARD EXCLUSIONS to the cited spans jointly before any positive relation. If their only connection to the facet matches a hard exclusion, return UNSUPPORTED, hard_exclusion_triggered=true, and the matching exclusion_id.",
+      "Meta-literary examples, symbolic possibilities, and background associations cannot be rescued into positive evidence merely by combining multiple spans.",
+      "Scan the FULL numbered description yourself. Do not rely on Stage-A candidates and do not assume that the strongest standalone span is the best multi-span evidence.",
+      "For positive output, choose the smallest coherent set of 2-4 exact span IDs that jointly support the relation. Every cited span must contribute relevant context.",
+      "For process, recovery, change, or narrative-arc facets, look for distributed components such as precipitating event/condition + impact/changed circumstances + later response, rebuilding, continuation, or outcome.",
+      "ENTAILED does NOT require the facet's exact words. Use ENTAILED when the cited spans, read together, supply all required semantic components and the facet follows by one short necessary inference.",
+      "Do not downgrade to ADJACENT merely because no single span states the full facet or because the evidence is distributed across a narrative sequence.",
+      "Use ADJACENT only when a required semantic component is still missing or merely plausible after reading the cited spans together. Explicitly name that missing component in missing_semantic_component.",
+      "If your reason or combined_evidence_summary says the cited spans establish, depict, or necessarily imply the full facet, return ENTAILED and leave missing_semantic_component null.",
+      "If you return ADJACENT, missing_semantic_component must identify the specific facet component that is not established.",
+      "Do not combine unrelated mentions merely because together they resemble the facet. The cited spans must describe one coherent event, people, process, temporal arc, or causal context.",
+      "Do not use world knowledge to invent a death, loss, motive, crime, investigation, relationship, or other fact not established by the description.",
+      "DIRECT is forbidden in this stage. Multi-span support is capped at ENTAILED.",
+      "For UNSUPPORTED, return no supporting span IDs. For ADJACENT or ENTAILED, return 2-4 unique supporting span IDs.",
+      "Return inference_kind with every result: ENTAILED=necessary_semantic_inference; ADJACENT=incomplete_connection; UNSUPPORTED=none, symbolic_possibility, or associative_world_knowledge.",
+      "Do not introduce a target entity/theme merely because the cited spans could symbolize, represent, or be associated with it. Symbolic possibility and associative world knowledge are UNSUPPORTED, not ENTAILED.",
+      "For ENTAILED, the reason and combined_evidence_summary must describe what the cited spans necessarily establish; possibility language such as could/might/may represent/can symbolize is inconsistent with ENTAILED.",
+      "Return hard_exclusion_triggered and hard_exclusion_id with every result. If no hard exclusion applies, return false and null."
+    ]
+  },
+  "inference_contract": {
+    "purpose": "Make the distinction between necessary entailment and speculative/associative inference mechanically auditable.",
+    "kinds": {
+      "none": "No positive semantic inference is accepted.",
+      "explicit_components": "The evidence states, paraphrases, lexically expresses, or unmistakably instantiates the facet.",
+      "necessary_semantic_inference": "The full facet follows necessarily through one short semantic inference without introducing an unstated target.",
+      "incomplete_connection": "There is a genuine facet-specific but incomplete connection.",
+      "symbolic_possibility": "The target is only one possible symbolic/metaphorical interpretation of the evidence.",
+      "associative_world_knowledge": "The target is supplied by outside association, typical-world knowledge, or a merely plausible bridge rather than the evidence itself."
+    },
+    "relation_mapping": {
+      "direct": [
+        "explicit_components"
+      ],
+      "entailed": [
+        "necessary_semantic_inference"
+      ],
+      "adjacent": [
+        "incomplete_connection"
+      ],
+      "unsupported": [
+        "none",
+        "symbolic_possibility",
+        "associative_world_knowledge"
+      ]
+    },
+    "entailed_forbidden_reason_regex": [
+      "\\bcould\\b",
+      "\\bmight\\b",
+      "\\bmay (?:represent|symboli[sz]e|indicate|suggest|imply)\\b",
+      "\\bcan (?:represent|symboli[sz]e|indicate|suggest|be a symbol|be a sign)\\b",
+      "\\boften associated with\\b"
+    ]
+  },
+  "hard_exclusion_contract": {
+    "purpose": "Make frozen negative semantic boundaries first-class and auditable before positive relation classification.",
+    "rules": [
+      "Hard exclusions are facet-specific, generic semantic boundaries authored in the versioned facet spec; they must never contain candidate titles, authors, ISBNs, or case IDs.",
+      "The verifier must adjudicate hard exclusions before positive relation classification.",
+      "If hard_exclusion_triggered=true, verification_relation must be unsupported and inference_kind must be none.",
+      "hard_exclusion_id must name one exclusion declared on the target facet; otherwise it must be null.",
+      "Full-description precheck exclusions are guards, not lexical vetoes: genuine positive facet evidence must not be suppressed unless the exclusion explicitly describes that same context."
+    ]
+  },
+  "hard_exclusion_precheck_stage": {
+    "owner": "llm_full_description_negative_boundary_precheck",
+    "purpose": "Before deterministic cues or positive candidate search, decide whether the full description conclusively matches one frozen hard exclusion for the target facet.",
+    "instructions": [
+      "Evaluate only the frozen hard exclusions for this facet against the full supplied description.",
+      "A hard exclusion is a negative semantic guard, not a lexical veto.",
+      "Do not trigger merely because words mentioned in an exclusion occur in the description.",
+      "Trigger only when the exclusion accurately describes the contextual role of the apparent facet evidence and there is no independent genuine positive support for the facet in the description.",
+      "If the description positively satisfies the facet itself, do not suppress that evidence unless the exclusion explicitly describes that same contextual situation.",
+      "Generic-hero exclusions apply to ordinary protagonists, warriors, adventurers, or brave characters without legendary/mythic context. Heroes explicitly situated within myths or legends are not generic heroes for this exclusion.",
+      "Meta-literary examples remain excludable when the facet appears only as an example, symbol, interpretive device, or discussion of other works.",
+      "If triggered, cite 1-4 exact supporting span IDs and return the matching frozen exclusion_id. If not triggered, return false, null, and zero or more diagnostic span IDs."
+    ]
+  },
+  "book_subject_stage": {
+    "owner": "llm_facet_independent_book_subject_analysis",
+    "purpose": "Analyze the supplied book description once per case, without seeing the user query or any query facet, and freeze a single book-level subject/premise summary for all later facet-role decisions.",
+    "visible_inputs": [
+      "full numbered description"
+    ],
+    "hidden_inputs": [
+      "full user query",
+      "all query facets",
+      "facet semantic definitions",
+      "human_score",
+      "human_reason",
+      "retrieval rank"
+    ],
+    "instructions": [
+      "Identify what the supplied description says the book itself is primarily about. Do not infer or optimize for any user query because no query or facet is supplied at this stage.",
+      "For fiction, summarize the defining premise, major narrative situation, central conflict, or recurring drivers actually described. Do not demote story-defining worldbuilding, conflict, or character-driving elements merely because they establish the premise.",
+      "For nonfiction, summarize the principal subject, population, phenomenon, question, or practical purpose the work directly examines or explains.",
+      "Distinguish a principal subject from causes, conditions, examples, side topics, or context that mainly explain some other subject.",
+      "Do not promote one item from a list of causes or contextual factors into the primary subject unless the description independently develops that item as a major focus.",
+      "Do not treat an example used in literary criticism, instruction, symbolism, or analysis as the primary subject of the described book unless the description says the work itself is about that example.",
+      "Cite 1-6 exact numbered spans that best support the frozen subject summary.",
+      "Return one concise primary_subject_summary, primary_subject_span_ids, and reason. The same result will be reused unchanged for every facet in this case."
+    ]
+  }
+}

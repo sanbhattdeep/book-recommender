@@ -1,0 +1,33 @@
+{
+  "version": "1.1.0",
+  "purpose": "v0.22.1 explicit facet-to-frozen-subject relationship gate: all nine regression and positive-control expectations must pass before the full 90-case development run",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    }
+  }
+}

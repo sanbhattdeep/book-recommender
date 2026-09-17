@@ -1,5 +1,5 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.22.0.
+Deterministic scoring models for Semantic Recommendation Relevance v0.22.1.
 
 v0.20.0 preserves the deterministic support derivation and final 0-4 aggregation unchanged. It adds auditable inference-kind and context-role fields used by the semantic stages before deterministic support derivation.
 
@@ -98,6 +98,16 @@ class EvidenceInferenceKind(str, Enum):
     INCOMPLETE_CONNECTION = "incomplete_connection"
     SYMBOLIC_POSSIBILITY = "symbolic_possibility"
     ASSOCIATIVE_WORLD_KNOWLEDGE = "associative_world_knowledge"
+
+
+class SubjectRelation(str, Enum):
+    """Facet relationship to the frozen facet-independent book subject."""
+
+    SAME_AS_PRIMARY_SUBJECT = "same_as_primary_subject"
+    DEFINING_CONTENT_OR_NARRATIVE_DRIVER = "defining_content_or_narrative_driver"
+    CAUSAL_OR_CONTEXTUAL_BACKGROUND = "causal_or_contextual_background"
+    EXAMPLE_OR_META = "example_or_meta"
+    OTHER = "other"
 
 
 class FacetContextRole(str, Enum):
@@ -199,6 +209,10 @@ class FacetPipelineAssessment(BaseModel):
     hard_exclusion_precheck_reason: str | None = None
 
     prominence: FacetProminence
+
+    # v0.22.1 explicit relation to the frozen case-level book subject.
+    subject_relation: SubjectRelation | None = None
+    subject_relation_reason: str | None = None
 
     # Context role remains an audit field, but in v0.21+ it is derived
     # deterministically in Python from decomposed role signals.
