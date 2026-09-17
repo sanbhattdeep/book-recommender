@@ -1,4 +1,4 @@
-"""Deterministic polarity-aware DIRECT cue tests for v0.18.0. No LLM is called."""
+"""Deterministic polarity-aware DIRECT cue tests for v0.21.0. No LLM is called."""
 
 from __future__ import annotations
 
@@ -13,7 +13,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.18.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 teamwork = QueryFacet(
@@ -64,4 +64,4 @@ assert match is not None
 assert blocked >= 1
 assert match.evidence_span_id == "S2"
 
-print("All v0.18.0 polarity-aware deterministic-cue tests passed.")
+print("All v0.21.0 polarity-aware deterministic-cue tests passed.")

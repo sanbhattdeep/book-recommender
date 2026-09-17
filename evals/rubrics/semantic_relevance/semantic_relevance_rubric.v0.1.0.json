@@ -1,1 +1,43 @@
-{"version":"0.1.0"}
+{
+  "rubric_id": "semantic-recommendation-relevance",
+  "version": "0.1.0",
+  "status": "frozen",
+  "name": "Semantic Recommendation Relevance",
+  "evaluation_unit": "one user query x one recommended book",
+  "purpose": "Judge how well a recommended book's supplied description satisfies the semantic intent of the user's natural-language request.",
+  "evidence_rules": [
+    "Use the supplied book description as the primary evidence.",
+    "The title and author may provide supporting context, but must not override the description.",
+    "Do not use external knowledge about the book when the supplied description does not establish a claim.",
+    "Judge semantic relevance only. Ignore category-filter correctness, recommendation count, retrieval rank, and tone-ordering behavior.",
+    "Do not reward isolated keyword overlap when the central intent is not satisfied."
+  ],
+  "tie_break_rule": "If a case genuinely falls between two adjacent scores, assign the lower score unless the higher score is clearly supported.",
+  "scores": {
+    "4": {
+      "label": "Strong",
+      "definition": "The book directly and strongly matches the central semantic intent of the request; a reasonable reader would regard it as an obvious or direct recommendation."
+    },
+    "3": {
+      "label": "Good / Clear",
+      "definition": "The book is clearly relevant overall, but one important aspect of the request is secondary, implicit, weaker, or missing."
+    },
+    "2": {
+      "label": "Partial",
+      "definition": "The book meaningfully satisfies one central part of the request but misses another central part; there is substantive semantic overlap."
+    },
+    "1": {
+      "label": "Weak / Incidental",
+      "definition": "There is a genuine requested concept or close equivalent, but it is peripheral or incidental; the book is not really about the request."
+    },
+    "0": {
+      "label": "None",
+      "definition": "The supplied evidence does not establish meaningful relevance to the request, or meaningfully contradicts it; speculation is not evidence."
+    }
+  },
+  "boundary_guidance": [
+    "When between adjacent scores, choose the lower score unless the higher score is clearly supported.",
+    "A directly mentioned concept can still be incidental if it functions only as background, an example, or a passing detail.",
+    "A missing central component normally prevents a strong score even when other components match well."
+  ]
+}

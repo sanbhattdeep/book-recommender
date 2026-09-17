@@ -1,0 +1,62 @@
+{
+  "version": "1.0.0",
+  "judge_version": "0.19.0",
+  "development_dataset_version": "2.0.0",
+  "primary_failure_cases": [
+    "U2_Q12_T30",
+    "U2_Q05_NEG",
+    "U2_Q11_T30",
+    "U2_Q04_T10"
+  ],
+  "critical_legacy_controls": [
+    "U_Q06_T02",
+    "U_Q02_NEG",
+    "U_Q10_T30"
+  ],
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "human_score": 0,
+      "judge_max": 1,
+      "reason": "background/context prominence false positive"
+    },
+    "U2_Q05_NEG": {
+      "human_score": 0,
+      "judge_max": 1,
+      "reason": "terrorist cell must not entail war"
+    },
+    "U2_Q11_T30": {
+      "human_score": 0,
+      "judge_max": 1,
+      "reason": "meta-literary quest + speculative gods false positive"
+    },
+    "U2_Q04_T10": {
+      "human_score": 4,
+      "judge_min": 3,
+      "reason": "fantastical inter-world movement + explicit threat should recover"
+    },
+    "U_Q06_T02": {
+      "judge_min": 3,
+      "reason": "v0.18 composition recovery preserved"
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1,
+      "reason": "Q02 suspense boundary preserved"
+    },
+    "U_Q10_T30": {
+      "judge_max": 1,
+      "polarity_guard_min": 1,
+      "direct_cue_max": 0,
+      "reason": "polarity fix preserved"
+    }
+  },
+  "full_development_reference": {
+    "within_one_min": 0.95,
+    "exact_min": 0.5,
+    "quadratic_kappa_min": 0.8,
+    "linear_kappa_min": 0.6,
+    "absolute_difference_ge_2_max": 1,
+    "binary_precision_min": 0.9,
+    "binary_recall_min": 0.8,
+    "deterministic_cue_severe_false_positives_max": 0
+  }
+}

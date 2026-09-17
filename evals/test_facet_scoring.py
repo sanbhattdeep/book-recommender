@@ -1,5 +1,5 @@
 """
-Deterministic scoring tests for Judge Config v0.18.0.
+Deterministic scoring tests for Judge Config v0.21.0.
 
 No LLM is called.
 """
@@ -73,6 +73,16 @@ def assessment(
             "synthetic"
             if prominence != FacetProminence.NOT_APPLICABLE
             else None
+        ),
+        primary_subject_summary=(
+            "synthetic subject"
+            if prominence != FacetProminence.NOT_APPLICABLE
+            else None
+        ),
+        role_supporting_span_ids=(
+            ["S1"]
+            if prominence != FacetProminence.NOT_APPLICABLE
+            else []
         ),
     )
 
@@ -577,4 +587,4 @@ r = compute_facet_score(
 assert r.score == 4
 
 
-print("All v0.18.0 facet scoring tests passed.")
+print("All v0.21.0 facet scoring tests passed.")

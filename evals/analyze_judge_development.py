@@ -1,12 +1,12 @@
 """
-Analyze the 60-case post-holdout development run without scikit-learn/scipy.
+Analyze the 90-case v0.20 consumed-development run without scikit-learn/scipy.
 
 This is a drop-in replacement for evals/analyze_judge_development.py when
 Windows Application Control blocks SciPy native DLLs.
 
 Usage:
     uv run python evals/analyze_judge_development.py `
-      --run evals/runs/semantic_relevance_v0_18_development/<RUN_ID>
+      --run evals/runs/semantic_relevance_v0_21_development/<RUN_ID>
 """
 
 from __future__ import annotations
@@ -20,15 +20,15 @@ import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
-EXPECTED_JUDGE_CONFIG_VERSION = "0.18.0"
-EXPECTED_EVALUATION_DATASET_VERSION = "1.0.0"
+EXPECTED_JUDGE_CONFIG_VERSION = "0.21.0"
+EXPECTED_EVALUATION_DATASET_VERSION = "2.0.0"
 EXPECTED_EVALUATION_DATASET_ROLE = "post_holdout_development"
 EXPECTED_EVALUATION_SCOPE = "consumed_unseen_pool_development"
 REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.18_regression_manifest.v1.0.0.json"
+    / "semantic_relevance_v0.21_regression_manifest.v1.0.0.json"
 )
 
 
@@ -145,7 +145,7 @@ def weighted_cohen_kappa(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Analyze frozen v0.17 post-holdout development run."
+        description="Analyze the v0.20 90-case consumed-development run."
     )
     parser.add_argument("--run", required=True)
     args = parser.parse_args()
@@ -170,7 +170,7 @@ def main() -> None:
 
     if mismatches:
         raise ValueError(
-            "Run is not the expected v0.17 development run:\n- "
+            "Run is not the expected v0.20 development run:\n- "
             + "\n- ".join(mismatches)
         )
 
@@ -196,9 +196,9 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    if len(gold) != 60:
+    if len(gold) != 90:
         raise ValueError(
-            f"Expected 60 development gold cases, found {len(gold)}."
+            f"Expected 90 development gold cases, found {len(gold)}."
         )
 
     if gold["case_id"].duplicated().any():
@@ -223,13 +223,13 @@ def main() -> None:
         validate="one_to_one",
     )
 
-    if len(comparison) != 60:
+    if len(comparison) != 90:
         missing = sorted(
             set(gold["case_id"])
             - set(judged["case_id"])
         )
         raise ValueError(
-            f"Development run is incomplete: compared {len(comparison)}/60. "
+            f"Development run is incomplete: compared {len(comparison)}/90. "
             f"Missing judge results: {missing}"
         )
 
@@ -459,7 +459,7 @@ def main() -> None:
 
     regression_manifest = load_json(REGRESSION_MANIFEST)
     architecture_targets = {}
-    for case_id in regression_manifest.get("primary_failure_cases", []):
+    for case_id in regression_manifest.get("targeted_expectations", {}):
         row = comparison.loc[comparison["case_id"] == case_id]
         if row.empty:
             architecture_targets[case_id] = {"present": False}
@@ -474,53 +474,34 @@ def main() -> None:
             "deterministic_cue_polarity_blocked_count": int(item.get("deterministic_cue_polarity_blocked_count", 0) or 0),
             "composite_verification_attempt_count": int(item.get("composite_verification_attempt_count", 0) or 0),
             "composite_verification_count": int(item.get("composite_verification_count", 0) or 0),
+            "hard_exclusion_precheck_attempt_count": int(item.get("hard_exclusion_precheck_attempt_count", 0) or 0),
+            "hard_exclusion_precheck_trigger_count": int(item.get("hard_exclusion_precheck_trigger_count", 0) or 0),
         }
 
-    controls = {}
-    for case_id in regression_manifest.get("regression_controls", []):
-        row = comparison.loc[comparison["case_id"] == case_id]
-        if row.empty:
-            controls[case_id] = {"present": False}
-            continue
-        item = row.iloc[0]
-        controls[case_id] = {
-            "present": True,
-            "human_score": int(item["human_score"]),
-            "judge_score": int(item["judge_score"]),
-            "absolute_difference": int(item["absolute_difference"]),
-            "within_one": bool(item["absolute_difference"] <= 1),
-        }
 
-    targeted_checks = {
-        "U_Q06_T02_score_ge_3": (
-            architecture_targets.get("U_Q06_T02", {}).get("judge_score", -1) >= 3
-        ),
-        "U_Q06_T02_positive_composite_recovery": (
-            architecture_targets.get("U_Q06_T02", {}).get(
-                "composite_verification_count", 0
-            ) >= 1
-        ),
-        "U_Q02_NEG_not_substantive": (
-            architecture_targets.get("U_Q02_NEG", {}).get("judge_score", 99) <= 1
-        ),
-        "U_Q10_T30_polarity_guard_fired": (
-            architecture_targets.get("U_Q10_T30", {}).get(
-                "deterministic_cue_polarity_blocked_count", 0
-            ) >= 1
-        ),
-        "U_Q10_T30_no_deterministic_direct_cue": (
-            architecture_targets.get("U_Q10_T30", {}).get(
-                "deterministic_direct_cue_count", 99
-            ) == 0
-        ),
-        "U_Q10_T30_not_substantive": (
-            architecture_targets.get("U_Q10_T30", {}).get("judge_score", 99) <= 1
-        ),
-        "regression_controls_all_within_one": all(
-            item.get("within_one", False)
-            for item in controls.values()
-        ),
-    }
+    targeted_expectations = regression_manifest.get("targeted_expectations", {})
+    targeted_checks = {}
+
+    for case_id, expectation in targeted_expectations.items():
+        row = architecture_targets.get(case_id, {})
+        score = row.get("judge_score")
+        checks = []
+        if "judge_min" in expectation:
+            checks.append(score is not None and score >= expectation["judge_min"])
+        if "judge_max" in expectation:
+            checks.append(score is not None and score <= expectation["judge_max"])
+        if "polarity_guard_min" in expectation:
+            checks.append(
+                row.get("deterministic_cue_polarity_blocked_count", 0)
+                >= expectation["polarity_guard_min"]
+            )
+        if "direct_cue_max" in expectation:
+            checks.append(
+                row.get("deterministic_direct_cue_count", 0)
+                <= expectation["direct_cue_max"]
+            )
+        targeted_checks[case_id] = bool(checks) and all(checks)
+
 
     checks = {
         "within_one_ge_0_95": within_one >= 0.95,
@@ -573,7 +554,6 @@ def main() -> None:
         "polarity_guard_analysis": polarity_summary,
         "composite_verification_analysis": composition_summary,
         "targeted_architecture_cases": architecture_targets,
-        "regression_controls": controls,
         "targeted_architecture_checks": targeted_checks,
         "acceptance_checks": checks,
         "all_pre_registered_checks_pass": bool(
@@ -631,7 +611,7 @@ def main() -> None:
 
     print("Post-holdout development summary")
     print("-------------------------")
-    print(f"Cases compared:            {len(comparison)}/60")
+    print(f"Cases compared:            {len(comparison)}/90")
     print(f"Exact agreement:           {exact:.1%}")
     print(f"Within ±1 agreement:       {within_one:.1%}")
     print(f"Mean absolute difference:  {mae:.3f}")
@@ -655,7 +635,7 @@ def main() -> None:
     print(f"Over-promotions >= 2:      {over2}")
     print(f"Under-promotions >= 2:     {under2}")
     print()
-    print("Targeted v0.17 architecture checks")
+    print("Targeted v0.20 regression checks")
     print("----------------------------------")
     for name, passed in targeted_checks.items():
         print(f"{'PASS' if passed else 'FAIL':4}  {name}")

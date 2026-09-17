@@ -1,5 +1,64 @@
 # Evaluation Changelog
 
+# v0.21.0
+
+Structural correction for the remaining Q11/Q12 v0.20 over-promotions.
+
+- Added full-description hard-exclusion precheck before every positive stage.
+- Replaced single LLM `context_role` classification with five independent,
+  source-grounded role signals.
+- Added deterministic Python role precedence:
+  meta/example/background → incidental; primary → central;
+  substantive → substantive; otherwise → incidental.
+- Added precheck and role-signal audit serialization.
+- Preserved frozen facet spec v0.8.0, rubric v0.1.0, inference contract,
+  support derivation, and final deterministic 0–4 scoring.
+- Retained all seven v0.20 regression gates.
+- Added Q11 and Q12 positive controls to prevent blanket suppression.
+- Added deterministic contract tests for precheck ordering, signal precedence,
+  source-span grounding, positive-control registration, and serialization.
+
+# v0.20.0
+
+Behavioral stabilization after v0.19 targeted regression failure.
+
+- Added first-class hard-exclusion contract.
+- Tightened Q02 suspense and Q05 political-conflict boundaries.
+- Removed Q11 context-insensitive adventure/quest deterministic cue.
+- Added Q11 meta-literary/symbolic hard exclusions.
+- Reworked core prominence as primary-subject-first context-role classification with Python-only prominence derivation.
+- Fixed v0.19 audit serialization omission for inference/context fields.
+- Preserved Q04 within-span semantics, Q06 composite recovery, Q10 polarity guard, and deterministic 0-4 scoring.
+- Rubric remains v0.1.0 and is fully populated.
+
+# v0.19.0 changelog
+
+## Behavioral changes
+
+- Added structured `inference_kind` to single-span and composite verification.
+- `ENTAILED` is mechanically restricted to `necessary_semantic_inference`.
+- Configured possibility-language backstop rejects speculative ENTAILED reasons.
+- Added structured `context_role` to core prominence.
+- Background causes, examples/illustrations, meta-discussion, and incidental mentions deterministically map to `INCIDENTAL` prominence.
+- Q05 war boundary now blocks terrorism/violent-mission => war without established warfare.
+- Q11 boundaries distinguish narrative/subject content from literary-analysis examples and symbolic speculation.
+- Q04 definitions allow within-scenario composition of fantastical movement plus explicit threat/danger.
+
+## Non-behavioral / packaging repair
+
+- Restored complete rubric v0.1.0 JSON; previous generated package contained only the version field.
+- Added a rubric integrity regression test.
+- Added a deterministic builder for the 90-case consumed-development dataset; it never reads the locked holdout.
+
+## Unchanged
+
+- Rubric semantics/version: 0.1.0
+- Final 0–4 aggregation
+- Qualifier caps
+- v0.16 polarity guard
+- v0.18 full-context composite architecture
+- Ollama model/provider/temperature
+
 # v0.18.0 changelog
 
 ## Changed: composite architecture

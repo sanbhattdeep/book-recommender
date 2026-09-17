@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.18.0 on the consumed 60-case post-holdout development set.
+Run development Semantic Recommendation Relevance Judge v0.21.0 on the consumed 90-case development set.
 
 Typical usage
 -------------
@@ -14,18 +14,20 @@ Targeted development diagnostics:
       --case-id Q04_R50 `
       --case-id Q07_R05
 
-Full 60-case development run:
+Full 90-case development run:
 
     uv run python evals/run_judge_development.py
 
 Resume an interrupted run:
 
     uv run python evals/run_judge_development.py `
-      --resume evals/runs/semantic_relevance_v0_18_development/<RUN_ID>
+      --resume evals/runs/semantic_relevance_v0_21_development/<RUN_ID>
 
-v0.17 architecture
+v0.21 architecture
 -----------------
     frozen query facets
+            ↓
+    full-description hard-exclusion precheck
             ↓
     definition-aware per-facet candidate evidence selection
             ↓
@@ -33,7 +35,7 @@ v0.17 architecture
             ↓
     conservative multi-span composition recovery when needed
             ↓
-    definition-aware core-only prominence assessment
+    decomposed core-only role-signal assessment
             ↓
     Python derives absent/incidental/meaningful/strong
             ↓
@@ -86,13 +88,13 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.18.0"
-EVALUATION_DATASET_VERSION = "1.0.0"
+JUDGE_CONFIG_VERSION = "0.21.0"
+EVALUATION_DATASET_VERSION = "2.0.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_holdout_development"
 EVALUATION_SCOPE = "consumed_unseen_pool_development"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.6.0"
+FACET_SPEC_VERSION = "0.8.0"
 
 
 # =============================================================================
@@ -112,7 +114,7 @@ EVALS_DIR = REPO_ROOT / "evals"
 DATASET_FILE = (
     EVALS_DIR
     / "datasets"
-    / f"semantic_relevance_v0.18_development.v{EVALUATION_DATASET_VERSION}.csv"
+    / f"semantic_relevance_v0.21_development.v{EVALUATION_DATASET_VERSION}.csv"
 )
 
 RUBRIC_FILE = (
@@ -138,7 +140,7 @@ JUDGE_CONFIG_FILE = (
 RUNS_DIR = (
     EVALS_DIR
     / "runs"
-    / "semantic_relevance_v0_18_development"
+    / "semantic_relevance_v0_21_development"
 )
 
 
@@ -168,6 +170,8 @@ RESULT_COLUMNS = [
     "deterministic_cue_polarity_blocked_count",
     "composite_verification_attempt_count",
     "composite_verification_count",
+    "hard_exclusion_precheck_attempt_count",
+    "hard_exclusion_precheck_trigger_count",
 
     # Deterministic support / aggregation diagnostics
     "core_facet_count",
@@ -383,18 +387,24 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # Post-holdout development contract.
+    # v0.20 consumed-development contract: 60 historical U_ cases +
+    # 30 consumed fresh-validation U2_ cases. The untouched holdout is absent.
     # -------------------------------------------------------------------------
-    if len(dataset) != 60:
+    if len(dataset) != 90:
         raise ValueError(
-            "The v0.17 development dataset must contain exactly 60 cases; "
+            "The v0.20 development dataset must contain exactly 90 consumed cases; "
             f"found {len(dataset)}."
         )
 
-    if not dataset["case_id"].astype(str).str.startswith("U_").all():
+    prefixes_ok = dataset["case_id"].astype(str).str.startswith(("U_", "U2_"))
+    if not prefixes_ok.all():
         raise ValueError(
-            "Development case IDs must retain the original unseen-pool U_ prefix."
+            "v0.20 development case IDs must use historical U_ or consumed-validation U2_ prefixes."
         )
+    if int(dataset["case_id"].astype(str).str.startswith("U_").sum()) != 60:
+        raise ValueError("Expected exactly 60 historical U_ development cases.")
+    if int(dataset["case_id"].astype(str).str.startswith("U2_").sum()) != 30:
+        raise ValueError("Expected exactly 30 consumed U2_ validation cases.")
 
     # -------------------------------------------------------------------------
     # Human gold-label completeness.
@@ -473,7 +483,7 @@ def validate_inputs(
         )
     ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge v0.18.0 config remains pinned to its original "
+            "Judge v0.21.0 config remains pinned to its original "
             "calibration/development dataset version "
             f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
             f"{config.get('dataset_version')!r}."
@@ -525,7 +535,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.18.0."
+            "Judge v0.21.0."
         )
 
     if str(
@@ -770,7 +780,7 @@ def validate_resume_metadata(
     if mismatches:
         raise ValueError(
             "Cannot resume this run because its provenance does not match "
-            "the v0.17 development runner:\n- "
+            "the v0.20 development runner:\n- "
             + "\n- ".join(
                 mismatches
             )
@@ -1058,7 +1068,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.18.0. Missing columns: "
+            "Judge v0.21.0. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1077,8 +1087,8 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Run development facet-based Judge Config v0.18.0 on the "
-            "60-case consumed post-holdout development set using local Ollama."
+            "Run development facet-based Judge Config v0.21.0 on the "
+            "90-case consumed development set using local Ollama."
         )
     )
 
@@ -1464,6 +1474,14 @@ def main() -> None:
                         semantic_result.composite_verification_count
                     ),
 
+                    "hard_exclusion_precheck_attempt_count": (
+                        semantic_result.hard_exclusion_precheck_attempt_count
+                    ),
+
+                    "hard_exclusion_precheck_trigger_count": (
+                        semantic_result.hard_exclusion_precheck_trigger_count
+                    ),
+
                     # ---------------------------------------------------------
                     # Deterministic scoring diagnostics.
                     # ---------------------------------------------------------
@@ -1584,6 +1602,8 @@ def main() -> None:
                 f"polarity_blocked={semantic_result.deterministic_cue_polarity_blocked_count}, "
                 f"composite_verifiers={semantic_result.composite_verification_attempt_count}, "
                 f"composites={semantic_result.composite_verification_count}, "
+                f"prechecks={semantic_result.hard_exclusion_precheck_attempt_count}, "
+                f"precheck_triggers={semantic_result.hard_exclusion_precheck_trigger_count}, "
                 f"facets=[{facet_summary}]"
             )
 

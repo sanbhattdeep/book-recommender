@@ -1,0 +1,29 @@
+{
+  "version": "0.1.0",
+  "rubric_version": "0.1.0",
+  "purpose": "Human-labeling score guide for the fresh unseen semantic-relevance evaluation.",
+  "scores": {
+    "4": {
+      "label": "Strong",
+      "definition": "Directly and strongly matches the central semantic intent of the query; an obvious/direct recommendation."
+    },
+    "3": {
+      "label": "Good / Clear",
+      "definition": "Clearly relevant overall, but one important aspect is secondary, implicit, weaker, or missing."
+    },
+    "2": {
+      "label": "Partial",
+      "definition": "Meaningfully satisfies one central part of the query but misses another; there is substantive overlap."
+    },
+    "1": {
+      "label": "Weak / Incidental",
+      "definition": "There is a genuine requested concept or close equivalent, but it is peripheral or incidental; the book is not really about the request."
+    },
+    "0": {
+      "label": "None",
+      "definition": "No meaningful evidence of the requested intent, or the description contradicts it. Speculation is not evidence."
+    }
+  },
+  "tie_break_rule": "When genuinely between adjacent scores, choose the lower score unless the higher score is clearly supported.",
+  "evidence_rule": "Use the supplied description as primary evidence. Title/author may support interpretation but must not substitute for missing description evidence. Do not use external knowledge."
+}

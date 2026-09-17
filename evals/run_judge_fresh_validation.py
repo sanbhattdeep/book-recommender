@@ -62,7 +62,7 @@ FACET_SPEC_VERSION = "0.6.0"
 #
 # Expected script location:
 #
-#     <repo>/evals/run_judge_development.py
+#     <repo>/evals/run_judge_fresh_validation.py
 #
 # Therefore parents[1] is the repository root.
 # =============================================================================
@@ -285,8 +285,8 @@ def validate_inputs(
     # -------------------------------------------------------------------------
     # Dataset schema required by this runner.
     #
-    # Human fields are validated here because this is a labelled development
-    # dataset, but they are NEVER placed in the judge prompt.
+    # Human fields are validated here because this is a labelled fresh-unseen
+    # split, but they are NEVER placed in the judge prompt.
     # -------------------------------------------------------------------------
     required_columns = {
         "case_id",
@@ -336,17 +336,23 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # Post-holdout development contract.
+    # Fresh-unseen split contract.
+    #
+    # The shared validate_split_contract(...) call already verifies the frozen
+    # 60-case labelled pool and exact 30/30 split hashes. This runner evaluates
+    # exactly one 30-case split, so its local dataset contract must be 30 rows,
+    # not the 60-row post-holdout development dataset inherited from the
+    # development runner.
     # -------------------------------------------------------------------------
-    if len(dataset) != 60:
+    if len(dataset) != 30:
         raise ValueError(
-            "The v0.17 development dataset must contain exactly 60 cases; "
-            f"found {len(dataset)}."
+            "Fresh-unseen validation/holdout split must contain exactly "
+            f"30 cases; found {len(dataset)}."
         )
 
-    if not dataset["case_id"].astype(str).str.startswith("U_").all():
+    if not dataset["case_id"].astype(str).str.startswith("U2_").all():
         raise ValueError(
-            "Development case IDs must retain the original unseen-pool U_ prefix."
+            "Fresh-unseen case IDs must use the U2_ prefix."
         )
 
     # -------------------------------------------------------------------------
@@ -379,7 +385,7 @@ def validate_inputs(
         EVALUATION_DATASET_VERSION
     }:
         raise ValueError(
-            "Development dataset rows do not all declare "
+            "Fresh-unseen split rows do not all declare "
             f"dataset version {EVALUATION_DATASET_VERSION}."
         )
 
@@ -724,7 +730,7 @@ def validate_resume_metadata(
     if mismatches:
         raise ValueError(
             "Cannot resume this run because its provenance does not match "
-            "the v0.17 fresh unseen runner:\n- "
+            "the v0.18 fresh-unseen runner:\n- "
             + "\n- ".join(
                 mismatches
             )

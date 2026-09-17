@@ -1,0 +1,319 @@
+{
+  "facet_spec_id": "semantic-relevance-query-facets",
+  "version": "0.7.0",
+  "status": "frozen",
+  "evaluation_dimension": "semantic-recommendation-relevance",
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "development_dataset_version": "2.0.0",
+  "scoring_module": "evals/semantic_relevance_facet_scoring.py",
+  "purpose": "Frozen query-level semantic facet definitions for semantic relevance judging. v0.6.0 preserves the v0.5.0 decomposition and all prior boundaries, while clarifying only Q02 suspense after post-holdout development analysis showed that ordinary personal dilemmas and uncertainty could be over-promoted into suspense. The change is generic to the query semantics and does not encode candidate titles or case IDs.",
+  "authoring_guidelines": [
+    "Derive facet structure and semantics from the user query. During development, validation failures may motivate generic boundary clarifications, but never encode candidate-specific facts, titles, authors, human labels, or judge outputs into a facet definition.",
+    "Use facet_type='core' for central semantic requirements whose absence materially weakens relevance.",
+    "Use facet_type='qualifier' for important modifiers such as beginner-friendly, historical, moving, or thoughtful.",
+    "Merge redundant or near-synonymous wording instead of creating duplicate facets.",
+    "Keep each facet text concise and semantically self-contained.",
+    "Do not split a single relational concept into independent facets when those pieces could be satisfied by unrelated parts of a description.",
+    "Use stable facet IDs F1, F2, F3, ... within each query.",
+    "Each query must contain at least one core facet.",
+    "Do not change frozen facet definitions during a judge run; version the file when definitions change.",
+    "Each facet must include a semantic_definition grounded in the query context. It should clarify what counts and important nearby concepts that do not; any calibration-driven clarification must remain generic and reusable across unseen candidates.",
+    "The LLM evaluates facet support only; deterministic Python computes the final 0-4 score.",
+    "A concept used only as an example, analytical category, instructional illustration, background cause, or contextual factor is not automatically substantive subject matter of the book.",
+    "Necessary entailment must not introduce a new target entity, theme, event, or relationship merely because the evidence could symbolize, represent, or be associated with it."
+  ],
+  "facet_types": {
+    "core": "A central semantic requirement of the query. Core facets determine the base relevance score.",
+    "qualifier": "An important modifier or constraint. Qualifiers can prevent a perfect score when weak or absent, but cannot promote weak core relevance."
+  },
+  "queries": [
+    {
+      "query_id": "Q01",
+      "query": "A story about forgiveness and redemption",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "forgiveness",
+          "facet_type": "core",
+          "semantic_definition": "Forgiving a person or oneself for a wrong, hurt, betrayal, or offense, including pardoning, releasing blame or resentment, extending mercy, or choosing reconciliation after wrongdoing. General adaptation, healing, commitment, or personal growth without a wrong being forgiven does not establish forgiveness."
+        },
+        {
+          "facet_id": "F2",
+          "text": "redemption",
+          "facet_type": "core",
+          "semantic_definition": "Moral, personal, or relational restoration after wrongdoing, failure, corruption, guilt, or a damaged state, including atonement, being redeemed, or regaining worth or a relationship. Generic self-improvement, recovery, learning, or adapting to change alone does not establish redemption."
+        }
+      ]
+    },
+    {
+      "query_id": "Q02",
+      "query": "A suspenseful story involving crime and investigation",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "suspense",
+          "facet_type": "core",
+          "semantic_definition": "Sustained narrative tension, anticipation, threat, mystery, pursuit, concealment, or uncertainty about how unfolding events will resolve, presented as an important reading experience. A difficult personal choice, moral dilemma, illness, deadline, interpersonal conflict, danger, high stakes, or generic uncertainty does not by itself establish suspense. The evidence must indicate story-level tension or anticipation about what will happen, be discovered, be escaped, or be resolved; merely having to make an important decision is insufficient."
+        },
+        {
+          "facet_id": "F2",
+          "text": "crime",
+          "facet_type": "core",
+          "semantic_definition": "Criminal acts, offenses, perpetrators, victims, or criminal conduct. Concrete acts such as murder, theft, assault, or other illegal wrongdoing can directly establish this facet even when the word 'crime' is absent."
+        },
+        {
+          "facet_id": "F3",
+          "text": "investigation",
+          "facet_type": "core",
+          "semantic_definition": "A deliberate effort to discover facts, solve a mystery or crime, determine a cause, or identify responsibility, such as detectives, police, or other actors examining evidence or pursuing answers. A suspicious event, death, injury, mystery, or unanswered question alone does not establish that an investigation occurs."
+        }
+      ]
+    },
+    {
+      "query_id": "Q03",
+      "query": "A book about personal growth and finding purpose",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "personal growth",
+          "facet_type": "core",
+          "semantic_definition": "Meaningful self-development or improvement in mindset, abilities, habits, self-understanding, confidence, behavior, or effectiveness. The exact evidence must establish actual development, improvement, change, transformation, or increased understanding of oneself as a person. Merely discussing prayer, faith, spirituality, devotion, philosophy, character, virtues, wisdom, or knowing a deity more deeply does not establish personal growth. Discovering how a deity, belief system, or external force works in or through someone is spiritual interpretation, not self-understanding for this facet. Such content counts only when the exact evidence independently states or necessarily entails actual personal development or change; do not infer growth merely because those practices or insights could plausibly lead to it."
+        },
+        {
+          "facet_id": "F2",
+          "text": "finding purpose",
+          "facet_type": "core",
+          "semantic_definition": "Discovering or clarifying meaning, life direction, vocation, calling, values that guide life choices, life goals, or what one truly wants from life. Prayer, faith, spirituality, devotion, knowing a deity more deeply, or discovering how a deity, belief system, external force, or circumstance works in or through someone does not by itself establish finding purpose. The exact evidence must independently connect the person to meaning, life direction, vocation or calling, goals, or values that guide life choices. Do not infer that spiritual understanding, discovery, or devotion supplies purpose merely because it could plausibly lead to meaning or direction. Generic success, achievement, productivity, self-mastery, or discovery alone does not establish finding purpose."
+        }
+      ]
+    },
+    {
+      "query_id": "Q04",
+      "query": "A fantasy adventure involving magic and dangerous journeys",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "fantasy adventure",
+          "facet_type": "core",
+          "semantic_definition": "An adventure, quest, journey, or action-driven set of exploits occurring in a fantasy or supernatural setting. A fantasy setting without adventure, or an ordinary adventure without a fantasy element, does not fully establish this composite facet. Movement between fantastical worlds or places combined with an explicit threat, danger, quest-like problem, or action-driving conflict in the same described scenario can entail fantasy adventure even when the word 'adventure' is absent."
+        },
+        {
+          "facet_id": "F2",
+          "text": "magic",
+          "facet_type": "core",
+          "semantic_definition": "Supernatural or magical powers, spells, enchantment, magical abilities, or other phenomena explicitly presented as magic or an unmistakable magical equivalent."
+        },
+        {
+          "facet_id": "F3",
+          "text": "dangerous journeys",
+          "facet_type": "core",
+          "semantic_definition": "Travel, a quest, expedition, voyage, or movement through places that is dangerous, perilous, hazardous, or threatening. General danger, conflict, intrigue, or peril without a journey or travel component does not establish dangerous journeys. Explicit movement or travel between places or worlds plus explicit danger or threat in the same described scenario can entail dangerous journeys even when the movement and danger are stated in different clauses of one span."
+        }
+      ]
+    },
+    {
+      "query_id": "Q05",
+      "query": "A historical book about war and political conflict",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "war",
+          "facet_type": "core",
+          "semantic_definition": "War or warfare requires sustained armed conflict or clearly established warfare involving organized belligerent sides, military forces, nations, armies, rebel forces, battles, military campaigns, or war as a meaningful historical subject or setting. Do not infer war merely from terrorism or a terrorist cell, murder or mayhem, mercenary activity, an FBI/security operation, assassination or attack, organized crime, a dangerous violent mission, generic conflict, activism, danger, or political tension. Those can occur within war but do not by themselves establish war."
+        },
+        {
+          "facet_id": "F2",
+          "text": "political conflict",
+          "facet_type": "core",
+          "semantic_definition": "Conflict or struggle over political power, governance, ideology, policy, state authority, or organized political factions. General discussion of politics, history, activism, or personal conflict without an actual political struggle does not establish political conflict."
+        },
+        {
+          "facet_id": "F3",
+          "text": "historical",
+          "facet_type": "qualifier",
+          "semantic_definition": "A meaningful focus on past historical events, eras, figures, societies, or historical analysis/context. Merely being an older book or being published near a historical event does not by itself make the described content historical."
+        }
+      ]
+    },
+    {
+      "query_id": "Q06",
+      "query": "A moving story about grief, loss, and learning to live again",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "grief",
+          "facet_type": "core",
+          "semantic_definition": "The emotional experience of mourning or deep sorrow caused by a significant loss, especially bereavement. General sadness, hardship, or distress without a significant loss does not by itself establish grief."
+        },
+        {
+          "facet_id": "F2",
+          "text": "loss",
+          "facet_type": "core",
+          "semantic_definition": "A significant deprivation or ending such as death, bereavement, separation, disappearance, or the loss of an important relationship, person, role, or part of life."
+        },
+        {
+          "facet_id": "F3",
+          "text": "learning to live again",
+          "facet_type": "core",
+          "semantic_definition": "Rebuilding, resuming, or finding a way to continue life after grief or major loss, including recovery, renewed engagement with life, or learning how to live after what was lost. Generic recovery from an unrelated difficulty does not establish this facet."
+        },
+        {
+          "facet_id": "F4",
+          "text": "moving",
+          "facet_type": "qualifier",
+          "semantic_definition": "Emotionally affecting, poignant, touching, or deeply felt presentation likely to move the reader. Merely describing sad subject matter does not necessarily establish that the work is moving."
+        }
+      ]
+    },
+    {
+      "query_id": "Q07",
+      "query": "A story about a complicated relationship between a parent and child",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "complicated parent-child relationship",
+          "facet_type": "core",
+          "semantic_definition": "A parent-child relationship characterized by meaningful tension, distance, conflict, misunderstanding, unresolved issues, emotional complexity, separation, or other difficult dynamics. The mere presence of a parent and child, a letter, or ordinary family interaction does not establish that the relationship is complicated."
+        }
+      ]
+    },
+    {
+      "query_id": "Q08",
+      "query": "A beginner-friendly book explaining astronomy and the universe",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "astronomy and the universe",
+          "facet_type": "core",
+          "semantic_definition": "Astronomy, cosmology, space, or the universe, including celestial objects, the origin or structure of the cosmos, and cosmological phenomena such as stars, galaxies, black holes, the Big Bang, wormholes, or related space-time topics. Concrete cosmological phenomena can establish this facet even when the words 'astronomy' or 'universe' are absent."
+        },
+        {
+          "facet_id": "F2",
+          "text": "beginner-friendly explanation",
+          "facet_type": "qualifier",
+          "semantic_definition": "An explanation intended to be accessible to beginners or general readers, including introductory, clear, simple, everyday-language, step-by-step, or otherwise explicitly accessible treatment. Technical content, visualization, or critical-thinking emphasis alone does not establish beginner-friendliness."
+        }
+      ]
+    },
+    {
+      "query_id": "Q09",
+      "query": "A dystopian story about authoritarian control and resistance",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "authoritarian control",
+          "facet_type": "core",
+          "semantic_definition": "Oppressive or concentrated institutional or state control over people, such as coercion, censorship, surveillance, repression, enforced obedience, or systematic restriction of freedom. Government, political leadership, influence, or strong authority alone does not establish authoritarian control."
+        },
+        {
+          "facet_id": "F2",
+          "text": "resistance",
+          "facet_type": "core",
+          "semantic_definition": "Active opposition, defiance, rebellion, protest, or struggle against authoritarian or oppressive power. Imprisonment, suffering, eventual freedom, or political involvement alone does not establish resistance unless opposition itself is described or unmistakably instantiated."
+        },
+        {
+          "facet_id": "F3",
+          "text": "dystopian",
+          "facet_type": "core",
+          "semantic_definition": "A fictional society or world characterized by systemic oppression, dehumanization, severe social control, or another bleak and dysfunctional social order typical of dystopian fiction. Generic danger, corruption, darkness, or political trouble alone does not establish a dystopian society."
+        }
+      ]
+    },
+    {
+      "query_id": "Q10",
+      "query": "A book about leadership, teamwork, and building effective organizations",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "leadership",
+          "facet_type": "core",
+          "semantic_definition": "Leading, guiding, directing, or influencing people or organizations, including leadership practice, leadership principles, or development of leaders. Generic personal effectiveness, success, or productivity does not by itself establish leadership."
+        },
+        {
+          "facet_id": "F2",
+          "text": "teamwork",
+          "facet_type": "core",
+          "semantic_definition": "People collaborating, coordinating, cooperating, or functioning collectively toward a shared goal. General interpersonal skills, relationships, professional effectiveness, or individual habits do not by themselves establish teamwork."
+        },
+        {
+          "facet_id": "F3",
+          "text": "building effective organizations",
+          "facet_type": "core",
+          "semantic_definition": "Designing, managing, improving, or developing organizations so they function effectively, including organizational structure, culture, management systems, processes, or collective performance. Individual effectiveness or leadership alone does not establish building effective organizations."
+        }
+      ]
+    },
+    {
+      "query_id": "Q11",
+      "query": "An adventure inspired by mythology, gods, and legendary heroes",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "adventure",
+          "facet_type": "core",
+          "semantic_definition": "A quest, journey, expedition, or action-driven sequence of exploits involving challenge, discovery, or danger. A static fantasy setting or isolated conflict without an adventure-like progression does not necessarily establish adventure. A quest, journey, or adventure term used only as an example in literary criticism, instruction, analysis, symbolism, or discussion of other works does not by itself establish adventure content of the described book."
+        },
+        {
+          "facet_id": "F2",
+          "text": "mythology",
+          "facet_type": "core",
+          "semantic_definition": "Myths, mythic traditions, mythological settings, or events and figures explicitly presented as rooted in mythology or as a retelling/reworking of myths. Generic fantasy creatures, magic, monsters, or supernatural events alone do not establish mythology. Discussion of mythology, mythic motifs, archetypes, or symbols only as analytical examples in literary criticism or instruction does not by itself make the described work a mythology recommendation."
+        },
+        {
+          "facet_id": "F3",
+          "text": "gods",
+          "facet_type": "core",
+          "semantic_definition": "Gods, goddesses, deities, or unmistakably divine beings. Powerful magical or supernatural beings are not automatically gods. Do not invent gods from symbols, communion, weather, natural phenomena, archetypes, or literary interpretation unless the supplied description itself states or necessarily entails a divine being. Meta-discussion of divine symbolism in literature is not the same as gods being substantive subject matter or narrative content of the described work."
+        },
+        {
+          "facet_id": "F4",
+          "text": "legendary heroes",
+          "facet_type": "core",
+          "semantic_definition": "Heroes explicitly presented as legendary, mythic, or belonging to legend, or unmistakably characterized as legendary heroic figures within the supplied description. A protagonist, warrior, adventurer, fictional hero, or brave character is not automatically a legendary hero. Literary-analysis examples or discussion of hero archetypes do not by themselves establish legendary heroes as substantive content of the described work."
+        }
+      ]
+    },
+    {
+      "query_id": "Q12",
+      "query": "A thoughtful book about inequality, poverty, and how society distributes wealth",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "inequality",
+          "facet_type": "core",
+          "semantic_definition": "Social or economic inequality: unequal status, opportunity, income, wealth, resources, or material conditions across people, groups, or classes. Generic unfairness, injustice, unequal treatment in an individual case, or legal injustice alone does not establish the social/economic inequality intended by this query."
+        },
+        {
+          "facet_id": "F2",
+          "text": "poverty",
+          "facet_type": "core",
+          "semantic_definition": "Poverty or material deprivation, including inadequate income, resources, living conditions, or access to basic needs. Generic hardship, suffering, disadvantage, or injustice without material/economic deprivation does not establish poverty."
+        },
+        {
+          "facet_id": "F3",
+          "text": "wealth distribution",
+          "facet_type": "core",
+          "semantic_definition": "How wealth, income, or economic resources are distributed across society, groups, or classes, including concentration, disparity, redistribution, or allocation of wealth. Wealth or poverty mentioned in isolation does not necessarily establish the distribution of wealth."
+        },
+        {
+          "facet_id": "F4",
+          "text": "thoughtful",
+          "facet_type": "qualifier",
+          "semantic_definition": "A reflective, analytical, serious, nuanced, or considered treatment of the subject. Merely mentioning an important social topic does not by itself establish a thoughtful treatment."
+        }
+      ]
+    }
+  ],
+  "development_evidence": {
+    "version": "0.7.0",
+    "basis": "Post-holdout development plus consumed fresh-unseen validation diagnostics.",
+    "changes": [
+      "Q04 clarifies within-scenario composition of fantastical movement plus explicit threat/danger.",
+      "Q05 war boundary blocks terrorism/violent-mission => war inference without established warfare.",
+      "Q11 adds meta-literary/content boundaries and forbids inventing gods from symbolic possibility.",
+      "General authoring guidance distinguishes substantive subject matter from background causes/examples/meta-discussion."
+    ],
+    "candidate_specific_facts_encoded": false
+  }
+}

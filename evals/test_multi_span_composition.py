@@ -1,4 +1,4 @@
-"""Deterministic pipeline tests for v0.18.0 self-selecting full-context composition."""
+"""Deterministic pipeline tests for v0.21.0 self-selecting full-context composition."""
 
 from __future__ import annotations
 
@@ -14,6 +14,8 @@ from semantic_relevance_facet_judge import (
     evaluate_one_facet,
 )
 from semantic_relevance_facet_scoring import (
+    FacetContextRole,
+    EvidenceInferenceKind,
     FacetProminence,
     FacetSupport,
     QueryFacet,
@@ -22,7 +24,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.18.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 facet = QueryFacet(
@@ -62,6 +64,7 @@ class FullContextRecoveryModel:
         if schema is EvidenceVerification:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.UNSUPPORTED,
+                inference_kind=EvidenceInferenceKind.NONE,
                 reason="No single Stage-A span establishes recovery.",
             )
 
@@ -72,6 +75,7 @@ class FullContextRecoveryModel:
             return CompositeEvidenceVerification(
                 supporting_span_ids=["S1", "S4"],
                 verification_relation=VerificationRelation.ENTAILED,
+                inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
                 combined_evidence_summary=(
                     "S1 establishes the major disruption and S4 establishes "
                     "later continuation of life after it."
@@ -86,7 +90,13 @@ class FullContextRecoveryModel:
         if schema is ProminenceAssessment:
             self.prominence_calls += 1
             return ProminenceAssessment(
-                prominence=FacetProminence.SUBSTANTIVE,
+                primary_subject_summary="test subject",
+                is_primary_subject=False,
+                is_background_cause_or_factor=False,
+                is_example_or_illustration=False,
+                is_meta_discussion=False,
+                is_substantively_examined=True,
+                supporting_span_ids=["S1", "S4"],
                 reason="The recovery arc is a meaningful part of the description.",
             )
 
@@ -132,6 +142,7 @@ class StageANoneRecoveryModel:
             return CompositeEvidenceVerification(
                 supporting_span_ids=["S1", "S4"],
                 verification_relation=VerificationRelation.ENTAILED,
+                inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
                 combined_evidence_summary="Disruption followed by explicit continuation.",
                 missing_semantic_component=None,
                 reason="The combined spans entail the recovery facet.",
@@ -139,7 +150,13 @@ class StageANoneRecoveryModel:
 
         if schema is ProminenceAssessment:
             return ProminenceAssessment(
-                prominence=FacetProminence.SUBSTANTIVE,
+                primary_subject_summary="test subject",
+                is_primary_subject=False,
+                is_background_cause_or_factor=False,
+                is_example_or_illustration=False,
+                is_meta_discussion=False,
+                is_substantively_examined=True,
+                supporting_span_ids=["S1", "S4"],
                 reason="Recovery is substantive.",
             )
 
@@ -178,6 +195,7 @@ class DirectSingleSpanModel:
         if schema is EvidenceVerification:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.DIRECT,
+                inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
                 reason="synthetic direct",
             )
         if schema is CompositeEvidenceVerification:
@@ -185,7 +203,13 @@ class DirectSingleSpanModel:
             raise AssertionError("composite verifier should not run after DIRECT")
         if schema is ProminenceAssessment:
             return ProminenceAssessment(
-                prominence=FacetProminence.CENTRAL,
+                primary_subject_summary="test subject",
+                is_primary_subject=True,
+                is_background_cause_or_factor=False,
+                is_example_or_illustration=False,
+                is_meta_discussion=False,
+                is_substantively_examined=True,
+                supporting_span_ids=["S1", "S4"],
                 reason="synthetic central",
             )
         raise AssertionError(schema)
@@ -218,4 +242,4 @@ assert "S4: Months later they are determined to move forward with their lives." 
 assert "Do not require exact facet wording for ENTAILED." in prompt
 assert "missing_semantic_component" in prompt
 
-print("All v0.18.0 self-selecting full-context composition tests passed.")
+print("All v0.21.0 self-selecting full-context composition tests passed.")

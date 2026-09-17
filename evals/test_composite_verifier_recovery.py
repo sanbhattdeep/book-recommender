@@ -1,4 +1,4 @@
-"""Regression test for v0.18 full-context composite verifier recovery."""
+"""Regression test for v0.19 full-context composite verifier recovery."""
 
 from __future__ import annotations
 
@@ -12,13 +12,14 @@ from semantic_relevance_facet_judge import (
     evaluate_one_facet,
 )
 from semantic_relevance_facet_scoring import (
+    EvidenceInferenceKind,
     FacetProminence,
     QueryFacet,
     VerificationRelation,
 )
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.18.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 facet = QueryFacet(
@@ -49,6 +50,7 @@ class RepeatedMalformedCompositeModel:
         if schema is EvidenceVerification:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.UNSUPPORTED,
+                inference_kind=EvidenceInferenceKind.NONE,
                 reason="synthetic unsupported",
             )
 
@@ -59,6 +61,7 @@ class RepeatedMalformedCompositeModel:
             return CompositeEvidenceVerification(
                 supporting_span_ids=["S2"],
                 verification_relation=VerificationRelation.ENTAILED,
+                inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
                 combined_evidence_summary="synthetic malformed positive",
                 missing_semantic_component="still missing something",
                 reason="malformed",
@@ -89,4 +92,4 @@ assert assessment.composite_verification_reason.startswith(
 assert evidence == spans["S1"]
 assert candidate_texts == {"S1": spans["S1"]}
 
-print("v0.18.0 malformed full-context composite fallback test passed.")
+print("v0.21.0 malformed full-context composite fallback test passed.")

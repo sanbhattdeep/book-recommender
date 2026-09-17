@@ -1,7 +1,9 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.18.0.
+Deterministic scoring models for Semantic Recommendation Relevance v0.21.0.
 
-v0.18.0 preserves the v0.17.0 deterministic scoring behavior unchanged. v0.18 removes the separate composition selector and records a self-selecting full-context composite verifier for an independent composition-specific evidence selector; support derivation and final 0-4 aggregation are unchanged.
+v0.21.0 preserves the deterministic support derivation and final 0-4
+aggregation unchanged. It adds a full-description hard-exclusion precheck and
+auditable decomposed role signals before deterministic prominence derivation.
 
 v0.11.0 added an ADJACENT verification relation so weak but genuine facet-specific
 connections can map to score-1 incidental relevance without being promoted to
@@ -48,6 +50,13 @@ from pydantic import BaseModel, Field
 FacetType = Literal["core", "qualifier"]
 
 
+class HardExclusion(BaseModel):
+    """Frozen facet-specific negative boundary evaluated before positive support."""
+
+    exclusion_id: str = Field(min_length=1)
+    rule: str = Field(min_length=1)
+
+
 class QueryFacet(BaseModel):
     """
     One frozen semantic facet from the query-facet specification.
@@ -62,6 +71,7 @@ class QueryFacet(BaseModel):
     text: str = Field(min_length=1)
     facet_type: FacetType
     semantic_definition: str = Field(min_length=1)
+    hard_exclusions: list[HardExclusion] = Field(default_factory=list, max_length=12)
 
 
 class QueryFacetSpec(BaseModel):
@@ -79,6 +89,29 @@ class VerificationRelation(str, Enum):
     ADJACENT = "adjacent"
     ENTAILED = "entailed"
     DIRECT = "direct"
+
+
+class EvidenceInferenceKind(str, Enum):
+    """Auditable semantic bridge used to justify a verification relation."""
+
+    NONE = "none"
+    EXPLICIT_COMPONENTS = "explicit_components"
+    NECESSARY_SEMANTIC_INFERENCE = "necessary_semantic_inference"
+    INCOMPLETE_CONNECTION = "incomplete_connection"
+    SYMBOLIC_POSSIBILITY = "symbolic_possibility"
+    ASSOCIATIVE_WORLD_KNOWLEDGE = "associative_world_knowledge"
+
+
+class FacetContextRole(str, Enum):
+    """Role played by an already-verified core facet in the described work."""
+
+    NOT_APPLICABLE = "not_applicable"
+    CENTRAL_SUBJECT = "central_subject"
+    SUBSTANTIVE_SUBJECT = "substantive_subject"
+    BACKGROUND_CAUSE = "background_cause"
+    EXAMPLE_OR_ILLUSTRATION = "example_or_illustration"
+    META_DISCUSSION = "meta_discussion"
+    INCIDENTAL_MENTION = "incidental_mention"
 
 
 class FacetProminence(str, Enum):
@@ -118,12 +151,15 @@ class CandidateVerificationRecord(BaseModel):
     candidate_rank: int = Field(ge=1, le=3)
     evidence_span_id: str = Field(min_length=1)
     verification_relation: VerificationRelation
+    inference_kind: EvidenceInferenceKind = EvidenceInferenceKind.NONE
+    hard_exclusion_triggered: bool = False
+    hard_exclusion_id: str | None = None
     verification_reason: str = Field(min_length=1)
 
 
 class FacetPipelineAssessment(BaseModel):
     """
-    Final v0.18.0 result for one frozen facet.
+    Final v0.21.0 result for one frozen facet.
 
     `candidate_evidence_span_ids` contains the selector's ranked candidates.
 
@@ -152,7 +188,35 @@ class FacetPipelineAssessment(BaseModel):
 
     verification_relation: VerificationRelation
 
+    inference_kind: EvidenceInferenceKind = EvidenceInferenceKind.NONE
+
+    hard_exclusion_triggered: bool = False
+    hard_exclusion_id: str | None = None
+
+    # v0.21 audit: a full-description negative-boundary gate executes before
+    # deterministic cues, candidate selection, or positive verification.
+    hard_exclusion_precheck_attempted: bool = False
+    hard_exclusion_precheck_triggered: bool = False
+    hard_exclusion_precheck_id: str | None = None
+    hard_exclusion_precheck_supporting_span_ids: list[str] = Field(
+        default_factory=list,
+        max_length=4,
+    )
+    hard_exclusion_precheck_reason: str | None = None
+
     prominence: FacetProminence
+
+    context_role: FacetContextRole = FacetContextRole.NOT_APPLICABLE
+
+    # v0.21 audit: the LLM emits independent role signals. Python applies the
+    # frozen precedence and stores the derived compatibility context_role above.
+    primary_subject_summary: str | None = None
+    is_primary_subject: bool = False
+    is_background_cause_or_factor: bool = False
+    is_example_or_illustration: bool = False
+    is_meta_discussion: bool = False
+    is_substantively_examined: bool = False
+    role_supporting_span_ids: list[str] = Field(default_factory=list, max_length=4)
 
     evidence_selection_reason: str = Field(min_length=1)
 
@@ -164,7 +228,7 @@ class FacetPipelineAssessment(BaseModel):
     # local context explicitly negated/contrasted the matched concept.
     deterministic_cue_polarity_blocked_count: int = Field(default=0, ge=0)
 
-    # v0.18 audit: the full-context composite verifier scans all numbered
+    # v0.19 audit: the full-context composite verifier scans all numbered
     # description spans and selects its own 2-4 supporting span IDs.
     composite_verification_attempted: bool = False
     composite_evidence_span_ids: list[str] = Field(
@@ -172,6 +236,9 @@ class FacetPipelineAssessment(BaseModel):
         max_length=4,
     )
     composite_verification_relation: VerificationRelation | None = None
+    composite_inference_kind: EvidenceInferenceKind | None = None
+    composite_hard_exclusion_triggered: bool = False
+    composite_hard_exclusion_id: str | None = None
     composite_combined_evidence_summary: str | None = None
     composite_missing_semantic_component: str | None = None
     composite_verification_reason: str | None = None
@@ -295,6 +362,54 @@ def validate_facet_assessments(
 
         candidates = assessment.candidate_evidence_span_ids
 
+        precheck_ids = assessment.hard_exclusion_precheck_supporting_span_ids
+        if len(precheck_ids) != len(set(precheck_ids)):
+            raise ValueError(
+                f"{facet_id}: hard-exclusion precheck span IDs must be unique."
+            )
+        if assessment.hard_exclusion_precheck_triggered:
+            if not assessment.hard_exclusion_precheck_attempted:
+                raise ValueError(
+                    f"{facet_id}: triggered hard-exclusion precheck must be attempted."
+                )
+            if not assessment.hard_exclusion_precheck_id:
+                raise ValueError(
+                    f"{facet_id}: triggered hard-exclusion precheck requires an ID."
+                )
+            valid_exclusion_ids = {
+                item.exclusion_id for item in facet.hard_exclusions
+            }
+            if assessment.hard_exclusion_precheck_id not in valid_exclusion_ids:
+                raise ValueError(
+                    f"{facet_id}: precheck ID must name a frozen hard exclusion."
+                )
+            if assessment.hard_exclusion_id != assessment.hard_exclusion_precheck_id:
+                raise ValueError(
+                    f"{facet_id}: final and precheck hard-exclusion IDs must match."
+                )
+            if not precheck_ids:
+                raise ValueError(
+                    f"{facet_id}: triggered hard-exclusion precheck requires evidence spans."
+                )
+            if assessment.verification_relation != VerificationRelation.UNSUPPORTED:
+                raise ValueError(
+                    f"{facet_id}: triggered hard-exclusion precheck requires UNSUPPORTED."
+                )
+            if candidates or assessment.candidate_verifications:
+                raise ValueError(
+                    f"{facet_id}: precheck short-circuit must precede candidate selection."
+                )
+        elif assessment.hard_exclusion_precheck_id is not None or precheck_ids:
+            raise ValueError(
+                f"{facet_id}: non-triggered hard-exclusion precheck cannot carry an ID or spans."
+            )
+
+        role_ids = assessment.role_supporting_span_ids
+        if len(role_ids) != len(set(role_ids)):
+            raise ValueError(
+                f"{facet_id}: role supporting span IDs must be unique."
+            )
+
         if len(candidates) != len(set(candidates)):
             raise ValueError(
                 f"{facet_id}: candidate evidence span IDs must be unique."
@@ -309,7 +424,7 @@ def validate_facet_assessments(
         composite_relation = assessment.composite_verification_relation
         missing_component = assessment.composite_missing_semantic_component
 
-        # Stage-A may legitimately return NONE while the independent v0.18
+        # Stage-A may legitimately return NONE while the independent v0.19
         # full-context composite verifier later recovers the facet.
         if assessment.candidate_evidence_span_id == "NONE":
 
@@ -413,6 +528,14 @@ def validate_facet_assessments(
             if assessment.prominence == FacetProminence.NOT_APPLICABLE:
                 raise ValueError(
                     f"{facet_id}: supported core facets require prominence."
+                )
+            if not (assessment.primary_subject_summary or "").strip():
+                raise ValueError(
+                    f"{facet_id}: supported core facets require a primary-subject summary."
+                )
+            if not assessment.role_supporting_span_ids:
+                raise ValueError(
+                    f"{facet_id}: supported core facets require role supporting spans."
                 )
 
     return assessment_by_id

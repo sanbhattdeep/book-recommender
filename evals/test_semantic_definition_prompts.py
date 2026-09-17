@@ -1,5 +1,5 @@
 """
-Deterministic prompt-contract tests for Judge Config v0.18.0.
+Deterministic prompt-contract tests for Judge Config v0.21.0.
 
 No LLM is called. These tests ensure the approved frozen semantic definition is
 actually present in every semantic LLM stage while the full query is not needed
@@ -12,18 +12,19 @@ import json
 from pathlib import Path
 
 from semantic_relevance_facet_judge import (
+    build_full_description_hard_exclusion_prompt,
     build_evidence_selection_prompt,
     build_prominence_prompt,
     build_verification_prompt,
 )
-from semantic_relevance_facet_scoring import QueryFacet
+from semantic_relevance_facet_scoring import HardExclusion, QueryFacet
 
 
 EVALS_DIR = Path(__file__).resolve().parent
 CONFIG_FILE = (
     EVALS_DIR
     / "judge_configs"
-    / "semantic_relevance_judge.v0.18.0.json"
+    / "semantic_relevance_judge.v0.21.0.json"
 )
 
 with CONFIG_FILE.open("r", encoding="utf-8") as f:
@@ -39,6 +40,9 @@ facet = QueryFacet(
     text="inequality",
     facet_type="core",
     semantic_definition=definition,
+    hard_exclusions=[
+        HardExclusion(exclusion_id="HX", rule="Individual injustice alone is excluded.")
+    ],
 )
 
 spans = {
@@ -62,11 +66,17 @@ prominence_prompt = build_prominence_prompt(
     spans=spans,
     config=config,
 )
+precheck_prompt = build_full_description_hard_exclusion_prompt(
+    facet=facet,
+    spans=spans,
+    config=config,
+)
 
 for name, prompt in [
     ("selection", selection_prompt),
     ("verification", verification_prompt),
     ("prominence", prominence_prompt),
+    ("precheck", precheck_prompt),
 ]:
     assert facet.text in prompt, f"{name}: missing facet text"
     assert definition in prompt, f"{name}: missing semantic definition"
@@ -95,7 +105,8 @@ assert "direct_gate" in verification_prompt
 assert "entailed_gate" in verification_prompt
 assert "adjacent_gate" in verification_prompt
 assert "literal_or_lexical_match" in selection_prompt
-assert "removal test" in prominence_instructions
-assert "incidental" in prominence_instructions
+assert "five role signals independently" in prominence_instructions
+assert "background_cause_or_factor" in prominence_prompt
+assert "hard_exclusion_triggered" in precheck_prompt
 
-print("All v0.18.0 semantic-definition/prompt-precedence tests passed.")
+print("All v0.21.0 semantic-definition/prompt-precedence tests passed.")
