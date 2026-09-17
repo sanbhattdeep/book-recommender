@@ -1,7 +1,7 @@
 """
-Full-description hard-exclusion precheck + inference-kind + decomposed-role semantic facet judge for v0.21.1.
+Full-description hard-exclusion precheck + inference-kind + decomposed-role semantic facet judge for v0.21.2.
 
-v0.21.1 preserves the self-selecting composite architecture and adds a full-description hard-exclusion precheck plus decomposed role signals with deterministic Python resolution. When a core facet's best
+v0.21.2 preserves the self-selecting composite architecture and adds a full-description hard-exclusion precheck plus decomposed role signals with deterministic Python resolution. When a core facet's best
 standalone relation is UNSUPPORTED or ADJACENT, one isolated composite call sees
 the full numbered description, selects its own 2-4 exact supporting spans, and
 returns UNSUPPORTED / ADJACENT / ENTAILED.
@@ -687,10 +687,10 @@ def _context_role_from_decomposed_signals(
 ) -> FacetContextRole:
     """Resolve decomposed role signals deterministically.
 
-    v0.21.1 keeps meta/example use as strong incidental evidence, but no longer
-    lets background-cause suppress a genuine primary or substantively examined
-    facet. This is the targeted correction for the v0.21.0 positive-control
-    collapse.
+    v0.21.2 preserves the v0.21.1 resolver precedence: meta/example use stays
+    incidental, while a genuinely primary or substantively examined facet is
+    not suppressed by background-cause. v0.21.2 tightens the upstream LLM role
+    classification rather than changing this deterministic resolver.
     """
 
     if result.is_meta_discussion:
@@ -1390,7 +1390,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.21.1 facet evaluation:
+    Run v0.21.2 facet evaluation:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1784,7 +1784,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.21.1 for every frozen facet.
+    Run v0.21.2 for every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition

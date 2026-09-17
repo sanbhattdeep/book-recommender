@@ -22,4 +22,4 @@ assert role(is_meta_discussion=True, is_primary_subject=True) == FacetContextRol
 assert role(is_example_or_illustration=True, is_substantively_examined=True) == FacetContextRole.EXAMPLE_OR_ILLUSTRATION
 assert role(is_background_cause_or_factor=True) == FacetContextRole.BACKGROUND_CAUSE
 assert role() == FacetContextRole.INCIDENTAL_MENTION
-print("v0.21.1 decomposed role contract passed")
+print("v0.21.2 decomposed role precedence contract passed")

@@ -12,7 +12,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.1.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.21.2.json"
 with CONFIG_FILE.open("r", encoding="utf-8") as f:
     config = json.load(f)
 
@@ -83,4 +83,4 @@ match = find_deterministic_direct_cue(
 )
 assert match is None
 
-print("All v0.21.1 deterministic-direct-cue tests passed.")
+print("All v0.21.2 deterministic-direct-cue tests passed.")

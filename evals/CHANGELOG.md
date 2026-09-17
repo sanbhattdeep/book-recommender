@@ -1,5 +1,21 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.21.2
+
+v0.21.2 is a narrow follow-up to v0.21.1. The v0.21.1 targeted run passed 8/9 gates; the remaining failure exposed an over-broad interpretation of `is_substantively_examined` for causal/background factors.
+
+Changes:
+
+- Keep frozen facet spec v0.8.0, rubric v0.1.0, and deterministic 0-4 scoring unchanged.
+- Keep the v0.21.1 decomposed-role resolver precedence unchanged.
+- Tighten `is_substantively_examined`: the facet itself must receive meaningful development, analysis, exploration, narrative treatment, portrayal, or sustained attention.
+- A facet is not substantive merely because it appears in a list of causes/conditions, explains some OTHER main subject, or is important contextual background.
+- Add a counterfactual classifier check: remove the causal/contextual relation and ask whether the description still meaningfully discusses the facet itself.
+- Preserve coexistence of `background_cause_or_factor=true` and `is_substantively_examined=true` when the facet genuinely receives independent development beyond its causal role.
+- Add a static causal-background contract test and keep all nine targeted acceptance gates unchanged.
+
+No title-, author-, ISBN-, case-, or query-specific judge behavior is added.
+
 # Semantic relevance judge v0.21.1
 
 v0.21.1 is a targeted correction to the v0.21.0 role/precheck architecture. Frozen facet spec v0.8.0, rubric v0.1.0, and deterministic 0-4 scoring remain unchanged.
