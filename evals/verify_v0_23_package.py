@@ -15,11 +15,14 @@ required=[
 for p in required: assert p.exists(), p
 cfg=json.loads(required[2].read_text(encoding='utf-8'))
 assert cfg['version']=='0.23.0'
-assert cfg['dataset_version']=='2.1.0'
+assert cfg['dataset_version']=='0.5.0'
 assert cfg['facet_spec_version']=='0.8.0'
 assert cfg['rubric_version']=='0.1.0'
 assert 'component_complete_verification' in cfg['pipeline']
 assert 'book_subject_stage' in cfg
+runner_text=(E/'run_judge_development.py').read_text(encoding='utf-8')
+assert 'EVALUATION_DATASET_VERSION = "2.1.0"' in runner_text
+assert 'JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"' in runner_text
 # Frozen/scoring artifacts must remain byte-identical to the v0.22.2 package.
 expected_hashes={
  E/'semantic_relevance_facet_scoring.py':'69cb7cea0ba288724bd623679d4d0b270f3a9ad1a1810146a02c4383e8f9b933',
