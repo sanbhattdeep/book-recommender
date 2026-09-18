@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.22.2 on the consumed 90-case development set.
+Run development Semantic Recommendation Relevance Judge v0.23.0 on the consumed 90-case development set.
 
 Typical usage
 -------------
@@ -21,9 +21,9 @@ Full 90-case development run:
 Resume an interrupted run:
 
     uv run python evals/run_judge_development.py `
-      --resume evals/runs/semantic_relevance_v0_22_development/<RUN_ID>
+      --resume evals/runs/semantic_relevance_v0_23_development/<RUN_ID>
 
-v0.22 architecture
+v0.23 architecture
 -----------------
     frozen query facets
             ↓
@@ -86,8 +86,8 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.22.2"
-EVALUATION_DATASET_VERSION = "2.0.0"
+JUDGE_CONFIG_VERSION = "0.23.0"
+EVALUATION_DATASET_VERSION = "2.1.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_holdout_development"
 EVALUATION_SCOPE = "consumed_unseen_pool_development"
@@ -112,7 +112,7 @@ EVALS_DIR = REPO_ROOT / "evals"
 DATASET_FILE = (
     EVALS_DIR
     / "datasets"
-    / f"semantic_relevance_v0.22_development.v{EVALUATION_DATASET_VERSION}.csv"
+    / f"semantic_relevance_v0.23_development.v{EVALUATION_DATASET_VERSION}.csv"
 )
 
 RUBRIC_FILE = (
@@ -138,7 +138,7 @@ JUDGE_CONFIG_FILE = (
 RUNS_DIR = (
     EVALS_DIR
     / "runs"
-    / "semantic_relevance_v0_22_development"
+    / "semantic_relevance_v0_23_development"
 )
 
 
@@ -389,19 +389,19 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # v0.22 consumed-development contract: 60 historical U_ cases +
+    # v0.23 consumed-development contract: 60 historical U_ cases +
     # 30 consumed fresh-validation U2_ cases. The untouched holdout is absent.
     # -------------------------------------------------------------------------
     if len(dataset) != 90:
         raise ValueError(
-            "The v0.22 development dataset must contain exactly 90 consumed cases; "
+            "The v0.23 development dataset must contain exactly 90 consumed cases; "
             f"found {len(dataset)}."
         )
 
     prefixes_ok = dataset["case_id"].astype(str).str.startswith(("U_", "U2_"))
     if not prefixes_ok.all():
         raise ValueError(
-            "v0.22 development case IDs must use historical U_ or consumed-validation U2_ prefixes."
+            "v0.23 development case IDs must use historical U_ or consumed-validation U2_ prefixes."
         )
     if int(dataset["case_id"].astype(str).str.startswith("U_").sum()) != 60:
         raise ValueError("Expected exactly 60 historical U_ development cases.")
@@ -485,7 +485,7 @@ def validate_inputs(
         )
     ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge v0.22.2 config remains pinned to its original "
+            "Judge v0.23.0 config remains pinned to its original "
             "calibration/development dataset version "
             f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
             f"{config.get('dataset_version')!r}."
@@ -537,7 +537,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.22.2."
+            "Judge v0.23.0."
         )
 
     if str(
@@ -782,7 +782,7 @@ def validate_resume_metadata(
     if mismatches:
         raise ValueError(
             "Cannot resume this run because its provenance does not match "
-            "the v0.22 development runner:\n- "
+            "the v0.23 development runner:\n- "
             + "\n- ".join(
                 mismatches
             )
@@ -1070,7 +1070,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.22.2. Missing columns: "
+            "Judge v0.23.0. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1089,7 +1089,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Run development facet-based Judge Config v0.22.2 on the "
+            "Run development facet-based Judge Config v0.23.0 on the "
             "90-case consumed development set using local Ollama."
         )
     )

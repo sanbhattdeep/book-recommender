@@ -19,7 +19,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.22.2.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.23.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 facet = QueryFacet(
@@ -51,6 +51,9 @@ class RepeatedMalformedCompositeModel:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.UNSUPPORTED,
                 inference_kind=EvidenceInferenceKind.NONE,
+                all_required_components_established=False,
+                missing_semantic_component="full synthetic facet",
+                semantic_definition_exclusion_applied=False,
                 reason="synthetic unsupported",
             )
 
@@ -62,6 +65,8 @@ class RepeatedMalformedCompositeModel:
                 supporting_span_ids=["S2"],
                 verification_relation=VerificationRelation.ENTAILED,
                 inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+                all_required_components_established=False,
+                semantic_definition_exclusion_applied=False,
                 combined_evidence_summary="synthetic malformed positive",
                 missing_semantic_component="still missing something",
                 reason="malformed",

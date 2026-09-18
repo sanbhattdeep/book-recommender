@@ -1,0 +1,27 @@
+{
+  "version": "2.0.0",
+  "purpose": "v0.23.0 verification-hardening gate: preserve the nine v0.22 architecture controls while eliminating the seven severe over-promotions found in the completed v0.22.2 90-case run and preserving the blind-review relabel of U2_Q03_T30.",
+  "targeted_expectations": {
+    "U2_Q12_T30": {"judge_max": 1},
+    "U2_Q05_NEG": {"judge_max": 1},
+    "U2_Q11_T30": {"judge_max": 1},
+    "U_Q02_NEG": {"judge_max": 1},
+    "U2_Q04_T10": {"judge_min": 3},
+    "U_Q06_T02": {"judge_min": 3},
+    "U_Q10_T30": {"judge_max": 1},
+    "U_Q11_T02": {"judge_min": 3},
+    "U_Q12_T02": {"judge_min": 2},
+
+    "U_Q07_T10": {"judge_max": 1},
+    "U_Q01_NEG": {"judge_max": 1},
+    "U_Q01_T30": {"judge_max": 1},
+    "U_Q01_T70": {"judge_max": 1},
+    "U_Q04_NEG": {"judge_max": 1},
+    "U_Q06_T10": {"judge_max": 2},
+    "U_Q06_T70": {"judge_max": 1},
+    "U2_Q03_T30": {"judge_max": 1}
+  },
+  "notes": {
+    "U2_Q03_T30": "Blind-review human score revised from 2 to 0 before v0.23.0; the description's inner peace, stress reduction, relaxation, and joy do not automatically establish personal growth."
+  }
+}

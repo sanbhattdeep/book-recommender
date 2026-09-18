@@ -21,7 +21,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.22.2.json').read_text())
+config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.23.0.json').read_text())
 
 spec = QueryFacetSpec(
     query_id='SYN',
@@ -62,6 +62,9 @@ class Model:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.DIRECT,
                 inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
+                all_required_components_established=True,
+                missing_semantic_component=None,
+                semantic_definition_exclusion_applied=False,
                 reason='synthetic direct support',
             )
         if schema is ProminenceAssessment:

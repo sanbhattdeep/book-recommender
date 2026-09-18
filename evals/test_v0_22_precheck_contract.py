@@ -1,7 +1,7 @@
 from pathlib import Path
 import json
 ROOT=Path(__file__).resolve().parents[1]
-config=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.22.2.json').read_text())
+config=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.23.0.json').read_text())
 stage=config['hard_exclusion_precheck_stage']
 text='\n'.join(stage['instructions'])
 assert 'negative semantic guard' in text

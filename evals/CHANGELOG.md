@@ -1,5 +1,24 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.23.0
+
+## Verification hardening
+
+v0.23.0 addresses the dominant v0.22.2 development failure mode: false-positive semantic completion. The verifier was sometimes accepting evidence that established a nearby concept while inventing an indispensable missing component, such as treating a complicated marriage as a complicated parent-child relationship, danger while stationary as a dangerous journey, or generic recovery as redemption.
+
+Both isolated and composite verification now expose an explicit component-completeness contract. `DIRECT` and `ENTAILED` require all indispensable semantic components to be established by the supplied evidence. `ADJACENT` must identify the missing component. Explicit exclusion clauses in the frozen semantic definition are binding.
+
+No Stage-A subject extraction, Stage-B subject relation, scoring, facet-spec, rubric, candidate-selection, deterministic-cue, or hard-exclusion-precheck semantics are changed.
+
+## Development-label revision
+
+`U2_Q03_T30` is revised from human score 2 to 0 after blind review. The original source data is not mutated; the revision is applied by `build_v0_23_development_dataset.py` from an auditable revision manifest. The derived development dataset version becomes `2.1.0`.
+
+## Regression gate
+
+The targeted gate expands from 9 to 17 cases by adding all seven severe over-promotions from the v0.22.2 full run plus `U2_Q03_T30` as a relabel-preservation control.
+
+
 # Semantic relevance judge v0.22.2
 
 ## Reliability fix

@@ -10,7 +10,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "evals/judge_configs/semantic_relevance_judge.v0.22.2.json"
+CONFIG = ROOT / "evals/judge_configs/semantic_relevance_judge.v0.23.0.json"
 config = json.loads(CONFIG.read_text(encoding="utf-8"))
 spans = {"S1": "A principal subject is described.", "S2": "A secondary cause is mentioned."}
 subject = BookSubjectAnalysis(

@@ -17,7 +17,7 @@ config = json.loads(
     (
         EVALS_DIR
         / "judge_configs"
-        / "semantic_relevance_judge.v0.22.2.json"
+        / "semantic_relevance_judge.v0.23.0.json"
     ).read_text(encoding="utf-8")
 )
 
@@ -37,6 +37,8 @@ entailed = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ENTAILED,
     inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+    all_required_components_established=True,
+    semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The disruption is followed by explicit resumption.",
     missing_semantic_component=None,
     reason="All required components are supplied.",
@@ -47,6 +49,8 @@ adjacent = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ADJACENT,
     inference_kind=EvidenceInferenceKind.INCOMPLETE_CONNECTION,
+    all_required_components_established=False,
+    semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The spans show disruption and later activity.",
     missing_semantic_component="The later activity is not established as recovery from the disruption.",
     reason="One required causal/recovery component remains missing.",
@@ -57,6 +61,8 @@ bad_adjacent = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ADJACENT,
     inference_kind=EvidenceInferenceKind.INCOMPLETE_CONNECTION,
+    all_required_components_established=False,
+    semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The full facet is established.",
     missing_semantic_component=None,
     reason="Malformed adjacent output.",
@@ -72,6 +78,8 @@ bad_entailed = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ENTAILED,
     inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+    all_required_components_established=True,
+    semantic_definition_exclusion_applied=False,
     combined_evidence_summary="Nearly complete.",
     missing_semantic_component="A required component is still absent.",
     reason="Malformed entailed output.",

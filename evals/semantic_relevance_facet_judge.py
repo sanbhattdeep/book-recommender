@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.22.2 with explicit facet-to-subject relationship classification.
+Semantic facet judge v0.23.0 with component-complete semantic verification.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -226,10 +226,18 @@ class EvidenceSelection(BaseModel):
 
 
 class EvidenceVerification(BaseModel):
-    """Structured output for one isolated verification."""
+    """Structured output for one isolated verification.
+
+    v0.23.0 makes component completeness auditable. Positive DIRECT/ENTAILED
+    judgments are invalid unless the model explicitly confirms that every
+    indispensable component of the frozen semantic definition is established.
+    """
 
     verification_relation: VerificationRelation
     inference_kind: EvidenceInferenceKind
+    all_required_components_established: bool
+    missing_semantic_component: str | None = None
+    semantic_definition_exclusion_applied: bool = False
     hard_exclusion_triggered: bool = False
     hard_exclusion_id: str | None = None
     reason: str = Field(min_length=1)
@@ -244,6 +252,8 @@ class CompositeEvidenceVerification(BaseModel):
     )
     verification_relation: VerificationRelation
     inference_kind: EvidenceInferenceKind
+    all_required_components_established: bool
+    semantic_definition_exclusion_applied: bool = False
     hard_exclusion_triggered: bool = False
     hard_exclusion_id: str | None = None
     combined_evidence_summary: str = Field(min_length=1)
@@ -696,7 +706,7 @@ def _context_role_from_decomposed_signals(
 ) -> FacetContextRole:
     """Resolve the explicit facet-to-frozen-subject relationship deterministically.
 
-    v0.22.2 makes the mutually exclusive subject_relation the primary structural
+    v0.23.0 preserves the mutually exclusive subject_relation as the primary structural
     signal. The legacy substantive override is retained only for causal/background
     material that is independently developed beyond its causal role.
     """
@@ -775,11 +785,73 @@ def _validate_inference_contract(
             )
 
 
+def _validate_component_completeness_contract(
+    *,
+    relation: VerificationRelation,
+    all_required_components_established: bool,
+    missing_semantic_component: str | None,
+    semantic_definition_exclusion_applied: bool,
+    stage_name: str,
+) -> None:
+    """Mechanically enforce the v0.23.0 component-completeness contract."""
+
+    missing = (missing_semantic_component or "").strip()
+
+    if semantic_definition_exclusion_applied and relation != VerificationRelation.UNSUPPORTED:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: semantic_definition_exclusion_applied=true requires UNSUPPORTED."
+        )
+
+    if relation in {VerificationRelation.DIRECT, VerificationRelation.ENTAILED}:
+        if not all_required_components_established:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: {relation.value.upper()} requires "
+                "all_required_components_established=true."
+            )
+        if missing:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: {relation.value.upper()} cannot declare a missing "
+                f"semantic component: {missing!r}."
+            )
+        if semantic_definition_exclusion_applied:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: positive verification cannot override an explicit "
+                "semantic-definition exclusion."
+            )
+
+    if relation == VerificationRelation.ADJACENT:
+        if all_required_components_established:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: ADJACENT requires at least one missing required component."
+            )
+        if not missing:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: ADJACENT must identify missing_semantic_component."
+            )
+        if semantic_definition_exclusion_applied:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: ADJACENT cannot bypass an explicit semantic-definition exclusion."
+            )
+
+    if all_required_components_established and missing:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: all_required_components_established=true is inconsistent "
+            f"with missing_semantic_component={missing!r}."
+        )
+
+
 def _validate_verification_result(
     result: EvidenceVerification,
     facet: QueryFacet,
     config: dict[str, Any],
 ) -> None:
+    _validate_component_completeness_contract(
+        relation=result.verification_relation,
+        all_required_components_established=result.all_required_components_established,
+        missing_semantic_component=result.missing_semantic_component,
+        semantic_definition_exclusion_applied=result.semantic_definition_exclusion_applied,
+        stage_name="single-span verification",
+    )
     _validate_hard_exclusion_contract(
         relation=result.verification_relation,
         inference_kind=result.inference_kind,
@@ -893,7 +965,17 @@ DECISION PRECEDENCE
 INSTRUCTIONS
 {instructions}
 
-Return one EvidenceVerification with verification_relation, inference_kind, hard_exclusion_triggered, hard_exclusion_id, and reason.
+Return one EvidenceVerification with verification_relation, inference_kind,
+all_required_components_established, missing_semantic_component,
+semantic_definition_exclusion_applied, hard_exclusion_triggered,
+hard_exclusion_id, and reason.
+
+For DIRECT or ENTAILED: all_required_components_established=true and
+missing_semantic_component=null.
+For ADJACENT: all_required_components_established=false and name the missing
+indispensable component.
+If an explicit negative boundary in the frozen semantic definition blocks the
+match: semantic_definition_exclusion_applied=true and verification_relation=unsupported.
 
 The inference_kind must obey the configured relation mapping.
 Do not use any information other than the facet, frozen semantic definition, and evidence shown above.
@@ -920,9 +1002,11 @@ def verify_candidate_evidence(
             prompt += (
                 "\n\nPREVIOUS VALIDATION FAILURE\n"
                 f"{validation_error}\n"
-                "Return a corrected EvidenceVerification only. ENTAILED requires "
-                "inference_kind=necessary_semantic_inference and a necessary, "
-                "non-speculative justification."
+                "Return a corrected EvidenceVerification only. Positive DIRECT/ENTAILED "
+                "requires all_required_components_established=true, no missing semantic "
+                "component, no semantic-definition exclusion, and a relation-consistent "
+                "inference_kind. Never supply a missing entity/relationship/event/process "
+                "from analogy, plausibility, or world knowledge."
             )
 
         generated = judge_model.generate(
@@ -1031,7 +1115,16 @@ def verify_ranked_candidates(
             inference_kind=verification.inference_kind,
             hard_exclusion_triggered=verification.hard_exclusion_triggered,
             hard_exclusion_id=verification.hard_exclusion_id,
-            verification_reason=verification.reason,
+            verification_reason=(
+                verification.reason
+                + " [component_check: all_required_components_established="
+                + str(verification.all_required_components_established).lower()
+                + "; semantic_definition_exclusion_applied="
+                + str(verification.semantic_definition_exclusion_applied).lower()
+                + "; missing_semantic_component="
+                + repr(verification.missing_semantic_component)
+                + "]"
+            ),
         )
 
         records.append(record)
@@ -1119,6 +1212,15 @@ inference_kind:
 - adjacent => incomplete_connection
 - entailed => necessary_semantic_inference
 
+all_required_components_established:
+- true only when every indispensable semantic component is established jointly
+- required true for ENTAILED
+- required false for ADJACENT
+
+semantic_definition_exclusion_applied:
+- true when an explicit negative boundary in the frozen semantic definition blocks the match
+- if true, verification_relation must be UNSUPPORTED
+
 hard_exclusion_triggered / hard_exclusion_id:
 - evaluate the frozen hard exclusions first
 - if one applies, return true plus its exact exclusion_id and UNSUPPORTED
@@ -1157,6 +1259,14 @@ def _validate_composite_result(
     max_spans = int(stage.get("max_spans", MAX_COMPOSITE_CANDIDATES))
     relation = result.verification_relation
     ids = list(result.supporting_span_ids)
+
+    _validate_component_completeness_contract(
+        relation=relation,
+        all_required_components_established=result.all_required_components_established,
+        missing_semantic_component=result.missing_semantic_component,
+        semantic_definition_exclusion_applied=result.semantic_definition_exclusion_applied,
+        stage_name="composite verification",
+    )
 
     if relation == VerificationRelation.DIRECT:
         raise JudgeOutputValidationError(
@@ -1250,9 +1360,11 @@ def verify_composite_evidence(
                 "\n\nPREVIOUS VALIDATION FAILURE\n"
                 f"{validation_error}\n"
                 "Return a corrected CompositeEvidenceVerification only. "
-                "Remember: ENTAILED => missing_semantic_component=null; "
-                "ADJACENT => explicitly identify the missing required component; "
-                "positive relations require 2-4 unique real span IDs; relation and inference_kind must match."
+                "Remember: ENTAILED => all_required_components_established=true and "
+                "missing_semantic_component=null; ADJACENT => false plus the missing "
+                "required component; semantic-definition exclusions force UNSUPPORTED; "
+                "positive relations require 2-4 unique real span IDs; relation and "
+                "inference_kind must match."
             )
 
         # Transport/model-call failures intentionally propagate. Only generated
@@ -1285,6 +1397,8 @@ def verify_composite_evidence(
         supporting_span_ids=[],
         verification_relation=VerificationRelation.UNSUPPORTED,
         inference_kind=EvidenceInferenceKind.NONE,
+        all_required_components_established=False,
+        semantic_definition_exclusion_applied=False,
         hard_exclusion_triggered=False,
         hard_exclusion_id=None,
         combined_evidence_summary=(
@@ -1373,7 +1487,7 @@ def assess_book_subject(
 ) -> tuple[BookSubjectAnalysis, int]:
     """Analyze/freeze the book-level subject exactly once for this case.
 
-    v0.22.2 preserves strict exact-span validation but feeds mechanical
+    v0.23.0 preserves strict exact-span validation but feeds mechanical
     validation failures back to the next attempt. This lets the model repair
     formatting mistakes such as ``S6-S9`` without silently normalizing or
     reinterpreting the model output in Python.
@@ -1527,7 +1641,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.22.2 facet evaluation against one frozen book subject:
+    Run v0.23.0 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1777,7 +1891,16 @@ def evaluate_one_facet(
         composite_missing_component = (
             composite_result.missing_semantic_component
         )
-        composite_reason = composite_result.reason
+        composite_reason = (
+            composite_result.reason
+            + " [component_check: all_required_components_established="
+            + str(composite_result.all_required_components_established).lower()
+            + "; semantic_definition_exclusion_applied="
+            + str(composite_result.semantic_definition_exclusion_applied).lower()
+            + "; missing_semantic_component="
+            + repr(composite_result.missing_semantic_component)
+            + "]"
+        )
         composite_span_ids = list(
             composite_result.supporting_span_ids
         )
@@ -1931,7 +2054,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.22.2 with one frozen book-subject analysis followed by every frozen facet.
+    Run v0.23.0 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1949,7 +2072,7 @@ def generate_validated_semantic_verdict(
             f"Description is empty for case {row['case_id']}."
         )
 
-    # v0.22.2: freeze one facet-independent subject analysis before ANY facet
+    # v0.23.0: freeze one facet-independent subject analysis before ANY facet
     # role classification. No query/facet is visible to this call.
     book_subject, subject_retries = assess_book_subject(
         judge_model=judge_model,

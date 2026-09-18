@@ -1,0 +1,15 @@
+{
+  "version": "1.0.0",
+  "purpose": "Audited human-label revisions applied only to the consumed development set after blind review.",
+  "revisions": [
+    {
+      "case_id": "U2_Q03_T30",
+      "previous_human_score": 2,
+      "new_human_score": 0,
+      "review_method": "blind_review",
+      "review_status": "ADJUDICATED_BLIND_REVIEW",
+      "reason": "Inner peace, stress reduction, relaxation, and joy are not automatic indicators of personal growth.",
+      "requested_on": "2026-09-18"
+    }
+  ]
+}
