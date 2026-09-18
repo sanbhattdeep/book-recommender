@@ -670,6 +670,31 @@ def assess_hard_exclusion_precheck(
     ) from last_error
 
 
+def _normalize_impossible_hard_exclusion_output(
+    result: EvidenceVerification | CompositeEvidenceVerification,
+    facet: QueryFacet,
+) -> EvidenceVerification | CompositeEvidenceVerification:
+    """Normalize impossible model-only hard-exclusion flags when none exist.
+
+    A facet with no frozen hard exclusions has no valid exclusion ID the model
+    could possibly trigger. Treating a hallucinated ``hard_exclusion_triggered``
+    flag as a fatal structured-output error can abort an otherwise auditable
+    case after bounded retries. This normalization is mechanical rather than
+    semantic: it changes only the two impossible hard-exclusion audit fields
+    and leaves the verification relation, component-completeness fields,
+    semantic-definition exclusion flag, and reason untouched.
+    """
+
+    if facet.hard_exclusions:
+        return result
+
+    if result.hard_exclusion_triggered or result.hard_exclusion_id is not None:
+        result.hard_exclusion_triggered = False
+        result.hard_exclusion_id = None
+
+    return result
+
+
 def _validate_hard_exclusion_contract(
     *,
     relation: VerificationRelation,
@@ -953,6 +978,11 @@ FROZEN SEMANTIC DEFINITION
 HARD EXCLUSIONS — APPLY BEFORE ANY POSITIVE RELATION
 {format_hard_exclusions(facet)}
 
+IMPORTANT HARD-EXCLUSION OUTPUT RULE
+If the frozen hard-exclusion list above is NONE, hard_exclusion_triggered MUST be false
+and hard_exclusion_id MUST be null. A semantic-definition exclusion is separate and
+must be reported only with semantic_definition_exclusion_applied.
+
 EXACT CANDIDATE EVIDENCE
 {evidence_text}
 
@@ -1005,8 +1035,10 @@ def verify_candidate_evidence(
                 "Return a corrected EvidenceVerification only. Positive DIRECT/ENTAILED "
                 "requires all_required_components_established=true, no missing semantic "
                 "component, no semantic-definition exclusion, and a relation-consistent "
-                "inference_kind. Never supply a missing entity/relationship/event/process "
-                "from analogy, plausibility, or world knowledge."
+                "inference_kind. If the facet has no frozen hard exclusions, "
+                "hard_exclusion_triggered must be false and hard_exclusion_id null. "
+                "Never supply a missing entity/relationship/event/process from analogy, "
+                "plausibility, or world knowledge."
             )
 
         generated = judge_model.generate(
@@ -1016,6 +1048,8 @@ def verify_candidate_evidence(
 
         try:
             result = unpack_generated_model(generated, EvidenceVerification)
+            assert isinstance(result, EvidenceVerification)
+            result = _normalize_impossible_hard_exclusion_output(result, facet)
             assert isinstance(result, EvidenceVerification)
             _validate_verification_result(result=result, facet=facet, config=config)
             return result, attempt - 1
@@ -1225,6 +1259,9 @@ hard_exclusion_triggered / hard_exclusion_id:
 - evaluate the frozen hard exclusions first
 - if one applies, return true plus its exact exclusion_id and UNSUPPORTED
 - otherwise return false and null
+- if the frozen hard-exclusion list is NONE, these fields MUST be false and null
+- semantic_definition_exclusion_applied is a separate field and must not be
+  represented as a hard exclusion
 
 combined_evidence_summary:
 - summarize only what the cited spans jointly establish
@@ -1363,8 +1400,9 @@ def verify_composite_evidence(
                 "Remember: ENTAILED => all_required_components_established=true and "
                 "missing_semantic_component=null; ADJACENT => false plus the missing "
                 "required component; semantic-definition exclusions force UNSUPPORTED; "
-                "positive relations require 2-4 unique real span IDs; relation and "
-                "inference_kind must match."
+                "if the facet has no frozen hard exclusions, hard_exclusion_triggered "
+                "must be false and hard_exclusion_id null; positive relations require "
+                "2-4 unique real span IDs; relation and inference_kind must match."
             )
 
         # Transport/model-call failures intentionally propagate. Only generated
@@ -1379,6 +1417,8 @@ def verify_composite_evidence(
                 generated,
                 CompositeEvidenceVerification,
             )
+            assert isinstance(result, CompositeEvidenceVerification)
+            result = _normalize_impossible_hard_exclusion_output(result, facet)
             assert isinstance(result, CompositeEvidenceVerification)
             _validate_composite_result(
                 result=result,

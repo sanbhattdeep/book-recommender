@@ -44,6 +44,7 @@ for name in [
  'test_v0_22_audit_contract.py',
  'test_v0_23_component_completeness.py',
  'test_v0_23_verifier_recovery.py',
+ 'test_v0_23_no_hard_exclusion_normalization.py',
  'test_v0_23_label_revision_manifest.py',
  'test_facet_scoring.py',
  'test_deterministic_direct_cues.py',
