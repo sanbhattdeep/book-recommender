@@ -1,5 +1,18 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.22.2
+
+## Reliability fix
+
+Stage-A facet-independent book-subject extraction now retries malformed exact-span references with validator feedback. The observed failure was a model response containing `primary_subject_span_ids=["S6-S9"]`, which correctly failed strict validation because `S6-S9` was not a supplied source span ID.
+
+The retry prompt now includes the mechanical validation failure and explicitly demonstrates the valid form `["S6", "S7", "S8", "S9"]`. The base Stage-A instructions also prohibit range syntax such as `S6-S9`, `S6–S9`, and `S6 through S9`.
+
+## Deliberately unchanged
+
+No span-range normalization is performed in Python. Unknown IDs remain validation failures. v0.22.1 subject extraction semantics, subject-relation semantics, verification, exclusions, and deterministic scoring are unchanged.
+
+
 # Semantic relevance judge v0.22.1
 
 ## Changed

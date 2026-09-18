@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.22.1 with explicit facet-to-subject relationship classification.
+Semantic facet judge v0.22.2 with explicit facet-to-subject relationship classification.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -696,7 +696,7 @@ def _context_role_from_decomposed_signals(
 ) -> FacetContextRole:
     """Resolve the explicit facet-to-frozen-subject relationship deterministically.
 
-    v0.22.1 makes the mutually exclusive subject_relation the primary structural
+    v0.22.2 makes the mutually exclusive subject_relation the primary structural
     signal. The legacy substantive override is retained only for causal/background
     material that is independently developed beyond its causal role.
     """
@@ -1322,14 +1322,32 @@ def format_composite_evidence(
 def build_book_subject_prompt(
     spans: dict[str, str],
     config: dict[str, Any],
+    validation_feedback: str | None = None,
 ) -> str:
-    """Build a book-level subject prompt that contains no query or facet."""
+    """Build a book-level subject prompt that contains no query or facet.
+
+    On a validator-driven retry, include only the mechanical validation failure
+    so the model can repair malformed output without changing the semantic task.
+    """
 
     stage = config["book_subject_stage"]
     instructions = "\n".join(
         f"{index}. {instruction}"
         for index, instruction in enumerate(stage["instructions"], start=1)
     )
+
+    correction = ""
+    if validation_feedback:
+        correction = f"""
+
+PREVIOUS VALIDATION FAILURE
+{validation_feedback}
+
+CORRECTION REQUIRED
+Return a corrected BookSubjectAnalysis only. Use individual exact supplied span IDs.
+For example, use ["S6", "S7", "S8", "S9"], never "S6-S9", "S6–S9",
+or "S6 through S9". Do not change the semantic task; only repair the invalid output.
+"""
 
     return f"""
 Analyze ONE supplied book description to identify what the BOOK ITSELF is primarily about.
@@ -1344,7 +1362,7 @@ INSTRUCTIONS
 {instructions}
 
 Return one BookSubjectAnalysis with primary_subject_summary,
-primary_subject_span_ids, and reason.
+primary_subject_span_ids, and reason.{correction}
 """.strip()
 
 
@@ -1353,21 +1371,37 @@ def assess_book_subject(
     spans: dict[str, str],
     config: dict[str, Any],
 ) -> tuple[BookSubjectAnalysis, int]:
-    """Analyze/freeze the book-level subject exactly once for this case."""
+    """Analyze/freeze the book-level subject exactly once for this case.
+
+    v0.22.2 preserves strict exact-span validation but feeds mechanical
+    validation failures back to the next attempt. This lets the model repair
+    formatting mistakes such as ``S6-S9`` without silently normalizing or
+    reinterpreting the model output in Python.
+    """
 
     last_error: Exception | None = None
+    validation_feedback: str | None = None
 
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
         try:
             generated = judge_model.generate(
-                prompt=build_book_subject_prompt(spans=spans, config=config),
+                prompt=build_book_subject_prompt(
+                    spans=spans,
+                    config=config,
+                    validation_feedback=validation_feedback,
+                ),
                 schema=BookSubjectAnalysis,
             )
             result = unpack_generated_model(generated, BookSubjectAnalysis)
             assert isinstance(result, BookSubjectAnalysis)
             _validate_book_subject_result(result=result, spans=spans)
             return result, attempt - 1
+        except JudgeOutputValidationError as error:
+            last_error = error
+            validation_feedback = str(error)
         except Exception as error:
+            # Transport/schema-generation failures still use the existing retry
+            # budget, but they are not echoed into the semantic prompt.
             last_error = error
 
     raise JudgeOutputValidationError(
@@ -1493,7 +1527,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.22.1 facet evaluation against one frozen book subject:
+    Run v0.22.2 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1897,7 +1931,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.22.1 with one frozen book-subject analysis followed by every frozen facet.
+    Run v0.22.2 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -1915,7 +1949,7 @@ def generate_validated_semantic_verdict(
             f"Description is empty for case {row['case_id']}."
         )
 
-    # v0.22.1: freeze one facet-independent subject analysis before ANY facet
+    # v0.22.2: freeze one facet-independent subject analysis before ANY facet
     # role classification. No query/facet is visible to this call.
     book_subject, subject_retries = assess_book_subject(
         judge_model=judge_model,

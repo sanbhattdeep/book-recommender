@@ -21,7 +21,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.22.1.json').read_text())
+config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.22.2.json').read_text())
 
 spec = QueryFacetSpec(
     query_id='SYN',

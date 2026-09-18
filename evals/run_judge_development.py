@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.22.1 on the consumed 90-case development set.
+Run development Semantic Recommendation Relevance Judge v0.22.2 on the consumed 90-case development set.
 
 Typical usage
 -------------
@@ -86,7 +86,7 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.22.1"
+JUDGE_CONFIG_VERSION = "0.22.2"
 EVALUATION_DATASET_VERSION = "2.0.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_holdout_development"
@@ -485,7 +485,7 @@ def validate_inputs(
         )
     ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge v0.22.1 config remains pinned to its original "
+            "Judge v0.22.2 config remains pinned to its original "
             "calibration/development dataset version "
             f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
             f"{config.get('dataset_version')!r}."
@@ -537,7 +537,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.22.1."
+            "Judge v0.22.2."
         )
 
     if str(
@@ -1070,7 +1070,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.22.1. Missing columns: "
+            "Judge v0.22.2. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1089,7 +1089,7 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Run development facet-based Judge Config v0.22.1 on the "
+            "Run development facet-based Judge Config v0.22.2 on the "
             "90-case consumed development set using local Ollama."
         )
     )

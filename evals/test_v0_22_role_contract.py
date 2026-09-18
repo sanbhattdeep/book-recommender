@@ -15,4 +15,4 @@ assert role(SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND) == FacetContextRole
 assert role(SubjectRelation.CAUSAL_OR_CONTEXTUAL_BACKGROUND, True) == FacetContextRole.SUBSTANTIVE_SUBJECT
 assert role(SubjectRelation.EXAMPLE_OR_META) == FacetContextRole.EXAMPLE_OR_ILLUSTRATION
 assert role(SubjectRelation.OTHER) == FacetContextRole.INCIDENTAL_MENTION
-print("v0.22.1 explicit subject-relation resolver contract passed")
+print("v0.22.2 explicit subject-relation resolver contract passed")

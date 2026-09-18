@@ -1,0 +1,33 @@
+{
+  "version": "1.2.0",
+  "purpose": "v0.22.2 reliability-patch semantic-preservation gate: reuse the same nine regression and positive-control expectations before accepting any semantic drift",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    }
+  }
+}

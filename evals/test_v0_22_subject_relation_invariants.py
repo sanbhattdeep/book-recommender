@@ -1,8 +1,8 @@
-"""Static contracts for v0.22.1 subject-relation semantics."""
+"""Static contracts for v0.22.2 subject-relation semantics."""
 from pathlib import Path
 import json
 ROOT=Path(__file__).resolve().parents[1]
-cfg=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.22.1.json').read_text())
+cfg=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.22.2.json').read_text())
 stage=cfg['prominence_stage']
 rels=stage['subject_relation_scale']
 assert set(rels)=={
@@ -17,4 +17,4 @@ assert 'constituent content' in text
 assert 'do not override the frozen subject' in text
 assert 'story-defining content' in text
 assert 'causal/contextual background only' in text
-print('v0.22.1 subject-relation semantic invariants passed')
+print('v0.22.2 subject-relation semantic invariants passed')
