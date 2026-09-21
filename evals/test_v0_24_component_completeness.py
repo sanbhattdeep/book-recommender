@@ -19,7 +19,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 E = Path(__file__).resolve().parent
-CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.25.0.json").read_text(encoding="utf-8"))
+CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text(encoding="utf-8"))
 
 
 def facet(text: str, definition: str) -> QueryFacet:

@@ -1,5 +1,5 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.25.0.
+Deterministic scoring models for Semantic Recommendation Relevance v0.26.0.
 
 v0.20.0 preserves the deterministic support derivation and final 0-4 aggregation unchanged. It adds auditable inference-kind and context-role fields used by the semantic stages before deterministic support derivation.
 
@@ -58,7 +58,7 @@ class HardExclusion(BaseModel):
 class FacetRequiredComponent(BaseModel):
     """One canonical indispensable component of a frozen semantic facet.
 
-    v0.25.0 moves component identity out of model generation and into the
+    v0.25.0+ moves component identity out of model generation and into the
     versioned facet specification.  `negative_boundaries` are generic semantic
     constraints for this component; they must never encode candidate-specific
     facts, labels, or observed judge outputs.

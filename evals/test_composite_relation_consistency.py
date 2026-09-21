@@ -18,7 +18,7 @@ config = json.loads(
     (
         EVALS_DIR
         / "judge_configs"
-        / "semantic_relevance_judge.v0.25.0.json"
+        / "semantic_relevance_judge.v0.26.0.json"
     ).read_text(encoding="utf-8")
 )
 

@@ -1,0 +1,61 @@
+{
+  "version": "5.0.0",
+  "purpose": "v0.26.0 isolated-component gate: preserve all previously protected cases while correcting the v0.25 failures through per-component verification, deterministic facet assembly, and missing-component-only recovery.",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    }
+  },
+  "notes": {
+    "U2_Q03_T30": "Blind-review human score revised from 2 to 0 before v0.24.0; inner peace, stress reduction, relaxation, and joy do not automatically establish personal growth.",
+    "v0.26.0": "Focus: U_Q06_T02>=3 and U_Q07_T10/U_Q04_NEG/U_Q06_T70<=1 while preserving Alcoholics Anonymous, In the Beginning, Joy Within, and all other targeted protections."
+  }
+}

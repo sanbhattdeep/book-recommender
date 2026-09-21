@@ -15,7 +15,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import EvidenceInferenceKind, QueryFacet, VerificationRelation
 
 E = Path(__file__).resolve().parent
-CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.25.0.json").read_text())
+CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text())
 FACET = QueryFacet(facet_id="F1", text="dangerous journeys", facet_type="core", semantic_definition="danger + movement")
 
 # Single-span positive cannot cite a different span for a component.

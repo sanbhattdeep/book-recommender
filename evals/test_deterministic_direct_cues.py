@@ -12,7 +12,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.25.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.26.0.json"
 with CONFIG_FILE.open("r", encoding="utf-8") as f:
     config = json.load(f)
 

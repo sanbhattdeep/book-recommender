@@ -1,5 +1,5 @@
 """
-Run one pending development case through the v0.25 development pipeline using direct
+Run one pending development case through the v0.26 development pipeline using direct
 Ollama structured-output transport instead of DeepEval's transport wrapper.
 
 Use only as an operational recovery path for a reproducible DeepEval timeout or
@@ -8,7 +8,7 @@ recorded in the run directory.
 
 Example:
     uv run python evals/run_judge_development_direct_transport.py `
-      --resume evals/runs/semantic_relevance_v0_25_development/<RUN_ID> `
+      --resume evals/runs/semantic_relevance_v0_26_development/<RUN_ID> `
       --case-id U_Q09_T02
 """
 
@@ -56,20 +56,24 @@ class DirectOllamaTransport:
         **_: Any,
     ):
         if schema is None:
-            raise TypeError("v0.25 development expects structured-output schemas.")
+            raise TypeError("v0.26 development expects structured-output schemas.")
 
         schema_name = schema.__name__
 
         # Ollama's JSON-schema constrained decoding reproducibly stalls for the
         # CompositeEvidenceVerification schema on U2_Q03_T30. The semantic
         # prompt is already explicit about every output field and invariant, so
-        # the recovery transport uses Ollama JSON mode for this one schema and
-        # leaves Pydantic + judge validation to the normal pipeline. This is a
+        # the recovery transport uses Ollama JSON mode for the legacy composite
+        # schema and the smaller v0.26 full-context component-recovery schema,
+        # leaving Pydantic + judge validation to the normal pipeline. This is a
         # transport-only workaround; the semantic prompt/config/scoring remain
         # unchanged.
-        composite_json_mode = schema_name == "CompositeEvidenceVerification"
-        output_format: Any = "json" if composite_json_mode else schema.model_json_schema()
-        format_mode = "json" if composite_json_mode else "json_schema"
+        json_mode_schema = schema_name in {
+            "CompositeEvidenceVerification",
+            "FullContextComponentRecovery",
+        }
+        output_format: Any = "json" if json_mode_schema else schema.model_json_schema()
+        format_mode = "json" if json_mode_schema else "json_schema"
 
         payload = {
             "model": self.model,

@@ -11,7 +11,7 @@ from semantic_relevance_facet_judge import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-CONFIG = ROOT / "evals/judge_configs/semantic_relevance_judge.v0.25.0.json"
+CONFIG = ROOT / "evals/judge_configs/semantic_relevance_judge.v0.26.0.json"
 config = json.loads(CONFIG.read_text(encoding="utf-8"))
 spans = {
     "S6": "The central situation begins.",

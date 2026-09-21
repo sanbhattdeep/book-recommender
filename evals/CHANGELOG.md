@@ -1,5 +1,44 @@
 # Evaluation Changelog
 
+## v0.26.0 — isolated canonical-component verification
+
+### Changed
+
+- Replaced production single-span holistic facet verification with one LLM call per frozen canonical component.
+- Added `IsolatedComponentVerification` with `missing | explicit | entailed` component grounding states.
+- Moved full-facet `direct / entailed / adjacent / unsupported` assembly into deterministic Python.
+- Replaced production holistic composite verification with missing-component-only full-context recovery.
+- Added `FullContextComponentRecovery`; only components still missing after isolated audits are eligible for recovery.
+- Established component outcomes are never re-opened by full-context recovery.
+- Same-span component resurrection is mechanically rejected; bounded repair exhaustion leaves that component missing and records the reason.
+- Preserved prior component-specific negative-boundary results when recovery does not find valid new evidence.
+- Extended component audit records with `grounding_relation`.
+- Direct Ollama recovery transport uses JSON mode for both the legacy composite schema and the v0.26 component-recovery schema.
+
+### Unchanged
+
+- deterministic 0–4 scoring
+- rubric v0.1.0
+- facet spec v0.9.0 and its canonical component definitions/boundaries
+- Stage A candidate selection
+- facet-independent book-subject analysis
+- explicit subject relation / prominence resolution
+- hard-exclusion precheck
+- consumed development dataset version 2.1.0
+- calibration provenance pinned to dataset 0.5.0
+- blind-review `U2_Q03_T30` human-label revision
+
+### Targeted acceptance gate
+
+The 17-case regression manifest remains the preregistered gate. The main v0.26 focus cases are:
+
+- `U_Q06_T02 >= 3`
+- `U_Q07_T10 <= 1`
+- `U_Q04_NEG <= 1`
+- `U_Q06_T70 <= 1`
+
+The package-level tests verify architecture and deterministic contracts only. Semantic acceptance still requires the actual Ollama targeted run.
+
 # Semantic relevance judge v0.25.0
 
 ## Summary
@@ -45,6 +84,25 @@ Focus assertions:
 - `U_Q06_T70 <= 1`
 
 All other v0.24 targeted protections remain active.
+
+# Validation
+
+v0.25.0 r1 targeted result: ABORTED
+
+Completed: 4/17
+
+Known failures before abort:
+  U_Q01_T70 = 2
+  U_Q04_NEG = 2
+  U_Q07_T10 = 3
+
+Runtime/validation failure:
+  repeated model inconsistency:
+  positive facet relation with incomplete canonical ledger
+
+Conclusion:
+  canonical component specification alone is insufficient;
+  component grounding must be decomposed.
 
 # Semantic relevance judge v0.23.0
 

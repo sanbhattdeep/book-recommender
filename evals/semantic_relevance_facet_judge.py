@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.25.0 with canonical component-grounded semantic verification.
+Semantic facet judge v0.26.0 with isolated component verification and deterministic facet assembly.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -16,7 +16,7 @@ from __future__ import annotations
 
 import json
 import re
-from typing import Any
+from typing import Any, Literal
 
 import pandas as pd
 from pydantic import BaseModel, Field
@@ -235,10 +235,34 @@ class ComponentEvidenceCheck(BaseModel):
 
     component_id: str = Field(min_length=1)
     established: bool
+    grounding_relation: Literal["missing", "explicit", "entailed"] = "missing"
     supporting_span_ids: list[str] = Field(
         default_factory=list,
         max_length=MAX_COMPOSITE_CANDIDATES,
     )
+    negative_boundary_applied: bool = False
+    reason: str = Field(min_length=1)
+
+
+class IsolatedComponentVerification(BaseModel):
+    """LLM output for exactly one frozen canonical component against one span.
+
+    v0.26 deliberately prevents this call from deciding the full facet.  Python
+    later assembles the facet relation from the independent component results.
+    """
+
+    component_id: str = Field(min_length=1)
+    grounding_relation: Literal["missing", "explicit", "entailed"]
+    negative_boundary_applied: bool = False
+    reason: str = Field(min_length=1)
+
+
+class FullContextComponentRecovery(BaseModel):
+    """Recovery output for one still-missing canonical component only."""
+
+    component_id: str = Field(min_length=1)
+    grounding_relation: Literal["missing", "explicit", "entailed"]
+    supporting_span_ids: list[str] = Field(default_factory=list, max_length=MAX_COMPOSITE_CANDIDATES)
     negative_boundary_applied: bool = False
     reason: str = Field(min_length=1)
 
@@ -313,14 +337,14 @@ class SemanticGenerationResult(BaseModel):
     # Every Stage-A candidate plus any full-context composite supporting spans, retained for audit in facet_evidence_json.
     candidate_evidence_by_id: dict[str, dict[str, str]]
 
-    # v0.25.0 per-facet canonical component-to-span grounding ledgers.
+    # v0.26.0 per-facet isolated component-to-span grounding ledgers.
     component_evidence_ledger_by_id: dict[str, Any] = Field(default_factory=dict)
 
     book_subject_analysis: BookSubjectAnalysis
 
     subject_analysis_retry_count: int = 0
 
-    generation_mode: str = "facet_independent_book_subject_plus_explicit_subject_relation_plus_canonical_component_contract_plus_full_context_component_recovery_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline"
+    generation_mode: str = "facet_independent_book_subject_plus_explicit_subject_relation_plus_isolated_component_verification_plus_deterministic_facet_assembly_plus_missing_component_only_full_context_recovery_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline"
 
     stage_retry_count: int = 0
 
@@ -1261,6 +1285,192 @@ Do not use any information other than the facet, frozen semantic definition, and
 """.strip()
 
 
+def build_isolated_component_prompt(
+    facet: QueryFacet,
+    component: Any,
+    evidence_span_id: str,
+    evidence_text: str,
+) -> str:
+    """Ask the model about ONE immutable component, never the full facet verdict."""
+
+    boundaries = "\n".join(
+        f"- {boundary}" for boundary in component.negative_boundaries
+    ) or "- NONE"
+
+    return f"""
+Evaluate ONE frozen semantic component against ONE exact evidence span.
+
+You are NOT deciding whether the full facet is satisfied. You are deciding only
+whether the ONE canonical component below is grounded by this ONE evidence span.
+Do not reason about, compensate for, or infer any other component of the facet.
+
+FACET NAME (context only)
+{facet.text}
+
+FROZEN FACET DEFINITION (meaning boundary only)
+{facet.semantic_definition}
+
+ONE CANONICAL COMPONENT
+component_id: {component.component_id}
+definition: {component.definition}
+
+COMPONENT-SPECIFIC NEGATIVE BOUNDARIES
+{boundaries}
+
+EXACT EVIDENCE
+{evidence_span_id}: {evidence_text}
+
+Return one IsolatedComponentVerification.
+
+Rules:
+- component_id must be exactly {component.component_id!r}.
+- grounding_relation="explicit" only when this evidence itself directly states,
+  directly paraphrases, or unmistakably instantiates this component.
+- grounding_relation="entailed" only when this component necessarily follows in
+  one short semantic step from this exact evidence.
+- grounding_relation="missing" when the component is absent, merely plausible,
+  analogous, metaphorical, dependent on typical-world knowledge, or blocked by
+  a negative boundary.
+- If a listed negative boundary applies to the proposed grounding, set
+  negative_boundary_applied=true and grounding_relation="missing".
+- A lexical resemblance is not enough when it uses the concept in the wrong
+  entity, relationship, temporal, metaphorical, or process sense.
+- Do not use any other book span, title, author, query facet, or world knowledge.
+- Do not decide a full-facet relation such as DIRECT/ENTAILED/ADJACENT.
+""".strip()
+
+
+def _validate_isolated_component_result(
+    result: IsolatedComponentVerification,
+    component: Any,
+    stage_name: str,
+) -> None:
+    if result.component_id != component.component_id:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: component_id must be exactly {component.component_id!r}."
+        )
+    if result.grounding_relation != "missing" and result.negative_boundary_applied:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: a component blocked by a negative boundary must be missing."
+        )
+
+
+def verify_isolated_component(
+    judge_model: Any,
+    facet: QueryFacet,
+    component: Any,
+    evidence_span_id: str,
+    evidence_text: str,
+) -> tuple[IsolatedComponentVerification, int]:
+    """Verify exactly one canonical component against one exact source span."""
+
+    validation_error: str | None = None
+    for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
+        prompt = build_isolated_component_prompt(
+            facet=facet,
+            component=component,
+            evidence_span_id=evidence_span_id,
+            evidence_text=evidence_text,
+        )
+        if validation_error:
+            prompt += (
+                "\n\nPREVIOUS VALIDATION FAILURE\n"
+                f"{validation_error}\n"
+                "Repair only the structure/consistency of this ONE component result. "
+                f"Return component_id={component.component_id!r}. Positive grounding "
+                "cannot coexist with negative_boundary_applied=true."
+            )
+        generated = judge_model.generate(
+            prompt=prompt,
+            schema=IsolatedComponentVerification,
+        )
+        try:
+            result = unpack_generated_model(generated, IsolatedComponentVerification)
+            assert isinstance(result, IsolatedComponentVerification)
+            _validate_isolated_component_result(
+                result=result,
+                component=component,
+                stage_name="isolated component verification",
+            )
+            return result, attempt - 1
+        except (JudgeOutputValidationError, ValueError, TypeError) as error:
+            validation_error = str(error)
+
+    raise JudgeOutputValidationError(
+        validation_error or "Unable to obtain valid isolated component verification."
+    )
+
+
+def _assemble_single_span_from_component_results(
+    facet: QueryFacet,
+    evidence_span_id: str,
+    component_results: list[IsolatedComponentVerification],
+) -> EvidenceVerification:
+    """Python alone derives the full-facet relation from isolated component calls."""
+
+    by_id = {result.component_id: result for result in component_results}
+    checks: list[ComponentEvidenceCheck] = []
+    for component in facet.required_components:
+        result = by_id[component.component_id]
+        established = result.grounding_relation != "missing"
+        checks.append(
+            ComponentEvidenceCheck(
+                component_id=component.component_id,
+                established=established,
+                grounding_relation=result.grounding_relation,
+                supporting_span_ids=[evidence_span_id] if established else [],
+                negative_boundary_applied=result.negative_boundary_applied,
+                reason=result.reason,
+            )
+        )
+
+    all_established = all(check.established for check in checks)
+    any_established = any(check.established for check in checks)
+    boundary_blocked = any(
+        (not check.established) and check.negative_boundary_applied
+        for check in checks
+    )
+    missing_ids = [check.component_id for check in checks if not check.established]
+
+    if all_established:
+        if all(check.grounding_relation == "explicit" for check in checks):
+            relation = VerificationRelation.DIRECT
+            inference_kind = EvidenceInferenceKind.EXPLICIT_COMPONENTS
+        else:
+            relation = VerificationRelation.ENTAILED
+            inference_kind = EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE
+        missing = None
+    elif boundary_blocked:
+        relation = VerificationRelation.UNSUPPORTED
+        inference_kind = EvidenceInferenceKind.NONE
+        missing = None
+    elif any_established:
+        relation = VerificationRelation.ADJACENT
+        inference_kind = EvidenceInferenceKind.INCOMPLETE_CONNECTION
+        missing = missing_ids[0]
+    else:
+        relation = VerificationRelation.UNSUPPORTED
+        inference_kind = EvidenceInferenceKind.NONE
+        missing = None
+
+    reason_parts = [
+        f"{check.component_id}={check.grounding_relation}"
+        + ("[boundary]" if check.negative_boundary_applied else "")
+        for check in checks
+    ]
+    return EvidenceVerification(
+        verification_relation=relation,
+        inference_kind=inference_kind,
+        component_checks=checks,
+        all_required_components_established=all_established,
+        missing_semantic_component=missing,
+        semantic_definition_exclusion_applied=boundary_blocked,
+        hard_exclusion_triggered=False,
+        hard_exclusion_id=None,
+        reason="Python deterministic component assembly: " + "; ".join(reason_parts),
+    )
+
+
 def verify_candidate_evidence(
     judge_model: Any,
     facet: QueryFacet,
@@ -1268,8 +1478,41 @@ def verify_candidate_evidence(
     evidence_text: str,
     config: dict[str, Any],
 ) -> tuple[EvidenceVerification, int]:
-    """Verify one candidate independently and enforce inference-kind consistency."""
+    """Verify one candidate.
 
+    Production v0.26 facets are decomposed into independent component calls and
+    Python deterministically assembles the facet relation. The legacy holistic
+    path remains only for old unit-test fixtures that have no required_components.
+    """
+
+    if facet.required_components:
+        component_results: list[IsolatedComponentVerification] = []
+        total_retries = 0
+        for component in facet.required_components:
+            result, retries = verify_isolated_component(
+                judge_model=judge_model,
+                facet=facet,
+                component=component,
+                evidence_span_id=evidence_span_id,
+                evidence_text=evidence_text,
+            )
+            component_results.append(result)
+            total_retries += retries
+
+        assembled = _assemble_single_span_from_component_results(
+            facet=facet,
+            evidence_span_id=evidence_span_id,
+            component_results=component_results,
+        )
+        _validate_verification_result(
+            result=assembled,
+            facet=facet,
+            config=config,
+            evidence_span_id=evidence_span_id,
+        )
+        return assembled, total_retries
+
+    # Legacy fixture compatibility only. Production v0.26 facets never enter here.
     validation_error: str | None = None
 
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
@@ -1764,6 +2007,228 @@ def _validate_composite_result(
         )
 
 
+def _component_prior_audit_text(
+    component_id: str,
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> str:
+    lines: list[str] = []
+    for span_id, verification in verification_results_by_span.items():
+        match = next(
+            (check for check in verification.component_checks if check.component_id == component_id),
+            None,
+        )
+        if match is None:
+            continue
+        lines.append(
+            f"- {span_id}: established={str(match.established).lower()}, "
+            f"grounding_relation={match.grounding_relation}, "
+            f"negative_boundary_applied={str(match.negative_boundary_applied).lower()}"
+        )
+    return "\n".join(lines) or "- NONE"
+
+
+def build_missing_component_recovery_prompt(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> str:
+    """Full-description search for ONE still-missing canonical component only."""
+
+    boundaries = "\n".join(
+        f"- {boundary}" for boundary in component.negative_boundaries
+    ) or "- NONE"
+    prior = _component_prior_audit_text(
+        component.component_id,
+        verification_results_by_span,
+    )
+
+    return f"""
+Search the FULL numbered description for evidence of ONE missing canonical component.
+
+You are NOT re-evaluating the full facet. You are NOT allowed to alter or
+reinterpret any other component. Find evidence only for the component below.
+
+FACET NAME (context only)
+{facet.text}
+
+FROZEN FACET DEFINITION (meaning boundary only)
+{facet.semantic_definition}
+
+ONE MISSING CANONICAL COMPONENT
+component_id: {component.component_id}
+definition: {component.definition}
+
+COMPONENT-SPECIFIC NEGATIVE BOUNDARIES
+{boundaries}
+
+FULL NUMBERED DESCRIPTION
+{format_description_spans(spans)}
+
+PRIOR SINGLE-SPAN AUDIT FOR THIS SAME COMPONENT
+{prior}
+
+Return one FullContextComponentRecovery.
+
+Rules:
+- component_id must be exactly {component.component_id!r}.
+- This stage may inspect spans that Stage A did not select.
+- grounding_relation="explicit" when the cited span(s) directly establish only
+  this component; "entailed" when they jointly/individually necessarily establish
+  only this component in one short inference; otherwise "missing".
+- Positive grounding requires 1-{MAX_COMPOSITE_CANDIDATES} exact supplied span IDs.
+- Missing requires supporting_span_ids=[].
+- If a component-specific negative boundary applies, return missing and
+  negative_boundary_applied=true.
+- Do NOT overturn a prior missing decision by simply citing the same already-
+  audited span again. A positive recovery must use at least one previously
+  unaudited span for this component, unless the positive result depends on an
+  explicit cross-span reference whose antecedent is supplied in another cited span.
+- Do not create facts from analogy, metaphor, genre convention, plausibility,
+  typical-world association, or outside knowledge.
+- LOCATION IS NOT MOVEMENT; generic recovery is not redemption; lost time/place
+  is not personal significant loss; reconstructing family history is not
+  rebuilding one's own life after loss when those boundaries apply.
+""".strip()
+
+
+def _validate_component_recovery_result(
+    result: FullContextComponentRecovery,
+    component: Any,
+    spans: dict[str, str],
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> None:
+    if result.component_id != component.component_id:
+        raise JudgeOutputValidationError(
+            f"component recovery: component_id must be exactly {component.component_id!r}."
+        )
+    ids = list(result.supporting_span_ids)
+    if len(ids) != len(set(ids)):
+        raise JudgeOutputValidationError("component recovery: supporting span IDs must be unique.")
+    unknown = [span_id for span_id in ids if span_id not in spans]
+    if unknown:
+        raise JudgeOutputValidationError(
+            f"component recovery: unknown supporting span IDs: {unknown}."
+        )
+    if result.grounding_relation == "missing":
+        if ids:
+            raise JudgeOutputValidationError(
+                "component recovery: missing result must not cite supporting spans."
+            )
+        return
+    if result.negative_boundary_applied:
+        raise JudgeOutputValidationError(
+            "component recovery: positive grounding cannot apply a negative boundary."
+        )
+    if not ids:
+        raise JudgeOutputValidationError(
+            "component recovery: positive grounding requires supporting spans."
+        )
+
+    # Missing-component-only monotonicity: a positive recovery cannot simply
+    # flip the same already-audited span(s). At least one cited span must be new
+    # for this component unless multiple spans explicitly resolve a cross-span
+    # reference. We conservatively require a new span here; previously audited
+    # spans may accompany it as context.
+    has_new_span = False
+    for span_id in ids:
+        previous = verification_results_by_span.get(span_id)
+        if previous is None:
+            has_new_span = True
+            break
+        match = next(
+            (check for check in previous.component_checks if check.component_id == component.component_id),
+            None,
+        )
+        if match is None:
+            has_new_span = True
+            break
+    if not has_new_span:
+        raise JudgeOutputValidationError(
+            "component recovery: positive result must cite at least one span not previously audited for this missing component."
+        )
+
+
+def recover_missing_component(
+    judge_model: Any,
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> tuple[FullContextComponentRecovery, int]:
+    validation_error: str | None = None
+    for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
+        prompt = build_missing_component_recovery_prompt(
+            facet=facet,
+            component=component,
+            spans=spans,
+            verification_results_by_span=verification_results_by_span,
+        )
+        if validation_error:
+            prompt += (
+                "\n\nPREVIOUS VALIDATION FAILURE\n"
+                f"{validation_error}\n"
+                "Repair only this ONE component result. Do not change any other component "
+                "or infer the full facet. If no valid new grounding exists, return "
+                "grounding_relation='missing' with no supporting spans."
+            )
+        generated = judge_model.generate(
+            prompt=prompt,
+            schema=FullContextComponentRecovery,
+        )
+        try:
+            result = unpack_generated_model(generated, FullContextComponentRecovery)
+            assert isinstance(result, FullContextComponentRecovery)
+            _validate_component_recovery_result(
+                result=result,
+                component=component,
+                spans=spans,
+                verification_results_by_span=verification_results_by_span,
+            )
+            return result, attempt - 1
+        except (JudgeOutputValidationError, ValueError, TypeError) as error:
+            validation_error = str(error)
+
+    # This is not a transport/schema fallback for the whole facet. It is a
+    # deterministic enforcement of the missing-component-only invariant: if the
+    # model cannot supply a structurally valid new grounding, that component
+    # remains missing and the audit records why.
+    prior_boundary_applied = any(
+        check.negative_boundary_applied
+        for verification in verification_results_by_span.values()
+        for check in verification.component_checks
+        if check.component_id == component.component_id
+    )
+    return (
+        FullContextComponentRecovery(
+            component_id=component.component_id,
+            grounding_relation="missing",
+            supporting_span_ids=[],
+            negative_boundary_applied=prior_boundary_applied,
+            reason=(
+                "component_recovery_rejected_after_bounded_repairs: "
+                + (validation_error or "unknown validation failure")
+            ),
+        ),
+        MAX_STAGE_ATTEMPTS - 1,
+    )
+
+
+def _best_prior_component_check(
+    component_id: str,
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> ComponentEvidenceCheck | None:
+    strength = {"missing": 0, "entailed": 1, "explicit": 2}
+    candidates: list[ComponentEvidenceCheck] = []
+    for verification in verification_results_by_span.values():
+        for check in verification.component_checks:
+            if check.component_id == component_id and check.established:
+                candidates.append(check)
+    if not candidates:
+        return None
+    return max(candidates, key=lambda item: strength.get(item.grounding_relation, 0))
+
+
 def verify_composite_evidence(
     judge_model: Any,
     facet: QueryFacet,
@@ -1771,11 +2236,113 @@ def verify_composite_evidence(
     config: dict[str, Any],
     verification_results_by_span: dict[str, EvidenceVerification] | None = None,
 ) -> tuple[CompositeEvidenceVerification, int]:
-    """
-    Scan the full description, self-select 1-4 supporting spans, and determine
-    the full-context relation in one isolated call.
-    """
+    """v0.26 recovers only missing components and assembles the facet in Python."""
 
+    if facet.required_components:
+        # Use the caller's full config for final validation so inference mapping
+        # remains identical to the frozen judge configuration.
+        prior = verification_results_by_span or {}
+        total_retries = 0
+        checks: list[ComponentEvidenceCheck] = []
+        recovery_notes: list[str] = []
+        for component in facet.required_components:
+            existing = _best_prior_component_check(component.component_id, prior)
+            if existing is not None:
+                checks.append(existing.model_copy(deep=True))
+                recovery_notes.append(f"{component.component_id}=kept_from_single_span")
+                continue
+            recovered, retries = recover_missing_component(
+                judge_model=judge_model,
+                facet=facet,
+                component=component,
+                spans=spans,
+                verification_results_by_span=prior,
+            )
+            total_retries += retries
+            established = recovered.grounding_relation != "missing"
+            prior_boundary_applied = any(
+                check.negative_boundary_applied
+                for verification in prior.values()
+                for check in verification.component_checks
+                if check.component_id == component.component_id
+            )
+            checks.append(
+                ComponentEvidenceCheck(
+                    component_id=component.component_id,
+                    established=established,
+                    grounding_relation=recovered.grounding_relation,
+                    supporting_span_ids=list(recovered.supporting_span_ids) if established else [],
+                    negative_boundary_applied=(
+                        False if established
+                        else recovered.negative_boundary_applied or prior_boundary_applied
+                    ),
+                    reason=recovered.reason,
+                )
+            )
+            recovery_notes.append(f"{component.component_id}=recovery:{recovered.grounding_relation}")
+
+        all_established = all(check.established for check in checks)
+        any_established = any(check.established for check in checks)
+        boundary_blocked = any(
+            (not check.established) and check.negative_boundary_applied
+            for check in checks
+        )
+        missing_ids = [check.component_id for check in checks if not check.established]
+        if all_established:
+            relation = VerificationRelation.ENTAILED
+            inference_kind = EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE
+            missing = None
+        elif boundary_blocked:
+            relation = VerificationRelation.UNSUPPORTED
+            inference_kind = EvidenceInferenceKind.NONE
+            missing = None
+        elif any_established:
+            relation = VerificationRelation.ADJACENT
+            inference_kind = EvidenceInferenceKind.INCOMPLETE_CONNECTION
+            missing = missing_ids[0]
+        else:
+            relation = VerificationRelation.UNSUPPORTED
+            inference_kind = EvidenceInferenceKind.NONE
+            missing = None
+
+        supporting: list[str] = []
+        if relation in {VerificationRelation.ADJACENT, VerificationRelation.ENTAILED}:
+            for check in checks:
+                if check.established:
+                    for span_id in check.supporting_span_ids:
+                        if span_id not in supporting:
+                            supporting.append(span_id)
+        if len(supporting) > MAX_COMPOSITE_CANDIDATES:
+            relation = VerificationRelation.UNSUPPORTED
+            inference_kind = EvidenceInferenceKind.NONE
+            supporting = []
+            missing = None
+            all_established = False
+            recovery_notes.append("support_union_exceeded_max_composite_candidates")
+
+        result = CompositeEvidenceVerification(
+            supporting_span_ids=supporting,
+            verification_relation=relation,
+            inference_kind=inference_kind,
+            component_checks=checks,
+            all_required_components_established=all_established,
+            semantic_definition_exclusion_applied=boundary_blocked,
+            hard_exclusion_triggered=False,
+            hard_exclusion_id=None,
+            combined_evidence_summary="Python deterministic component composition: " + "; ".join(recovery_notes),
+            missing_semantic_component=missing,
+            reason="No holistic facet verifier was used; relation assembled from isolated canonical component outcomes.",
+        )
+        _validate_composite_result(
+            result=result,
+            facet=facet,
+            spans=spans,
+            config=config,
+            verification_results_by_span={},
+        )
+        return result, total_retries
+
+    # Legacy fixture compatibility only.
     validation_error: str | None = None
 
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
@@ -2071,7 +2638,7 @@ def evaluate_one_facet(
     int,
 ]:
     """
-    Run v0.25.0 facet evaluation against one frozen book subject:
+    Run v0.26.0 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -2539,7 +3106,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.25.0 with one frozen book-subject analysis followed by every frozen facet.
+    Run v0.26.0 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -2557,7 +3124,7 @@ def generate_validated_semantic_verdict(
             f"Description is empty for case {row['case_id']}."
         )
 
-    # v0.25.0: freeze one facet-independent subject analysis before ANY facet
+    # v0.26.0: freeze one facet-independent subject analysis before ANY facet
     # role classification. No query/facet is visible to this call.
     book_subject, subject_retries = assess_book_subject(
         judge_model=judge_model,
