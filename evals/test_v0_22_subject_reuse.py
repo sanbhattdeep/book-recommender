@@ -7,6 +7,7 @@ import pandas as pd
 
 from semantic_relevance_facet_judge import (
     BookSubjectAnalysis,
+    ComponentEvidenceCheck,
     EvidenceSelection,
     EvidenceVerification,
     ProminenceAssessment,
@@ -21,7 +22,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 ROOT = Path(__file__).resolve().parents[1]
-config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.23.0.json').read_text())
+config = json.loads((ROOT / 'evals/judge_configs/semantic_relevance_judge.v0.25.0.json').read_text())
 
 spec = QueryFacetSpec(
     query_id='SYN',
@@ -59,9 +60,13 @@ class Model:
             sid = 'S1' if self.selection_calls == 1 else 'S2'
             return EvidenceSelection(evidence_span_ids=[sid], reason='synthetic candidate')
         if schema is EvidenceVerification:
+            sid = 'S2' if 'S2:' in prompt else 'S1'
             return EvidenceVerification(
                 verification_relation=VerificationRelation.DIRECT,
                 inference_kind=EvidenceInferenceKind.EXPLICIT_COMPONENTS,
+                component_checks=[
+                    ComponentEvidenceCheck(component_id='synthetic content', established=True, supporting_span_ids=[sid], reason='grounded'),
+                ],
                 all_required_components_established=True,
                 missing_semantic_component=None,
                 semantic_definition_exclusion_applied=False,

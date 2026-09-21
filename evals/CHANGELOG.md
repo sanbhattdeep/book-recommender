@@ -1,5 +1,51 @@
 # Evaluation Changelog
 
+# Semantic relevance judge v0.25.0
+
+## Summary
+
+v0.25.0 replaces model-authored semantic component labels with canonical component IDs frozen in facet spec v0.9.0. It is intended to fix the four remaining v0.24 targeted failures while preserving the 13 targeted cases that already passed.
+
+## Semantic architecture changes
+
+- Added `required_components` to every facet in `semantic_relevance_query_facets.v0.9.0.json`.
+- Each required component has a stable `component_id`, generic definition, and generic negative boundaries.
+- `ComponentEvidenceCheck` now returns `component_id` and `negative_boundary_applied`.
+- Python requires the returned ledger to match the frozen component IDs exactly and in order.
+- `missing_semantic_component` must name a real missing canonical component ID for production facets.
+- Full-context recovery may inspect Stage-A-unseen spans and may use 1-4 supporting spans.
+- Canonical monotonicity prevents the same previously audited evidence from resurrecting a component that all cited single-span audits marked missing.
+- Repeated structured-output validation failure now propagates as an evaluation failure instead of being silently converted to semantic `UNSUPPORTED`.
+
+## Generic boundary additions
+
+- parent-child relation type cannot be substituted with marriage/romance/friendship/sibling relations;
+- location/trapping/pursuit/rescue is not movement/travel;
+- metaphorical/historical `lost time/place/past` is not automatically personal significant loss;
+- reconstructing history or another person's former life is not rebuilding one's own life after grief/loss;
+- strong affective presentation can satisfy `moving` without literal reader-response wording.
+
+## Frozen / unchanged behavior
+
+- deterministic 0-4 aggregation semantics;
+- rubric v0.1.0;
+- book-subject extraction and subject-relation role resolution;
+- candidate ranking;
+- hard-exclusion precheck;
+- dataset version 2.1.0 and label-revision manifest;
+- direct Ollama recovery transport.
+
+## Targeted gate
+
+Focus assertions:
+
+- `U_Q06_T02 >= 3`
+- `U_Q07_T10 <= 1`
+- `U_Q04_NEG <= 1`
+- `U_Q06_T70 <= 1`
+
+All other v0.24 targeted protections remain active.
+
 # Semantic relevance judge v0.23.0
 
 ## Verification hardening

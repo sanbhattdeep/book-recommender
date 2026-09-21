@@ -1,5 +1,5 @@
 """
-Run one pending development case through the v0.23 development pipeline using direct
+Run one pending development case through the v0.25 development pipeline using direct
 Ollama structured-output transport instead of DeepEval's transport wrapper.
 
 Use only as an operational recovery path for a reproducible DeepEval timeout or
@@ -8,7 +8,7 @@ recorded in the run directory.
 
 Example:
     uv run python evals/run_judge_development_direct_transport.py `
-      --resume evals/runs/semantic_relevance_v0_23_development/<RUN_ID> `
+      --resume evals/runs/semantic_relevance_v0_25_development/<RUN_ID> `
       --case-id U_Q09_T02
 """
 
@@ -40,12 +40,14 @@ class DirectOllamaTransport:
         base_url: str,
         temperature: float = 0.0,
         timeout_seconds: float = 180.0,
+        num_predict: int = 768,
         **_: Any,
     ) -> None:
         self.model = model
         self.base_url = base_url.rstrip("/")
         self.temperature = float(temperature)
         self.timeout_seconds = float(timeout_seconds)
+        self.num_predict = int(num_predict)
 
     def generate(
         self,
@@ -54,14 +56,30 @@ class DirectOllamaTransport:
         **_: Any,
     ):
         if schema is None:
-            raise TypeError("v0.23 development expects structured-output schemas.")
+            raise TypeError("v0.25 development expects structured-output schemas.")
+
+        schema_name = schema.__name__
+
+        # Ollama's JSON-schema constrained decoding reproducibly stalls for the
+        # CompositeEvidenceVerification schema on U2_Q03_T30. The semantic
+        # prompt is already explicit about every output field and invariant, so
+        # the recovery transport uses Ollama JSON mode for this one schema and
+        # leaves Pydantic + judge validation to the normal pipeline. This is a
+        # transport-only workaround; the semantic prompt/config/scoring remain
+        # unchanged.
+        composite_json_mode = schema_name == "CompositeEvidenceVerification"
+        output_format: Any = "json" if composite_json_mode else schema.model_json_schema()
+        format_mode = "json" if composite_json_mode else "json_schema"
 
         payload = {
             "model": self.model,
             "messages": [{"role": "user", "content": prompt}],
             "stream": False,
-            "format": schema.model_json_schema(),
-            "options": {"temperature": self.temperature},
+            "format": output_format,
+            "options": {
+                "temperature": self.temperature,
+                "num_predict": self.num_predict,
+            },
         }
 
         request = urllib.request.Request(
@@ -71,6 +89,11 @@ class DirectOllamaTransport:
             method="POST",
         )
 
+        print(
+            f"[direct-ollama] starting schema={schema_name}, "
+            f"format={format_mode}, prompt_chars={len(prompt)}, "
+            f"timeout={self.timeout_seconds:.0f}s, num_predict={self.num_predict}"
+        )
         start = time.monotonic()
         with urllib.request.urlopen(request, timeout=self.timeout_seconds) as response:
             envelope = json.loads(response.read().decode("utf-8"))
@@ -80,8 +103,24 @@ class DirectOllamaTransport:
         if not isinstance(content, str) or not content.strip():
             raise RuntimeError("Ollama returned no message.content.")
 
-        result = schema.model_validate_json(content)
-        print(f"[direct-ollama] schema={schema.__name__}, elapsed={elapsed:.2f}s")
+        # Return a plain mapping so the existing pipeline performs the normal
+        # Pydantic/schema validation inside its bounded repair path.
+        try:
+            result = json.loads(content)
+        except json.JSONDecodeError as error:
+            raise RuntimeError(
+                f"Ollama returned invalid JSON for {schema_name}."
+            ) from error
+        if not isinstance(result, dict):
+            raise RuntimeError(
+                f"Ollama returned non-object JSON for {schema_name}: "
+                f"{type(result)!r}."
+            )
+
+        print(
+            f"[direct-ollama] schema={schema_name}, format={format_mode}, "
+            f"elapsed={elapsed:.2f}s"
+        )
         return result
 
 
@@ -99,6 +138,12 @@ def main() -> None:
     parser.add_argument("--resume", required=True)
     parser.add_argument("--case-id", required=True)
     parser.add_argument("--timeout", type=float, default=180.0)
+    parser.add_argument(
+        "--num-predict",
+        type=int,
+        default=768,
+        help="Maximum Ollama output tokens per request (default: 768).",
+    )
     args = parser.parse_args()
 
     run_dir = resolve_run_dir(args.resume)
@@ -111,6 +156,9 @@ def main() -> None:
             raise RuntimeError(f"{case_id} is already complete; refusing to overwrite it.")
 
     timeout_seconds = float(args.timeout)
+    num_predict = int(args.num_predict)
+    if num_predict < 64:
+        raise ValueError("--num-predict must be at least 64.")
 
     class BoundDirectOllamaTransport(DirectOllamaTransport):
         def __init__(self, model: str, base_url: str, temperature: float = 0.0, **kwargs: Any):
@@ -119,6 +167,7 @@ def main() -> None:
                 base_url=base_url,
                 temperature=temperature,
                 timeout_seconds=timeout_seconds,
+                num_predict=num_predict,
                 **kwargs,
             )
 
@@ -148,6 +197,8 @@ def main() -> None:
         "judge_version": runner.JUDGE_CONFIG_VERSION,
         "structured_output": True,
         "http_timeout_seconds": timeout_seconds,
+        "num_predict": num_predict,
+        "composite_output_format": "ollama_json_mode_with_pipeline_pydantic_validation",
         "prompts_facets_scoring_unchanged": True,
     }
 

@@ -6,9 +6,11 @@ import json
 from pathlib import Path
 
 from semantic_relevance_facet_judge import (
+    ComponentEvidenceCheck,
     CompositeEvidenceVerification,
     EvidenceSelection,
     EvidenceVerification,
+    JudgeOutputValidationError,
     evaluate_one_facet,
 )
 from semantic_relevance_facet_scoring import (
@@ -19,7 +21,7 @@ from semantic_relevance_facet_scoring import (
 )
 
 EVALS_DIR = Path(__file__).resolve().parent
-CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.23.0.json"
+CONFIG_FILE = EVALS_DIR / "judge_configs" / "semantic_relevance_judge.v0.25.0.json"
 config = json.loads(CONFIG_FILE.read_text(encoding="utf-8"))
 
 facet = QueryFacet(
@@ -51,6 +53,9 @@ class RepeatedMalformedCompositeModel:
             return EvidenceVerification(
                 verification_relation=VerificationRelation.UNSUPPORTED,
                 inference_kind=EvidenceInferenceKind.NONE,
+                component_checks=[
+                    ComponentEvidenceCheck(component_id="full synthetic facet", established=False, supporting_span_ids=[], reason="missing"),
+                ],
                 all_required_components_established=False,
                 missing_semantic_component="full synthetic facet",
                 semantic_definition_exclusion_applied=False,
@@ -65,6 +70,9 @@ class RepeatedMalformedCompositeModel:
                 supporting_span_ids=["S2"],
                 verification_relation=VerificationRelation.ENTAILED,
                 inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+                component_checks=[
+                    ComponentEvidenceCheck(component_id="full synthetic facet", established=False, supporting_span_ids=[], reason="missing"),
+                ],
                 all_required_components_established=False,
                 semantic_definition_exclusion_applied=False,
                 combined_evidence_summary="synthetic malformed positive",
@@ -76,25 +84,18 @@ class RepeatedMalformedCompositeModel:
 
 
 model = RepeatedMalformedCompositeModel()
-assessment, evidence, candidate_texts, retries = evaluate_one_facet(
-    judge_model=model,
-    query_id="SYN",
-    facet=facet,
-    spans=spans,
-    config=config,
-)
+try:
+    evaluate_one_facet(
+        judge_model=model,
+        query_id="SYN",
+        facet=facet,
+        spans=spans,
+        config=config,
+    )
+except JudgeOutputValidationError as error:
+    assert "Unable to obtain a structurally valid full-context verification" in str(error)
+else:
+    raise AssertionError("Malformed full-context output was silently converted to semantic UNSUPPORTED")
 
 assert model.composite_calls == 2
-assert assessment.verification_relation == VerificationRelation.UNSUPPORTED
-assert assessment.prominence == FacetProminence.NOT_APPLICABLE
-assert assessment.composite_verification_attempted is True
-assert assessment.composite_evidence_span_ids == []
-assert assessment.composite_verification_relation == VerificationRelation.UNSUPPORTED
-assert assessment.composite_missing_semantic_component is None
-assert assessment.composite_verification_reason.startswith(
-    "structured_output_recovery_fallback:"
-)
-assert evidence == spans["S1"]
-assert candidate_texts == {"S1": spans["S1"]}
-
-print("v0.22.0 malformed full-context composite fallback test passed.")
+print("v0.25.0 malformed full-context output propagates as evaluation failure")

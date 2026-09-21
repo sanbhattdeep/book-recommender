@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "dataset_version": "2.1.0",
+  "rubric_version": "0.1.0",
+  "case_count": 90,
+  "sources": [
+    {
+      "path": "evals\\datasets\\semantic_relevance_v0.18_development.v1.0.0.csv",
+      "cases": 60,
+      "sha256": "345c87351b4ffb216a0fbf45f29c87e23e4d8d8d6bdf19dd357c1caefaaca692"
+    },
+    {
+      "path": "evals\\datasets\\semantic_relevance_fresh_validation.v2.0.0.csv",
+      "cases": 30,
+      "sha256": "cbd2426da942ba6731f7e4237a27963046f48a1cdfff3318a00716fcce08fecd"
+    }
+  ],
+  "label_revisions": {
+    "path": "evals\\datasets\\semantic_relevance_label_revisions.v1.0.0.json",
+    "sha256": "e265bc5508e1446812731070132054af1c2ad3e71623f787106b7784ea276a0e",
+    "count": 1
+  },
+  "output": "evals\\datasets\\semantic_relevance_v0.24_development.v2.1.0.csv",
+  "output_sha256": "5449dc98991cda6e0f4b3385a4b073f1ef0f9a9945f5948724fc72b6f744e634",
+  "holdout_read": false,
+  "methodology_note": "All 90 rows are consumed development evidence. The fresh 30-case final holdout remains untouched and is not an input."
+}

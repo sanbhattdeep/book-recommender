@@ -10,7 +10,8 @@ required=[
  E/'datasets/semantic_relevance_v0.23_regression_manifest.v2.0.0.json',
  E/'datasets/semantic_relevance_label_revisions.v1.0.0.json',
  E/'analyze_v0_23_targeted.py', E/'analyze_v0_23_development.py',
- E/'run_judge_development.py', E/'build_v0_23_development_dataset.py'
+ E/'run_judge_development.py', E/'run_judge_development_direct_transport.py',
+ E/'build_v0_23_development_dataset.py'
 ]
 for p in required: assert p.exists(), p
 cfg=json.loads(required[2].read_text(encoding='utf-8'))
@@ -23,6 +24,23 @@ assert 'book_subject_stage' in cfg
 runner_text=(E/'run_judge_development.py').read_text(encoding='utf-8')
 assert 'EVALUATION_DATASET_VERSION = "2.1.0"' in runner_text
 assert 'JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"' in runner_text
+
+# r4 direct-transport recovery contract: bound output generation and avoid the
+# reproducible Ollama JSON-schema constrained-decoding stall for composite output.
+direct_text=(E/'run_judge_development_direct_transport.py').read_text(encoding='utf-8')
+assert 'schema_name == "CompositeEvidenceVerification"' in direct_text
+assert '"num_predict": self.num_predict' in direct_text
+assert 'format_mode = "json" if composite_json_mode else "json_schema"' in direct_text
+
+# r5 hard-exclusion consistency contract: once a valid frozen exclusion is
+# triggered, relation/inference fields are deterministic consequences rather
+# than independent model judgments. Invented IDs must still be rejected.
+judge_text=(E/'semantic_relevance_facet_judge.py').read_text(encoding='utf-8')
+assert 'def _canonicalize_valid_triggered_hard_exclusion' in judge_text
+assert 'result.verification_relation = VerificationRelation.UNSUPPORTED' in judge_text
+assert 'result.inference_kind = EvidenceInferenceKind.NONE' in judge_text
+assert 'result.supporting_span_ids = []' in judge_text
+
 # Frozen/scoring artifacts must remain byte-identical to the v0.22.2 package.
 expected_hashes={
  E/'semantic_relevance_facet_scoring.py':'69cb7cea0ba288724bd623679d4d0b270f3a9ad1a1810146a02c4383e8f9b933',
@@ -45,7 +63,9 @@ for name in [
  'test_v0_23_component_completeness.py',
  'test_v0_23_verifier_recovery.py',
  'test_v0_23_no_hard_exclusion_normalization.py',
+ 'test_v0_23_valid_hard_exclusion_canonicalization.py',
  'test_v0_23_label_revision_manifest.py',
+ 'test_v0_23_direct_transport_contract.py',
  'test_facet_scoring.py',
  'test_deterministic_direct_cues.py',
  'test_polarity_aware_direct_cues.py',

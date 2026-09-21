@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.23.0 with component-complete semantic verification.
+Semantic facet judge v0.25.0 with canonical component-grounded semantic verification.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -225,16 +225,30 @@ class EvidenceSelection(BaseModel):
     reason: str = Field(min_length=1)
 
 
-class EvidenceVerification(BaseModel):
-    """Structured output for one isolated verification.
+class ComponentEvidenceCheck(BaseModel):
+    """One canonical required component grounded to exact source spans.
 
-    v0.23.0 makes component completeness auditable. Positive DIRECT/ENTAILED
-    judgments are invalid unless the model explicitly confirms that every
-    indispensable component of the frozen semantic definition is established.
+    v0.25.0 makes component identity immutable: `component_id` must be copied
+    from the facet specification.  The model decides only whether that frozen
+    component is established and which supplied spans ground it.
     """
+
+    component_id: str = Field(min_length=1)
+    established: bool
+    supporting_span_ids: list[str] = Field(
+        default_factory=list,
+        max_length=MAX_COMPOSITE_CANDIDATES,
+    )
+    negative_boundary_applied: bool = False
+    reason: str = Field(min_length=1)
+
+
+class EvidenceVerification(BaseModel):
+    """Structured output for one isolated verification with component ledger."""
 
     verification_relation: VerificationRelation
     inference_kind: EvidenceInferenceKind
+    component_checks: list[ComponentEvidenceCheck] = Field(min_length=1, max_length=8)
     all_required_components_established: bool
     missing_semantic_component: str | None = None
     semantic_definition_exclusion_applied: bool = False
@@ -244,7 +258,7 @@ class EvidenceVerification(BaseModel):
 
 
 class CompositeEvidenceVerification(BaseModel):
-    """Self-selecting full-context multi-span verification output."""
+    """Self-selecting full-context multi-span verification output with ledger."""
 
     supporting_span_ids: list[str] = Field(
         default_factory=list,
@@ -252,6 +266,7 @@ class CompositeEvidenceVerification(BaseModel):
     )
     verification_relation: VerificationRelation
     inference_kind: EvidenceInferenceKind
+    component_checks: list[ComponentEvidenceCheck] = Field(min_length=1, max_length=8)
     all_required_components_established: bool
     semantic_definition_exclusion_applied: bool = False
     hard_exclusion_triggered: bool = False
@@ -298,11 +313,14 @@ class SemanticGenerationResult(BaseModel):
     # Every Stage-A candidate plus any full-context composite supporting spans, retained for audit in facet_evidence_json.
     candidate_evidence_by_id: dict[str, dict[str, str]]
 
+    # v0.25.0 per-facet canonical component-to-span grounding ledgers.
+    component_evidence_ledger_by_id: dict[str, Any] = Field(default_factory=dict)
+
     book_subject_analysis: BookSubjectAnalysis
 
     subject_analysis_retry_count: int = 0
 
-    generation_mode: str = "facet_independent_book_subject_plus_explicit_subject_relation_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline"
+    generation_mode: str = "facet_independent_book_subject_plus_explicit_subject_relation_plus_canonical_component_contract_plus_full_context_component_recovery_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline"
 
     stage_retry_count: int = 0
 
@@ -363,6 +381,28 @@ def format_description_spans(
         for span_id, span_text
         in spans.items()
     )
+
+
+def format_required_components(facet: QueryFacet) -> str:
+    """Render the frozen canonical component contract for one facet."""
+
+    if not facet.required_components:
+        return "NONE — legacy fixture without canonical components."
+
+    blocks: list[str] = []
+    for component in facet.required_components:
+        boundaries = component.negative_boundaries or []
+        boundary_text = (
+            "\n".join(f"    - {item}" for item in boundaries)
+            if boundaries
+            else "    - NONE"
+        )
+        blocks.append(
+            f"- component_id: {component.component_id}\n"
+            f"  definition: {component.definition}\n"
+            f"  negative_boundaries:\n{boundary_text}"
+        )
+    return "\n".join(blocks)
 
 
 # =============================================================================
@@ -695,6 +735,40 @@ def _normalize_impossible_hard_exclusion_output(
     return result
 
 
+def _canonicalize_valid_triggered_hard_exclusion(
+    result: EvidenceVerification | CompositeEvidenceVerification,
+    facet: QueryFacet,
+) -> EvidenceVerification | CompositeEvidenceVerification:
+    """Canonicalize fields mechanically implied by a valid hard exclusion.
+
+    A triggered frozen hard exclusion is already a negative semantic decision.
+    Once the model names an exclusion ID that actually belongs to the facet,
+    ``verification_relation=unsupported`` and ``inference_kind=none`` are not
+    independent judgments; they are deterministic consequences of that trigger.
+
+    Invalid or invented exclusion IDs are deliberately left untouched so the
+    normal validator still rejects them. Composite positive-support IDs are
+    cleared because the composite contract requires no supporting spans for an
+    UNSUPPORTED result. No component-completeness or semantic-definition fields
+    are rewritten.
+    """
+
+    if not result.hard_exclusion_triggered:
+        return result
+
+    valid_ids = {item.exclusion_id for item in facet.hard_exclusions}
+    if not result.hard_exclusion_id or result.hard_exclusion_id not in valid_ids:
+        return result
+
+    result.verification_relation = VerificationRelation.UNSUPPORTED
+    result.inference_kind = EvidenceInferenceKind.NONE
+
+    if isinstance(result, CompositeEvidenceVerification):
+        result.supporting_span_ids = []
+
+    return result
+
+
 def _validate_hard_exclusion_contract(
     *,
     relation: VerificationRelation,
@@ -731,7 +805,7 @@ def _context_role_from_decomposed_signals(
 ) -> FacetContextRole:
     """Resolve the explicit facet-to-frozen-subject relationship deterministically.
 
-    v0.23.0 preserves the mutually exclusive subject_relation as the primary structural
+    v0.24.0 preserves the mutually exclusive subject_relation as the primary structural
     signal. The legacy substantive override is retained only for causal/background
     material that is independently developed beyond its causal role.
     """
@@ -818,7 +892,7 @@ def _validate_component_completeness_contract(
     semantic_definition_exclusion_applied: bool,
     stage_name: str,
 ) -> None:
-    """Mechanically enforce the v0.23.0 component-completeness contract."""
+    """Mechanically enforce the v0.25.0 canonical component-completeness contract."""
 
     missing = (missing_semantic_component or "").strip()
 
@@ -865,11 +939,163 @@ def _validate_component_completeness_contract(
         )
 
 
+def _canonical_component_ids(facet: QueryFacet) -> list[str]:
+    """Return canonical component IDs in frozen facet-spec order."""
+
+    return [component.component_id for component in facet.required_components]
+
+
+def _validate_component_evidence_ledger(
+    *,
+    component_checks: list[ComponentEvidenceCheck],
+    all_required_components_established: bool,
+    allowed_span_ids: set[str],
+    relation: VerificationRelation,
+    facet: QueryFacet,
+    stage_name: str,
+) -> None:
+    """Validate the v0.25 canonical component-to-source grounding contract.
+
+    For production v0.25 facets, the returned component IDs must exactly equal
+    the frozen required-component IDs from the facet specification.  This makes
+    it impossible for the model to silently omit a relationship/entity/process
+    component and replace it with easier evidence-derived labels.
+
+    Legacy unit-test fixtures without `required_components` retain the older
+    non-empty/unique-ID checks so historical tests remain useful.
+    """
+
+    if not component_checks:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: component_checks must contain at least one indispensable component."
+        )
+
+    returned_ids = [check.component_id.strip() for check in component_checks]
+    if any(not component_id for component_id in returned_ids):
+        raise JudgeOutputValidationError(
+            f"{stage_name}: component_id values must contain meaningful text."
+        )
+    if len(returned_ids) != len(set(returned_ids)):
+        raise JudgeOutputValidationError(
+            f"{stage_name}: component_checks contains duplicate component_id values."
+        )
+
+    expected_ids = _canonical_component_ids(facet)
+    if expected_ids:
+        if returned_ids != expected_ids:
+            missing = [component_id for component_id in expected_ids if component_id not in returned_ids]
+            extra = [component_id for component_id in returned_ids if component_id not in expected_ids]
+            wrong_order = not missing and not extra and returned_ids != expected_ids
+            detail = []
+            if missing:
+                detail.append(f"missing={missing}")
+            if extra:
+                detail.append(f"unexpected={extra}")
+            if wrong_order:
+                detail.append("component IDs are not in frozen facet-spec order")
+            raise JudgeOutputValidationError(
+                f"{stage_name}: component_checks must exactly match the frozen canonical "
+                f"component IDs {expected_ids}; {'; '.join(detail)}."
+            )
+
+    for check in component_checks:
+        ids = list(check.supporting_span_ids)
+        if len(ids) != len(set(ids)):
+            raise JudgeOutputValidationError(
+                f"{stage_name}: component {check.component_id!r} contains duplicate supporting span IDs."
+            )
+        unknown = [span_id for span_id in ids if span_id not in allowed_span_ids]
+        if unknown:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: component {check.component_id!r} cites unknown span IDs: {unknown}."
+            )
+        if check.established and not ids:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: established component {check.component_id!r} must cite source evidence."
+            )
+        if not check.established and ids:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: missing component {check.component_id!r} must not cite supporting spans."
+            )
+        if check.established and check.negative_boundary_applied:
+            raise JudgeOutputValidationError(
+                f"{stage_name}: component {check.component_id!r} cannot be established when "
+                "negative_boundary_applied=true."
+            )
+
+    ledger_complete = all(check.established for check in component_checks)
+    if all_required_components_established != ledger_complete:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: all_required_components_established must equal the component ledger."
+        )
+
+    if relation in {VerificationRelation.DIRECT, VerificationRelation.ENTAILED} and not ledger_complete:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: positive relation requires every canonical component to be established."
+        )
+
+    if relation == VerificationRelation.ADJACENT and ledger_complete:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: ADJACENT requires at least one missing canonical component."
+        )
+
+
+def _validate_missing_component_id(
+    *,
+    missing_semantic_component: str | None,
+    component_checks: list[ComponentEvidenceCheck],
+    facet: QueryFacet,
+    relation: VerificationRelation,
+    stage_name: str,
+) -> None:
+    """Require missing_semantic_component to reference a real missing canonical ID."""
+
+    raw = (missing_semantic_component or "").strip()
+    if not raw:
+        return
+
+    expected_ids = _canonical_component_ids(facet)
+    if not expected_ids:
+        # Legacy/synthetic fixtures have no frozen canonical component contract.
+        return
+    if raw not in expected_ids:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: missing_semantic_component must be one frozen component_id; "
+            f"found {raw!r}, expected one of {expected_ids}."
+        )
+
+    state = {check.component_id: check.established for check in component_checks}
+    if raw in state and state[raw]:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: missing_semantic_component={raw!r} is marked established in the ledger."
+        )
+
+    if relation == VerificationRelation.ADJACENT and raw not in state:
+        raise JudgeOutputValidationError(
+            f"{stage_name}: ADJACENT missing_semantic_component must appear in component_checks."
+        )
+
 def _validate_verification_result(
     result: EvidenceVerification,
     facet: QueryFacet,
     config: dict[str, Any],
+    evidence_span_id: str,
 ) -> None:
+    _validate_component_evidence_ledger(
+        component_checks=result.component_checks,
+        all_required_components_established=result.all_required_components_established,
+        allowed_span_ids={evidence_span_id},
+        relation=result.verification_relation,
+        facet=facet,
+        stage_name="single-span verification",
+    )
+    _validate_missing_component_id(
+        missing_semantic_component=result.missing_semantic_component,
+        component_checks=result.component_checks,
+        facet=facet,
+        relation=result.verification_relation,
+        stage_name="single-span verification",
+    )
     _validate_component_completeness_contract(
         relation=result.verification_relation,
         all_required_components_established=result.all_required_components_established,
@@ -935,6 +1161,7 @@ def _validate_prominence_result(
 
 def build_verification_prompt(
     facet: QueryFacet,
+    evidence_span_id: str,
     evidence_text: str,
     config: dict[str, Any],
 ) -> str:
@@ -975,6 +1202,9 @@ FACET
 FROZEN SEMANTIC DEFINITION
 {facet.semantic_definition}
 
+FROZEN CANONICAL REQUIRED COMPONENTS
+{format_required_components(facet)}
+
 HARD EXCLUSIONS — APPLY BEFORE ANY POSITIVE RELATION
 {format_hard_exclusions(facet)}
 
@@ -982,9 +1212,11 @@ IMPORTANT HARD-EXCLUSION OUTPUT RULE
 If the frozen hard-exclusion list above is NONE, hard_exclusion_triggered MUST be false
 and hard_exclusion_id MUST be null. A semantic-definition exclusion is separate and
 must be reported only with semantic_definition_exclusion_applied.
+If hard_exclusion_triggered=true, hard_exclusion_id MUST name one exact configured
+exclusion, verification_relation MUST be unsupported, and inference_kind MUST be none.
 
 EXACT CANDIDATE EVIDENCE
-{evidence_text}
+{evidence_span_id}: {evidence_text}
 
 VERIFICATION SCALE
 {scale}
@@ -996,16 +1228,33 @@ INSTRUCTIONS
 {instructions}
 
 Return one EvidenceVerification with verification_relation, inference_kind,
-all_required_components_established, missing_semantic_component,
+component_checks, all_required_components_established, missing_semantic_component,
 semantic_definition_exclusion_applied, hard_exclusion_triggered,
 hard_exclusion_id, and reason.
 
-For DIRECT or ENTAILED: all_required_components_established=true and
-missing_semantic_component=null.
-For ADJACENT: all_required_components_established=false and name the missing
-indispensable component.
+CANONICAL COMPONENT-EVIDENCE LEDGER
+- DO NOT invent, rename, merge, split, omit, or add components.
+- Return EXACTLY one component_checks entry for every frozen component_id above, in the same order.
+- Copy component_id exactly.
+- Assess EACH canonical component independently. A different missing component must not cause an actually grounded component to be marked missing.
+- For an established component, set established=true and supporting_span_ids=["{evidence_span_id}"].
+- For a missing component, set established=false and supporting_span_ids=[].
+- If a component-specific negative boundary blocks the proposed grounding, set negative_boundary_applied=true and established=false.
+- The reason must explain what this exact evidence establishes or fails to establish for that canonical component.
+- all_required_components_established must be exactly true iff every canonical component is established.
+
+For DIRECT or ENTAILED: every canonical component must be established,
+all_required_components_established=true, and missing_semantic_component=null.
+For ADJACENT: at least one canonical component must be missing,
+all_required_components_established=false, and missing_semantic_component must be the EXACT component_id of one missing required component.
 If an explicit negative boundary in the frozen semantic definition blocks the
-match: semantic_definition_exclusion_applied=true and verification_relation=unsupported.
+full match: semantic_definition_exclusion_applied=true and verification_relation=unsupported.
+
+GROUNDING BOUNDARIES
+- LOCATION IS NOT MOVEMENT. Being trapped, stranded, located, surrounded, pursued, or endangered in a place does not itself establish travel, a journey, voyage, expedition, or quest. A rescue situation does not itself create a quest.
+- A phrase such as "begin again", "start over", "move on", or choosing a new path does not establish learning to live again unless the same evidence grounds the required grief-or-major-loss context.
+- Metaphorical or historical language such as a "lost time", "lost place", "lost past", memory, nostalgia, departure, return, or reclaiming the past does not by itself establish the personal significant-loss facet.
+- For an affective qualifier such as "moving", strong wording that itself presents profound emotional impact or poignancy can establish the qualifier even without explicit reader-response language. Merely describing a sad, dangerous, difficult, or tragic subject does not.
 
 The inference_kind must obey the configured relation mapping.
 Do not use any information other than the facet, frozen semantic definition, and evidence shown above.
@@ -1015,6 +1264,7 @@ Do not use any information other than the facet, frozen semantic definition, and
 def verify_candidate_evidence(
     judge_model: Any,
     facet: QueryFacet,
+    evidence_span_id: str,
     evidence_text: str,
     config: dict[str, Any],
 ) -> tuple[EvidenceVerification, int]:
@@ -1025,6 +1275,7 @@ def verify_candidate_evidence(
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
         prompt = build_verification_prompt(
             facet=facet,
+            evidence_span_id=evidence_span_id,
             evidence_text=evidence_text,
             config=config,
         )
@@ -1032,11 +1283,18 @@ def verify_candidate_evidence(
             prompt += (
                 "\n\nPREVIOUS VALIDATION FAILURE\n"
                 f"{validation_error}\n"
-                "Return a corrected EvidenceVerification only. Positive DIRECT/ENTAILED "
-                "requires all_required_components_established=true, no missing semantic "
-                "component, no semantic-definition exclusion, and a relation-consistent "
+                "Return a corrected EvidenceVerification only. Rebuild component_checks using "
+                "EXACTLY the frozen canonical component_id values, in frozen order; do not rename, "
+                "omit, add, split, or merge them. Assess every component independently. Each "
+                "established component must be grounded to the exact candidate "
+                f"span {evidence_span_id}; a missing component must cite no spans. Positive "
+                "DIRECT/ENTAILED requires every canonical component established, "
+                "all_required_components_established=true, no missing semantic component, "
+                "no semantic-definition exclusion, and a relation-consistent "
                 "inference_kind. If the facet has no frozen hard exclusions, "
                 "hard_exclusion_triggered must be false and hard_exclusion_id null. "
+                "If a valid frozen hard exclusion is triggered, verification_relation "
+                "must be unsupported and inference_kind must be none. "
                 "Never supply a missing entity/relationship/event/process from analogy, "
                 "plausibility, or world knowledge."
             )
@@ -1051,7 +1309,14 @@ def verify_candidate_evidence(
             assert isinstance(result, EvidenceVerification)
             result = _normalize_impossible_hard_exclusion_output(result, facet)
             assert isinstance(result, EvidenceVerification)
-            _validate_verification_result(result=result, facet=facet, config=config)
+            result = _canonicalize_valid_triggered_hard_exclusion(result, facet)
+            assert isinstance(result, EvidenceVerification)
+            _validate_verification_result(
+                result=result,
+                facet=facet,
+                config=config,
+                evidence_span_id=evidence_span_id,
+            )
             return result, attempt - 1
         except (JudgeOutputValidationError, ValueError, TypeError) as error:
             validation_error = str(error)
@@ -1113,6 +1378,7 @@ def verify_ranked_candidates(
 ) -> tuple[
     CandidateVerificationRecord,
     list[CandidateVerificationRecord],
+    dict[str, EvidenceVerification],
     int,
 ]:
     """
@@ -1124,6 +1390,7 @@ def verify_ranked_candidates(
     """
 
     records: list[CandidateVerificationRecord] = []
+    verification_results_by_span: dict[str, EvidenceVerification] = {}
     total_retries = 0
 
     for rank, span_id in enumerate(
@@ -1134,11 +1401,13 @@ def verify_ranked_candidates(
         verification, retries = verify_candidate_evidence(
             judge_model=judge_model,
             facet=facet,
+            evidence_span_id=span_id,
             evidence_text=spans[span_id],
             config=config,
         )
 
         total_retries += retries
+        verification_results_by_span[span_id] = verification
 
         record = CandidateVerificationRecord(
             candidate_rank=rank,
@@ -1157,6 +1426,12 @@ def verify_ranked_candidates(
                 + str(verification.semantic_definition_exclusion_applied).lower()
                 + "; missing_semantic_component="
                 + repr(verification.missing_semantic_component)
+                + "; component_ledger="
+                + json.dumps(
+                    [check.model_dump(mode="json") for check in verification.component_checks],
+                    ensure_ascii=False,
+                    sort_keys=True,
+                )
                 + "]"
             ),
         )
@@ -1172,6 +1447,7 @@ def verify_ranked_candidates(
     return (
         choose_best_verified_candidate(records),
         records,
+        verification_results_by_span,
         total_retries,
     )
 
@@ -1180,10 +1456,34 @@ def verify_ranked_candidates(
 # Stage C: self-selecting full-context composite verification
 # =============================================================================
 
+def format_single_span_component_audit(
+    verification_results_by_span: dict[str, EvidenceVerification],
+) -> str:
+    """Render prior single-span component ledgers for composite monotonicity."""
+
+    if not verification_results_by_span:
+        return "NONE — no standalone candidate was verified."
+
+    blocks: list[str] = []
+    for span_id, result in verification_results_by_span.items():
+        checks = "; ".join(
+            f"{check.component_id}={'ESTABLISHED' if check.established else 'MISSING'}"
+            for check in result.component_checks
+        )
+        blocks.append(
+            f"{span_id}: relation={result.verification_relation.value}; "
+            f"semantic_definition_exclusion_applied="
+            f"{str(result.semantic_definition_exclusion_applied).lower()}; "
+            f"components=[{checks}]"
+        )
+    return "\n".join(blocks)
+
+
 def build_composite_verification_prompt(
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
+    verification_results_by_span: dict[str, EvidenceVerification] | None = None,
 ) -> str:
     """Build the full-context self-selecting multi-span composition prompt."""
 
@@ -1201,8 +1501,11 @@ def build_composite_verification_prompt(
         in enumerate(stage["instructions"], start=1)
     )
 
-    min_spans = int(stage.get("min_spans", 2))
+    min_spans = int(stage.get("min_spans", 1))
     max_spans = int(stage.get("max_spans", MAX_COMPOSITE_CANDIDATES))
+    single_span_audit = format_single_span_component_audit(
+        verification_results_by_span or {}
+    )
 
     return f"""
 Evaluate ONE core semantic facet using the FULL numbered book description.
@@ -1218,11 +1521,26 @@ FACET
 FROZEN SEMANTIC DEFINITION
 {facet.semantic_definition}
 
+FROZEN CANONICAL REQUIRED COMPONENTS
+{format_required_components(facet)}
+
 HARD EXCLUSIONS — APPLY BEFORE ANY POSITIVE RELATION
 {format_hard_exclusions(facet)}
 
 FULL NUMBERED BOOK-DESCRIPTION SPANS
 {format_description_spans(spans)}
+
+PRIOR SINGLE-SPAN COMPONENT AUDIT
+{single_span_audit}
+
+The prior audit is not a final verdict. It is a grounding constraint. Component
+identity is already frozen above: never rename, omit, merge, split, or add a
+component. Full-context recovery MAY inspect any supplied description span,
+including spans Stage A did not select. It may connect canonical components
+distributed across spans. It may not resurrect a canonical component that every
+cited, already-audited span marked missing unless at least one cited span was not
+previously audited for that component and independently supplies the missing
+information.
 
 COMPOSITE VERIFICATION SCALE
 {scale}
@@ -1246,6 +1564,17 @@ inference_kind:
 - adjacent => incomplete_connection
 - entailed => necessary_semantic_inference
 
+component_checks:
+- return EXACTLY one check for every frozen canonical component_id, in the same order
+- copy each component_id exactly; do not invent, rename, omit, merge, split, or add components
+- assess each canonical component independently
+- established=true requires 1-4 exact supplied supporting_span_ids that ground THAT component
+- established=false requires supporting_span_ids=[]
+- when a component-specific negative boundary blocks the proposed grounding, set negative_boundary_applied=true and established=false
+- every component span ID must also appear in the top-level supporting_span_ids for a positive relation
+- multiple spans may jointly ground one canonical component only when their combination necessarily establishes it
+- repetition of a nearby/excluded concept does not create a missing component
+
 all_required_components_established:
 - true only when every indispensable semantic component is established jointly
 - required true for ENTAILED
@@ -1257,7 +1586,7 @@ semantic_definition_exclusion_applied:
 
 hard_exclusion_triggered / hard_exclusion_id:
 - evaluate the frozen hard exclusions first
-- if one applies, return true plus its exact exclusion_id and UNSUPPORTED
+- if one applies, return true plus its exact exclusion_id, UNSUPPORTED, and inference_kind=none
 - otherwise return false and null
 - if the frozen hard-exclusion list is NONE, these fields MUST be false and null
 - semantic_definition_exclusion_applied is a separate field and must not be
@@ -1269,17 +1598,25 @@ combined_evidence_summary:
 
 missing_semantic_component:
 - null for ENTAILED
-- for ADJACENT, name the specific required facet component that remains
-  unstated or merely plausible
+- for ADJACENT, return the EXACT component_id of a missing canonical component
 - for UNSUPPORTED, null is preferred
 
 reason:
 - explain why the cited spans and missing-component field justify the relation
 
+FULL-CONTEXT COMPONENT RULES
+- Composite/full-context evidence may CONNECT independently grounded canonical components; it may not CREATE an indispensable component from plausibility, repetition, metaphor, genre convention, or typical-world association.
+- A canonical component that is absent in all previously audited cited spans may be established only if a newly cited, previously unaudited span independently supplies it, or if the exact combination necessarily establishes the component through explicit cross-span reference resolution rather than thematic inference.
+- Do not mark one canonical component missing merely because a different canonical component is missing.
+- If generic recovery/sobriety was excluded from redemption, combining several recovery/sobriety spans still does not establish restoration after wrongdoing/failure/damage unless another cited span grounds that restoration.
+- If standalone spans establish hardship but no significant loss, combining those hardships does not create grief or loss.
+- LOCATION IS NOT MOVEMENT: being trapped, located, pursued, threatened, or rescued in a place does not establish a journey/quest unless movement or travel is itself grounded.
+- A return to memories, reconstructing the past, a "lost time/place", or reclaiming the past does not by itself establish personal significant loss or rebuilding life after grief/loss.
+
 DIRECT is forbidden.
 Do not require exact facet wording for ENTAILED.
-Do not use any information outside the facet, frozen definition, and supplied
-numbered description.
+Do not use any information outside the facet, frozen definition, supplied
+numbered description, and the prior single-span component audit.
 """.strip()
 
 
@@ -1288,14 +1625,31 @@ def _validate_composite_result(
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
+    verification_results_by_span: dict[str, EvidenceVerification] | None = None,
 ) -> None:
     """Deterministically validate v0.20 composite structure/consistency."""
 
     stage = config["composite_verification_stage"]
-    min_spans = int(stage.get("min_spans", 2))
+    min_spans = int(stage.get("min_spans", 1))
     max_spans = int(stage.get("max_spans", MAX_COMPOSITE_CANDIDATES))
     relation = result.verification_relation
     ids = list(result.supporting_span_ids)
+
+    _validate_component_evidence_ledger(
+        component_checks=result.component_checks,
+        all_required_components_established=result.all_required_components_established,
+        allowed_span_ids=set(spans),
+        relation=relation,
+        facet=facet,
+        stage_name="composite verification",
+    )
+    _validate_missing_component_id(
+        missing_semantic_component=result.missing_semantic_component,
+        component_checks=result.component_checks,
+        facet=facet,
+        relation=relation,
+        stage_name="composite verification",
+    )
 
     _validate_component_completeness_contract(
         relation=relation,
@@ -1355,6 +1709,44 @@ def _validate_composite_result(
                 "Unsupported composite verification must return no supporting span IDs."
             )
 
+    if relation in {VerificationRelation.ADJACENT, VerificationRelation.ENTAILED}:
+        top_level_ids = set(ids)
+        for check in result.component_checks:
+            if check.established and not set(check.supporting_span_ids).issubset(top_level_ids):
+                raise JudgeOutputValidationError(
+                    "Composite component evidence must be a subset of top-level supporting spans."
+                )
+
+    # v0.25 canonical monotonicity guard.  Exact component IDs eliminate the
+    # model-authored-label loophole from v0.24.  A component may be supplied by
+    # a newly cited full-context span, but the same already-audited spans may
+    # not simply flip a canonical component from universally missing to present.
+    prior = verification_results_by_span or {}
+    if relation in {VerificationRelation.ADJACENT, VerificationRelation.ENTAILED}:
+        for check in result.component_checks:
+            if not check.established or not check.supporting_span_ids:
+                continue
+            prior_states: list[bool] = []
+            fully_audited = True
+            for span_id in check.supporting_span_ids:
+                previous = prior.get(span_id)
+                if previous is None:
+                    fully_audited = False
+                    break
+                matches = [
+                    item for item in previous.component_checks
+                    if item.component_id == check.component_id
+                ]
+                if not matches:
+                    fully_audited = False
+                    break
+                prior_states.append(matches[0].established)
+            if fully_audited and prior_states and not any(prior_states):
+                raise JudgeOutputValidationError(
+                    "composite verification: canonical component resurrection is forbidden; "
+                    f"{check.component_id!r} was missing in every cited prior single-span audit."
+                )
+
     missing = (
         result.missing_semantic_component.strip()
         if result.missing_semantic_component
@@ -1377,10 +1769,11 @@ def verify_composite_evidence(
     facet: QueryFacet,
     spans: dict[str, str],
     config: dict[str, Any],
+    verification_results_by_span: dict[str, EvidenceVerification] | None = None,
 ) -> tuple[CompositeEvidenceVerification, int]:
     """
-    Scan the full description, self-select 2-4 supporting spans, and determine
-    the composite relation in one isolated call.
+    Scan the full description, self-select 1-4 supporting spans, and determine
+    the full-context relation in one isolated call.
     """
 
     validation_error: str | None = None
@@ -1390,6 +1783,7 @@ def verify_composite_evidence(
             facet=facet,
             spans=spans,
             config=config,
+            verification_results_by_span=verification_results_by_span,
         )
 
         if validation_error:
@@ -1397,16 +1791,26 @@ def verify_composite_evidence(
                 "\n\nPREVIOUS VALIDATION FAILURE\n"
                 f"{validation_error}\n"
                 "Return a corrected CompositeEvidenceVerification only. "
-                "Remember: ENTAILED => all_required_components_established=true and "
+                "Rebuild component_checks using EXACTLY the frozen canonical component_id "
+                "values, in frozen order. Do not rename, omit, add, split, or merge them. "
+                "Ground each established component to exact supporting span IDs. Do not "
+                "resurrect a component that every "
+                "cited prior single-span component audit marked missing unless a new cited "
+                "span independently supplies it. Remember: ENTAILED => "
+                "all_required_components_established=true and "
                 "missing_semantic_component=null; ADJACENT => false plus the missing "
                 "required component; semantic-definition exclusions force UNSUPPORTED; "
                 "if the facet has no frozen hard exclusions, hard_exclusion_triggered "
-                "must be false and hard_exclusion_id null; positive relations require "
-                "2-4 unique real span IDs; relation and inference_kind must match."
+                "must be false and hard_exclusion_id null; if a valid hard exclusion is "
+                "triggered, relation must be unsupported and inference_kind must be none; "
+                "positive relations require 1-4 unique real span IDs. If your previous "
+                "semantic verdict was positive but support-list shape was invalid, preserve "
+                "the semantic verdict and repair only the structure when the evidence still "
+                "supports it; relation and inference_kind must match."
             )
 
         # Transport/model-call failures intentionally propagate. Only generated
-        # structured-output validation failures are repaired/fallback-handled.
+        # structured-output validation failures are repaired; unrepaired failures propagate.
         generated = judge_model.generate(
             prompt=prompt,
             schema=CompositeEvidenceVerification,
@@ -1420,40 +1824,25 @@ def verify_composite_evidence(
             assert isinstance(result, CompositeEvidenceVerification)
             result = _normalize_impossible_hard_exclusion_output(result, facet)
             assert isinstance(result, CompositeEvidenceVerification)
+            result = _canonicalize_valid_triggered_hard_exclusion(result, facet)
+            assert isinstance(result, CompositeEvidenceVerification)
             _validate_composite_result(
                 result=result,
                 facet=facet,
                 spans=spans,
                 config=config,
+                verification_results_by_span=verification_results_by_span,
             )
             return result, attempt - 1
 
         except (JudgeOutputValidationError, ValueError, TypeError) as error:
             validation_error = str(error)
 
-    # Composition is an optional recovery path. A malformed response after
-    # bounded retries must not create positive evidence or abort the case.
-    fallback = CompositeEvidenceVerification(
-        supporting_span_ids=[],
-        verification_relation=VerificationRelation.UNSUPPORTED,
-        inference_kind=EvidenceInferenceKind.NONE,
-        all_required_components_established=False,
-        semantic_definition_exclusion_applied=False,
-        hard_exclusion_triggered=False,
-        hard_exclusion_id=None,
-        combined_evidence_summary=(
-            "No valid composite evidence judgment was available after bounded "
-            "structured-output repair attempts."
-        ),
-        missing_semantic_component=None,
-        reason=(
-            "structured_output_recovery_fallback: treating optional composite "
-            "recovery as unsupported. Last validation error: "
-            f"{validation_error or 'unknown'}"
-        ),
+    raise JudgeOutputValidationError(
+        "Unable to obtain a structurally valid full-context verification after "
+        f"{MAX_STAGE_ATTEMPTS} attempts. Last validation error: "
+        f"{validation_error or 'unknown'}"
     )
-
-    return fallback, MAX_STAGE_ATTEMPTS
 
 
 
@@ -1527,7 +1916,7 @@ def assess_book_subject(
 ) -> tuple[BookSubjectAnalysis, int]:
     """Analyze/freeze the book-level subject exactly once for this case.
 
-    v0.23.0 preserves strict exact-span validation but feeds mechanical
+    v0.25.0 preserves strict exact-span validation but feeds mechanical
     validation failures back to the next attempt. This lets the model repair
     formatting mistakes such as ``S6-S9`` without silently normalizing or
     reinterpreting the model output in Python.
@@ -1678,10 +2067,11 @@ def evaluate_one_facet(
     FacetPipelineAssessment,
     str | None,
     dict[str, str],
+    dict[str, Any],
     int,
 ]:
     """
-    Run v0.23.0 facet evaluation against one frozen book subject:
+    Run v0.25.0 facet evaluation against one frozen book subject:
 
         full-description hard-exclusion precheck
         -> polarity-safe deterministic cue
@@ -1694,6 +2084,7 @@ def evaluate_one_facet(
         final assessment
         winning/representative evidence text
         exact text for every Stage-A OR composition-selected candidate
+        component-evidence ledger audit
         total structured-output retry count
     """
 
@@ -1746,6 +2137,11 @@ def evaluate_one_facet(
                 ),
                 None,
                 candidate_texts,
+                {
+                    "mode": "hard_exclusion_precheck",
+                    "single_span": {},
+                    "composite": None,
+                },
                 total_retries,
             )
 
@@ -1796,6 +2192,11 @@ def evaluate_one_facet(
                 ),
                 cue_match.evidence_text,
                 candidate_texts,
+                {
+                    "mode": "deterministic_direct_cue",
+                    "single_span": {span_id: {"cue_id": cue_match.cue_id}},
+                    "composite": None,
+                },
                 total_retries,
             )
 
@@ -1837,6 +2238,11 @@ def evaluate_one_facet(
             ),
             cue_match.evidence_text,
             candidate_texts,
+            {
+                "mode": "deterministic_direct_cue",
+                "single_span": {span_id: {"cue_id": cue_match.cue_id}},
+                "composite": None,
+            },
             total_retries,
         )
 
@@ -1857,6 +2263,7 @@ def evaluate_one_facet(
     }
 
     verification_records: list[CandidateVerificationRecord] = []
+    verification_results_by_span: dict[str, EvidenceVerification] = {}
     winning_span_id = NO_EVIDENCE_SPAN
     winning_evidence_text: str | None = None
     relation = VerificationRelation.UNSUPPORTED
@@ -1868,7 +2275,7 @@ def evaluate_one_facet(
     )
 
     if candidate_ids:
-        best, verification_records, retries = verify_ranked_candidates(
+        best, verification_records, verification_results_by_span, retries = verify_ranked_candidates(
             judge_model=judge_model,
             facet=facet,
             candidate_ids=candidate_ids,
@@ -1920,6 +2327,7 @@ def evaluate_one_facet(
             facet=facet,
             spans=spans,
             config=config,
+            verification_results_by_span=verification_results_by_span,
         )
         total_retries += retries
 
@@ -1939,6 +2347,12 @@ def evaluate_one_facet(
             + str(composite_result.semantic_definition_exclusion_applied).lower()
             + "; missing_semantic_component="
             + repr(composite_result.missing_semantic_component)
+            + "; component_ledger="
+            + json.dumps(
+                [check.model_dump(mode="json") for check in composite_result.component_checks],
+                ensure_ascii=False,
+                sort_keys=True,
+            )
             + "]"
         )
         composite_span_ids = list(
@@ -1980,6 +2394,33 @@ def evaluate_one_facet(
     ):
         final_verification_reason = composite_reason or best_single_reason
 
+    component_audit: dict[str, Any] = {
+        "mode": "llm_verification",
+        "single_span": {
+            span_id: {
+                "verification_relation": result.verification_relation.value,
+                "semantic_definition_exclusion_applied": result.semantic_definition_exclusion_applied,
+                "component_checks": [
+                    check.model_dump(mode="json") for check in result.component_checks
+                ],
+            }
+            for span_id, result in verification_results_by_span.items()
+        },
+        "composite": (
+            {
+                "verification_relation": composite_result.verification_relation.value,
+                "component_checks": [
+                    check.model_dump(mode="json") for check in composite_result.component_checks
+                ],
+                "semantic_definition_exclusion_applied": (
+                    composite_result.semantic_definition_exclusion_applied
+                ),
+            }
+            if composite_verification_attempted
+            else None
+        ),
+    }
+
     common_kwargs = dict(
         facet_id=facet.facet_id,
         candidate_evidence_span_ids=candidate_ids,
@@ -2018,6 +2459,7 @@ def evaluate_one_facet(
             ),
             winning_evidence_text,
             candidate_texts,
+            component_audit,
             total_retries,
         )
 
@@ -2034,6 +2476,7 @@ def evaluate_one_facet(
             ),
             winning_evidence_text,
             candidate_texts,
+            component_audit,
             total_retries,
         )
 
@@ -2047,6 +2490,7 @@ def evaluate_one_facet(
             ),
             winning_evidence_text,
             candidate_texts,
+            component_audit,
             total_retries,
         )
 
@@ -2082,6 +2526,7 @@ def evaluate_one_facet(
         ),
         winning_evidence_text,
         candidate_texts,
+        component_audit,
         total_retries,
     )
 
@@ -2094,7 +2539,7 @@ def generate_validated_semantic_verdict(
     config: dict[str, Any],
 ) -> SemanticGenerationResult:
     """
-    Run v0.23.0 with one frozen book-subject analysis followed by every frozen facet.
+    Run v0.25.0 with one frozen book-subject analysis followed by every frozen facet.
 
     The rubric argument remains for runner compatibility but is intentionally
     NOT shown to Stage A or the isolated verifier. The frozen semantic definition
@@ -2112,7 +2557,7 @@ def generate_validated_semantic_verdict(
             f"Description is empty for case {row['case_id']}."
         )
 
-    # v0.23.0: freeze one facet-independent subject analysis before ANY facet
+    # v0.25.0: freeze one facet-independent subject analysis before ANY facet
     # role classification. No query/facet is visible to this call.
     book_subject, subject_retries = assess_book_subject(
         judge_model=judge_model,
@@ -2129,6 +2574,8 @@ def generate_validated_semantic_verdict(
         dict[str, str],
     ] = {}
 
+    component_evidence_ledger_by_id: dict[str, Any] = {}
+
     total_retries = 0
 
     for facet in spec.facets:
@@ -2137,6 +2584,7 @@ def generate_validated_semantic_verdict(
             assessment,
             winning_evidence_text,
             candidate_texts,
+            component_audit,
             retries,
         ) = evaluate_one_facet(
             judge_model=judge_model,
@@ -2154,6 +2602,10 @@ def generate_validated_semantic_verdict(
         candidate_evidence_by_id[
             facet.facet_id
         ] = candidate_texts
+
+        component_evidence_ledger_by_id[
+            facet.facet_id
+        ] = component_audit
 
         if winning_evidence_text is not None:
             evidence_by_id[
@@ -2235,6 +2687,7 @@ def generate_validated_semantic_verdict(
         verdict=verdict,
         evidence_by_id=evidence_by_id,
         candidate_evidence_by_id=candidate_evidence_by_id,
+        component_evidence_ledger_by_id=component_evidence_ledger_by_id,
         book_subject_analysis=book_subject,
         subject_analysis_retry_count=subject_retries,
         stage_retry_count=total_retries,

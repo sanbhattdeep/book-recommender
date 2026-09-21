@@ -1,5 +1,5 @@
 """
-Deterministic scoring models for Semantic Recommendation Relevance v0.22.1.
+Deterministic scoring models for Semantic Recommendation Relevance v0.25.0.
 
 v0.20.0 preserves the deterministic support derivation and final 0-4 aggregation unchanged. It adds auditable inference-kind and context-role fields used by the semantic stages before deterministic support derivation.
 
@@ -55,14 +55,28 @@ class HardExclusion(BaseModel):
     rule: str = Field(min_length=1)
 
 
+class FacetRequiredComponent(BaseModel):
+    """One canonical indispensable component of a frozen semantic facet.
+
+    v0.25.0 moves component identity out of model generation and into the
+    versioned facet specification.  `negative_boundaries` are generic semantic
+    constraints for this component; they must never encode candidate-specific
+    facts, labels, or observed judge outputs.
+    """
+
+    component_id: str = Field(min_length=1)
+    definition: str = Field(min_length=1)
+    negative_boundaries: list[str] = Field(default_factory=list, max_length=12)
+
+
 class QueryFacet(BaseModel):
     """
     One frozen semantic facet from the query-facet specification.
 
-    `semantic_definition` is part of the versioned evaluation contract. It must
-    remain generic and query-semantic; development/validation failures may motivate
-    a versioned boundary clarification, but candidate-specific facts must never be
-    encoded into the definition.
+    `semantic_definition` and `required_components` are part of the versioned
+    evaluation contract.  Components are canonical: the verifier may determine
+    whether each one is established, but may not rename, omit, add, or substitute
+    components at generation time.
     """
 
     facet_id: str = Field(min_length=1)
@@ -70,6 +84,9 @@ class QueryFacet(BaseModel):
     facet_type: FacetType
     semantic_definition: str = Field(min_length=1)
     hard_exclusions: list[HardExclusion] = Field(default_factory=list, max_length=12)
+    # Default keeps legacy unit-test fixtures parseable; the v0.25 facet-spec
+    # contract itself requires at least one canonical component for every facet.
+    required_components: list[FacetRequiredComponent] = Field(default_factory=list, max_length=8)
 
 
 class QueryFacetSpec(BaseModel):
@@ -238,7 +255,7 @@ class FacetPipelineAssessment(BaseModel):
     deterministic_cue_polarity_blocked_count: int = Field(default=0, ge=0)
 
     # v0.19 audit: the full-context composite verifier scans all numbered
-    # description spans and selects its own 2-4 supporting span IDs.
+    # description spans and selects its own 1-4 supporting span IDs.
     composite_verification_attempted: bool = False
     composite_evidence_span_ids: list[str] = Field(
         default_factory=list,
@@ -442,10 +459,10 @@ def validate_facet_assessments(
             VerificationRelation.ADJACENT,
             VerificationRelation.ENTAILED,
         }:
-            if len(composite_ids) < 2:
+            if len(composite_ids) < 1:
                 raise ValueError(
-                    f"{facet_id}: positive composite verification requires "
-                    "at least two supporting spans."
+                    f"{facet_id}: positive full-context verification requires "
+                    "at least one supporting span."
                 )
         elif composite_relation == VerificationRelation.UNSUPPORTED:
             if composite_ids:

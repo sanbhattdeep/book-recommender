@@ -6,6 +6,7 @@ import json
 from pathlib import Path
 
 from semantic_relevance_facet_judge import (
+    ComponentEvidenceCheck,
     CompositeEvidenceVerification,
     JudgeOutputValidationError,
     _validate_composite_result,
@@ -17,7 +18,7 @@ config = json.loads(
     (
         EVALS_DIR
         / "judge_configs"
-        / "semantic_relevance_judge.v0.23.0.json"
+        / "semantic_relevance_judge.v0.25.0.json"
     ).read_text(encoding="utf-8")
 )
 
@@ -37,6 +38,9 @@ entailed = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ENTAILED,
     inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+    component_checks=[
+        ComponentEvidenceCheck(component_id="synthetic component", established=True, supporting_span_ids=["S1", "S2"], reason="grounded"),
+    ],
     all_required_components_established=True,
     semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The disruption is followed by explicit resumption.",
@@ -49,6 +53,9 @@ adjacent = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ADJACENT,
     inference_kind=EvidenceInferenceKind.INCOMPLETE_CONNECTION,
+    component_checks=[
+        ComponentEvidenceCheck(component_id="synthetic component", established=False, supporting_span_ids=[], reason="missing"),
+    ],
     all_required_components_established=False,
     semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The spans show disruption and later activity.",
@@ -61,6 +68,9 @@ bad_adjacent = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ADJACENT,
     inference_kind=EvidenceInferenceKind.INCOMPLETE_CONNECTION,
+    component_checks=[
+        ComponentEvidenceCheck(component_id="synthetic component", established=False, supporting_span_ids=[], reason="missing"),
+    ],
     all_required_components_established=False,
     semantic_definition_exclusion_applied=False,
     combined_evidence_summary="The full facet is established.",
@@ -78,6 +88,9 @@ bad_entailed = CompositeEvidenceVerification(
     supporting_span_ids=["S1", "S2"],
     verification_relation=VerificationRelation.ENTAILED,
     inference_kind=EvidenceInferenceKind.NECESSARY_SEMANTIC_INFERENCE,
+    component_checks=[
+        ComponentEvidenceCheck(component_id="synthetic component", established=True, supporting_span_ids=["S1", "S2"], reason="grounded"),
+    ],
     all_required_components_established=True,
     semantic_definition_exclusion_applied=False,
     combined_evidence_summary="Nearly complete.",
