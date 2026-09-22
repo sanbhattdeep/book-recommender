@@ -16,7 +16,7 @@ from semantic_relevance_facet_scoring import (
 
 ROOT = Path(__file__).resolve().parents[1]
 CONFIG = json.loads(
-    (ROOT / "evals/judge_configs/semantic_relevance_judge.v0.21.0.json").read_text()
+    (ROOT / "evals/judge_configs/semantic_relevance_judge.v0.21.0.json").read_text(encoding="utf-8")
 )
 FACET = QueryFacet(
     facet_id="F1",

@@ -4,7 +4,7 @@ import json
 from pathlib import Path
 
 ROOT=Path(__file__).resolve().parents[1]
-CONFIG=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.20.0.json').read_text())
+CONFIG=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.20.0.json').read_text(encoding="utf-8"))
 facet=QueryFacet(facet_id='F1', text='suspense', facet_type='core', semantic_definition='x', hard_exclusions=[HardExclusion(exclusion_id='HX', rule='choice alone is not suspense')])
 valid=EvidenceVerification(verification_relation=VerificationRelation.UNSUPPORTED,inference_kind=EvidenceInferenceKind.NONE,hard_exclusion_triggered=True,hard_exclusion_id='HX',reason='hard exclusion applies')
 _validate_verification_result(valid, facet, CONFIG)

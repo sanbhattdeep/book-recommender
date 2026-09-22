@@ -1,4 +1,4 @@
-"""v0.26.0 r4: Q02/F1 locally separates decision uncertainty from suspense."""
+"""v0.26.0 r5: Q02/F1 locally separates decision uncertainty from suspense."""
 from __future__ import annotations
 
 import json
@@ -12,8 +12,8 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet, QueryFacetSpec, VerificationRelation
 
 E = Path(__file__).resolve().parent
-CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text())
-FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.2.json").read_text())
+CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text(encoding="utf-8"))
+FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.3.json").read_text(encoding="utf-8"))
 
 
 def facet(query_id: str, facet_id: str) -> QueryFacet:
@@ -38,8 +38,8 @@ class QueueModel:
 
 
 
-# r4 preserves all canonical IDs from v0.9.1. Q02/F1 remains identical; only Q03/F1 and Q07/F1 change semantically.
-OLD_FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json").read_text())
+# r5 preserves all canonical IDs from v0.9.1. Q02/F1 remains identical; only Q03/F1 and Q07/F1 change semantically.
+OLD_FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json").read_text(encoding="utf-8"))
 
 def facet_map(payload):
     return {
@@ -143,4 +143,4 @@ result, _ = verify_candidate_evidence(
 assert result.verification_relation == VerificationRelation.ENTAILED
 assert result.semantic_definition_exclusion_applied is False
 
-print("v0.26.0 r4 local suspense decision-boundary contract passed")
+print("v0.26.0 r5 local suspense decision-boundary contract passed")

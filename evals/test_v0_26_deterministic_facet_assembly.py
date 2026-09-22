@@ -11,7 +11,7 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet, QueryFacetSpec, VerificationRelation
 
 E = Path(__file__).resolve().parent
-FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.2.json").read_text())
+FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.3.json").read_text(encoding="utf-8"))
 raw = next(q for q in FACETS["queries"] if q["query_id"] == "Q07")
 spec = QueryFacetSpec(query_id=raw["query_id"], query=raw["query"], facets=[QueryFacet(**f) for f in raw["facets"]])
 facet = spec.facets[0]

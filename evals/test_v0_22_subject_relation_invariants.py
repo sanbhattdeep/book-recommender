@@ -2,7 +2,7 @@
 from pathlib import Path
 import json
 ROOT=Path(__file__).resolve().parents[1]
-cfg=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.26.0.json').read_text())
+cfg=json.loads((ROOT/'evals/judge_configs/semantic_relevance_judge.v0.26.0.json').read_text(encoding="utf-8"))
 stage=cfg['prominence_stage']
 rels=stage['subject_relation_scale']
 assert set(rels)=={

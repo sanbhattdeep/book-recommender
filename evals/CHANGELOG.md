@@ -1,5 +1,16 @@
 # Evaluation Changelog
 
+## v0.26.0 package r5 — Q03 explicit growth-promotion grounding
+
+- Added facet spec `v0.9.3`, preserving every canonical component ID and changing semantic content only for `Q03/F1 personal growth` relative to `v0.9.2`.
+- Reframed Q03/F1 as two independently sufficient positive grounding modes: experienced development (Mode A) or explicitly promoted maturity/personal growth in intended participants/readers (Mode B).
+- Clarified that Mode B does not require a named individual to have already completed the development; prospective, instructional, promotional, or aspirational phrasing is not disqualifying when personal growth/maturity itself is explicitly stated as the intended effect.
+- Preserved spirituality-only negative boundaries: prayer, faith, devotion, wisdom, inner peace, or similar content does not count when growth/maturity/development itself is absent.
+- Added a generic component-prompt spec-fidelity rule to both isolated verification and missing-component recovery: explicit sufficiency clauses in frozen component definitions must be honored rather than silently replaced by stricter criteria.
+- Strengthened the Q03 personal-growth contract test with two positive promotion-mode fixtures and two spirituality/peace negative controls, plus prompt-level assertions that the disjunctive contract is visible to the model.
+- Development dataset remains `2.2.0`; label revisions remain `1.1.0`; calibration provenance remains `0.5.0`; rubric remains `0.1.0`.
+- Targeted regression manifest advances `v6.0.0 -> v6.1.0` with the same 21 case expectations and r5 provenance.
+
 ## v0.26.0 package r4 — local referent/scope fixes + blind-review label adjudication
 
 ### Changed

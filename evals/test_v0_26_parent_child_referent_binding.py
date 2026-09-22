@@ -1,4 +1,4 @@
-"""v0.26.0 r4: parental opposition can establish a separate parent-child relation."""
+"""v0.26.0 r5: parental opposition can establish a separate parent-child relation."""
 from __future__ import annotations
 
 import json
@@ -8,8 +8,8 @@ from semantic_relevance_facet_judge import IsolatedComponentVerification, verify
 from semantic_relevance_facet_scoring import QueryFacet, QueryFacetSpec, VerificationRelation
 
 E = Path(__file__).resolve().parent
-CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text())
-FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.2.json").read_text())
+CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text(encoding="utf-8"))
+FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.3.json").read_text(encoding="utf-8"))
 
 
 def facet(query_id: str, facet_id: str) -> QueryFacet:
@@ -84,4 +84,4 @@ result, _ = verify_candidate_evidence(
     CONFIG,
 )
 assert result.verification_relation == VerificationRelation.UNSUPPORTED
-print("v0.26.0 r4 parent-child referent-binding contract passed")
+print("v0.26.0 r5 parent-child referent-binding contract passed")

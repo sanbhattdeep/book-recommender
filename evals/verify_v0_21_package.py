@@ -11,7 +11,7 @@ required=[
  E/'analyze_v0_21_targeted.py', E/'run_judge_development.py'
 ]
 for p in required: assert p.exists(), p
-cfg=json.loads(required[2].read_text())
+cfg=json.loads(required[2].read_text(encoding="utf-8"))
 assert cfg['version']=='0.21.2'
 assert cfg['facet_spec_version']=='0.8.0'
 assert cfg['rubric_version']=='0.1.0'

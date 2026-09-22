@@ -5,7 +5,7 @@ import json
 from pathlib import Path
 
 E = Path(__file__).resolve().parent
-payload = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.0.json").read_text())
+payload = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.0.json").read_text(encoding="utf-8"))
 
 by_key = {
     (q["query_id"], f["facet_id"]): f

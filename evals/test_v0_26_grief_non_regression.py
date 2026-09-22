@@ -1,4 +1,4 @@
-"""v0.26.0 r4: local negative boundaries must not globally suppress valid grief entailment."""
+"""v0.26.0 r5: local negative boundaries must not globally suppress valid grief entailment."""
 from __future__ import annotations
 
 import json
@@ -12,8 +12,8 @@ from semantic_relevance_facet_judge import (
 from semantic_relevance_facet_scoring import QueryFacet, QueryFacetSpec, VerificationRelation
 
 E = Path(__file__).resolve().parent
-CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text())
-FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.2.json").read_text())
+CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text(encoding="utf-8"))
+FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.3.json").read_text(encoding="utf-8"))
 
 
 def facet(query_id: str, facet_id: str) -> QueryFacet:
@@ -43,7 +43,7 @@ assert [c.component_id for c in grief.required_components] == [
     "mourning_or_deep_sorrow_response",
 ]
 
-# r4 preserves the r3 removal of the r2 generic precedence wording from unrelated component calls.
+# r5 preserves the r3 removal of the r2 generic precedence wording from unrelated component calls.
 for component in grief.required_components:
     prompt = build_isolated_component_prompt(
         grief,
@@ -85,4 +85,4 @@ assert result.verification_relation == VerificationRelation.ENTAILED
 assert result.semantic_definition_exclusion_applied is False
 assert all(check.established for check in result.component_checks)
 
-print("v0.26.0 r4 grief non-regression contract passed")
+print("v0.26.0 r5 grief non-regression contract passed")

@@ -1324,6 +1324,7 @@ Return one IsolatedComponentVerification.
 
 Rules:
 - component_id must be exactly {component.component_id!r}.
+- The frozen component definition is binding. If it explicitly declares alternative positive grounding modes, says that either mode is sufficient, or says that a particular evidence form is sufficient, honor that contract exactly. Do not silently replace it with a stricter criterion such as requiring an already-completed outcome.
 - grounding_relation="explicit" only when this evidence itself directly states,
   directly paraphrases, or unmistakably instantiates this component.
 - grounding_relation="entailed" only when this component necessarily follows in
@@ -2072,6 +2073,7 @@ Return one FullContextComponentRecovery.
 
 Rules:
 - component_id must be exactly {component.component_id!r}.
+- The frozen component definition is binding. If it explicitly declares alternative positive grounding modes, says that either mode is sufficient, or says that a particular evidence form is sufficient, honor that contract exactly. Do not silently replace it with a stricter criterion such as requiring an already-completed outcome.
 - This stage may inspect spans that Stage A did not select.
 - grounding_relation="explicit" when the cited span(s) directly establish only
   this component; "entailed" when they jointly/individually necessarily establish
