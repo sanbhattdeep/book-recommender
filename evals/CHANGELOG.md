@@ -1,5 +1,149 @@
 # Evaluation Changelog
 
+## v0.26.0 package r4 — local referent/scope fixes + blind-review label adjudication
+
+### Changed
+
+- Added facet spec `v0.9.2` while preserving every canonical component ID from v0.9.1.
+- Q07/F1 now distinguishes a person's simultaneous roles: explicit parental opposition/action toward a member of a couple may establish that person's separate parent-child relationship; a marriage by itself still cannot substitute for parent-child.
+- Q03/F1 now permits explicit maturity/personal-growth statements about intended participants/readers and no longer requires the authors themselves to be the people developing.
+- Preserved Q02/F1 decision-vs-suspense semantics from v0.9.1 unchanged.
+- Added blind-review label revisions:
+  - `U2_Q01_T02`: `2 -> 1` (weak redemption match; forgiveness absent).
+  - `U2_Q05_T10`: `4 -> 2` (war matches; political-conflict aspect absent).
+- Consumed development dataset version advances `2.1.0 -> 2.2.0`.
+- Label revision manifest advances `1.0.0 -> 1.1.0`.
+- Targeted regression manifest advances `5.0.0 -> 6.0.0` and expands from 17 to 21 protected cases.
+- Added focused contracts for Q07 parent-child referent binding, Q03 personal-growth participant scope, and r4 blind-review labels.
+
+### Unchanged
+
+- Judge version `0.26.0`.
+- Calibration dataset pin `0.5.0`.
+- Rubric `0.1.0`.
+- Isolated per-component verification architecture.
+- Python deterministic facet assembly.
+- Missing-component-only full-context recovery.
+- Scoring module and 0-4 scoring semantics.
+- Direct Ollama transport recovery behavior.
+- Q01 forgiveness/redemption semantic boundaries and Q05 political-conflict semantic boundaries.
+
+### Acceptance target
+
+- Fresh 21-case targeted regression: 21/21 PASS.
+- Then fresh 90-case consumed-development run and development-reference review.
+
+## v0.26.0 package r3 — local-boundary scoping
+
+### Evidence motivating the patch
+
+The r2 targeted run again reached 16/17 PASS. The intended Q02 suspense false positive was fixed (`U_Q02_NEG: 2 -> 0`), but `U_Q06_T02` regressed from judge 3 to judge 2.
+
+The r1/r2 component comparison isolated the regression to Q06/F1 grief on span S8. In both runs the span established significant loss. In r1 it also entailed `mourning_or_deep_sorrow_response`; in r2 the same component became `missing[boundary]` despite the reason acknowledging devastation and emotional impact. Q06/F2 still entailed significant personal loss from S8.
+
+### Changed
+
+- Reverted the r2 global `NEGATIVE-BOUNDARY PRIORITY` wording from isolated-component prompts.
+- Reverted the same global precedence wording from missing-component recovery prompts.
+- Kept normal component-specific negative-boundary enforcement unchanged.
+- Kept facet spec v0.9.1 and the local Q02/F1 decision-vs-suspense clarification unchanged.
+- Updated `test_v0_26_suspense_boundary.py` to verify local-spec ownership of the suspense boundary.
+- Added `test_v0_26_grief_non_regression.py` to protect Q06/F1 from unrelated global prompt drift.
+
+### Unchanged
+
+- judge version 0.26.0
+- facet spec v0.9.1 contents
+- all canonical component IDs
+- v0.26 isolated-component architecture
+- deterministic facet assembly
+- missing-component-only recovery
+- deterministic scoring
+- rubric v0.1.0
+- development labels/version 2.1.0
+- calibration provenance 0.5.0
+- targeted regression manifest v5.0.0
+
+### Acceptance gate
+
+A fresh targeted run must report 17/17 PASS, including both `U_Q02_NEG <= 1` and `U_Q06_T02 >= 3`, before starting the 90-case development run.
+
+## v0.26.0 package r2 — suspense negative-boundary precedence
+
+### Evidence motivating the patch
+
+The v0.26.0 r1 targeted run reached 16/17 PASS. `U_Q02_NEG` remained a false positive (`human=0`, `judge=2`) because the isolated suspense component call treated an important caregiving choice and its possible consequences as `story_level_tension_or_anticipation`.
+
+### Changed
+
+- Added facet spec `semantic_relevance_query_facets.v0.9.1.json`.
+- Preserved every canonical component ID and all facet decomposition from v0.9.0.
+- Clarified only Q02/F1 suspense semantics and component boundaries:
+  - consequential or high-stakes personal decisions remain decision uncertainty by themselves;
+  - illness/caregiving stakes do not become suspense merely because a choice is unresolved;
+  - a plot-driving decision is not automatically story-level tension;
+  - positive suspense requires an independently tension-producing unfolding event/outcome.
+- Added explicit `NEGATIVE-BOUNDARY PRIORITY` to isolated-component verification.
+- Added the same precedence rule to missing-component recovery.
+- Explicitly forbids renaming/reframing a boundary-blocked near-concept as the target component.
+- Added `test_v0_26_suspense_boundary.py` with two negative decision fixtures and one positive independent-threat fixture.
+- Added a regression assertion that all canonical component IDs remain unchanged and every facet other than Q02/F1 is identical to v0.9.0.
+
+### Unchanged
+
+- judge version `0.26.0`
+- v0.26 isolated-component architecture
+- deterministic facet assembly
+- missing-component-only full-context recovery
+- deterministic 0–4 scoring
+- rubric v0.1.0
+- development labels/version 2.1.0
+- calibration provenance 0.5.0
+- targeted regression manifest v5.0.0
+
+### Acceptance gate
+
+The package-level verifier must pass, then a **fresh** 17-case targeted run must report 17/17 PASS. The new focal requirement is `U_Q02_NEG <= 1`; all 16 cases that passed under r1 must remain protected.
+
+## v0.26.0 — isolated canonical-component verification
+
+### Changed
+
+- Replaced production single-span holistic facet verification with one LLM call per frozen canonical component.
+- Added `IsolatedComponentVerification` with `missing | explicit | entailed` component grounding states.
+- Moved full-facet `direct / entailed / adjacent / unsupported` assembly into deterministic Python.
+- Replaced production holistic composite verification with missing-component-only full-context recovery.
+- Added `FullContextComponentRecovery`; only components still missing after isolated audits are eligible for recovery.
+- Established component outcomes are never re-opened by full-context recovery.
+- Same-span component resurrection is mechanically rejected; bounded repair exhaustion leaves that component missing and records the reason.
+- Preserved prior component-specific negative-boundary results when recovery does not find valid new evidence.
+- Extended component audit records with `grounding_relation`.
+- Direct Ollama recovery transport uses JSON mode for both the legacy composite schema and the v0.26 component-recovery schema.
+
+### Unchanged
+
+- deterministic 0–4 scoring
+- rubric v0.1.0
+- facet spec v0.9.0 and its canonical component definitions/boundaries
+- Stage A candidate selection
+- facet-independent book-subject analysis
+- explicit subject relation / prominence resolution
+- hard-exclusion precheck
+- consumed development dataset version 2.1.0
+- calibration provenance pinned to dataset 0.5.0
+- blind-review `U2_Q03_T30` human-label revision
+
+### Targeted acceptance gate
+
+The 17-case regression manifest remains the preregistered gate. The main v0.26 focus cases are:
+
+- `U_Q06_T02 >= 3`
+- `U_Q07_T10 <= 1`
+- `U_Q04_NEG <= 1`
+- `U_Q06_T70 <= 1`
+
+The package-level tests verify architecture and deterministic contracts only. Semantic acceptance still requires the actual Ollama targeted run.
+
 ## v0.26.0 — isolated canonical-component verification
 
 ### Changed

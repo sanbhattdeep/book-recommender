@@ -87,12 +87,12 @@ from semantic_relevance_facet_scoring import (
 # =============================================================================
 
 JUDGE_CONFIG_VERSION = "0.26.0"
-EVALUATION_DATASET_VERSION = "2.1.0"
+EVALUATION_DATASET_VERSION = "2.2.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_holdout_development"
 EVALUATION_SCOPE = "consumed_unseen_pool_development"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.9.1"
+FACET_SPEC_VERSION = "0.9.2"
 
 
 # =============================================================================

@@ -1,4 +1,4 @@
-"""v0.26.0 r3: Q02/F1 locally separates decision uncertainty from suspense."""
+"""v0.26.0 r4: Q02/F1 locally separates decision uncertainty from suspense."""
 from __future__ import annotations
 
 import json
@@ -13,7 +13,7 @@ from semantic_relevance_facet_scoring import QueryFacet, QueryFacetSpec, Verific
 
 E = Path(__file__).resolve().parent
 CONFIG = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text())
-FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json").read_text())
+FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.2.json").read_text())
 
 
 def facet(query_id: str, facet_id: str) -> QueryFacet:
@@ -38,9 +38,8 @@ class QueueModel:
 
 
 
-# r3 keeps the r2 facet-spec patch: all canonical IDs remain identical to v0.9.0,
-# and no facet other than Q02/F1 changes semantically.
-OLD_FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.0.json").read_text())
+# r4 preserves all canonical IDs from v0.9.1. Q02/F1 remains identical; only Q03/F1 and Q07/F1 change semantically.
+OLD_FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json").read_text())
 
 def facet_map(payload):
     return {
@@ -56,8 +55,9 @@ for key in old_map:
     old_ids = [c["component_id"] for c in old_map[key]["required_components"]]
     new_ids = [c["component_id"] for c in new_map[key]["required_components"]]
     assert old_ids == new_ids, key
-    if key != ("Q02", "F1"):
+    if key not in {("Q03", "F1"), ("Q07", "F1")}:
         assert old_map[key] == new_map[key], key
+assert old_map[("Q02", "F1")] == new_map[("Q02", "F1")]
 
 suspense = facet("Q02", "F1")
 component = suspense.required_components[0]
@@ -143,4 +143,4 @@ result, _ = verify_candidate_evidence(
 assert result.verification_relation == VerificationRelation.ENTAILED
 assert result.semantic_definition_exclusion_applied is False
 
-print("v0.26.0 r3 local suspense decision-boundary contract passed")
+print("v0.26.0 r4 local suspense decision-boundary contract passed")

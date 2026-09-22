@@ -17,9 +17,9 @@ EVALS = Path(__file__).resolve().parent
 DATASETS = EVALS / "datasets"
 OLD = DATASETS / "semantic_relevance_v0.18_development.v1.0.0.csv"
 FRESH_VALIDATION = DATASETS / "semantic_relevance_fresh_validation.v2.0.0.csv"
-OUT = DATASETS / "semantic_relevance_v0.26_development.v2.1.0.csv"
-MANIFEST = DATASETS / "semantic_relevance_v0.26_development_manifest.v1.0.0.json"
-LABEL_REVISIONS = DATASETS / "semantic_relevance_label_revisions.v1.0.0.json"
+OUT = DATASETS / "semantic_relevance_v0.26_development.v2.2.0.csv"
+MANIFEST = DATASETS / "semantic_relevance_v0.26_development_manifest.v1.1.0.json"
+LABEL_REVISIONS = DATASETS / "semantic_relevance_label_revisions.v1.1.0.json"
 
 
 def sha256(path: Path) -> str:
@@ -96,7 +96,7 @@ def main() -> None:
         combined.loc[mask, "label_revision_reason"] = str(revision["reason"])
         combined.loc[mask, "label_revision_status"] = str(revision["review_status"])
 
-    combined["dataset_version"] = "2.1.0"
+    combined["dataset_version"] = "2.2.0"
     combined["rubric_version"] = "0.1.0"
 
     if len(combined) != 90 or combined["case_id"].nunique() != 90:
@@ -106,8 +106,8 @@ def main() -> None:
 
     combined.to_csv(OUT, index=False, encoding="utf-8")
     manifest = {
-        "version": "1.0.0",
-        "dataset_version": "2.1.0",
+        "version": "1.1.0",
+        "dataset_version": "2.2.0",
         "rubric_version": "0.1.0",
         "case_count": 90,
         "sources": [

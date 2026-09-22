@@ -1,0 +1,78 @@
+{
+  "version": "6.0.0",
+  "purpose": "v0.26.0 r4 gate: preserve the 17/17 r3 protections, fix Q07 parent-child referent binding and Q03 personal-growth participant scope, and carry the two blind-reviewed development-label adjudications.",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    }
+  },
+  "notes": {
+    "U2_Q03_T30": "Blind-review human score revised from 2 to 0 before v0.24.0; inner peace, stress reduction, relaxation, and joy do not automatically establish personal growth.",
+    "v0.26.0": "Focus: U_Q06_T02>=3 and U_Q07_T10/U_Q04_NEG/U_Q06_T70<=1 while preserving Alcoholics Anonymous, In the Beginning, Joy Within, and all other targeted protections.",
+    "U2_Q01_T02": "Blind-review human score revised from 2 to 1: weak redemption match; forgiveness is not established.",
+    "U2_Q05_T10": "Blind-review human score revised from 4 to 2: war is a good match; political-conflict evidence is missing.",
+    "v0.26.0-r4": "Focus: U_Q07_T02>=3 and U_Q03_T02==2 while preserving all r3 protections and the high-precision component-isolation architecture."
+  }
+}

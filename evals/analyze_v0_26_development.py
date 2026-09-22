@@ -21,14 +21,14 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 EXPECTED_JUDGE_CONFIG_VERSION = "0.26.0"
-EXPECTED_EVALUATION_DATASET_VERSION = "2.1.0"
+EXPECTED_EVALUATION_DATASET_VERSION = "2.2.0"
 EXPECTED_EVALUATION_DATASET_ROLE = "post_holdout_development"
 EXPECTED_EVALUATION_SCOPE = "consumed_unseen_pool_development"
 REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.26_regression_manifest.v5.0.0.json"
+    / "semantic_relevance_v0.26_regression_manifest.v6.0.0.json"
 )
 
 
