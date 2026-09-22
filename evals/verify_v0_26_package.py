@@ -12,7 +12,7 @@ required = [
     E / "semantic_relevance_facet_judge.py",
     E / "semantic_relevance_facet_scoring.py",
     E / "judge_configs/semantic_relevance_judge.v0.26.0.json",
-    E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.0.json",
+    E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json",
     E / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json",
     E / "datasets/semantic_relevance_v0.26_regression_manifest.v5.0.0.json",
     E / "datasets/semantic_relevance_label_revisions.v1.0.0.json",
@@ -24,18 +24,20 @@ required = [
     E / "test_v0_26_component_isolation.py",
     E / "test_v0_26_deterministic_facet_assembly.py",
     E / "test_v0_26_missing_component_recovery.py",
+    E / "test_v0_26_suspense_boundary.py",
+    E / "test_v0_26_grief_non_regression.py",
 ]
 for path in required:
     assert path.exists(), path
 
 cfg = json.loads((E / "judge_configs/semantic_relevance_judge.v0.26.0.json").read_text(encoding="utf-8"))
-facet_path = E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.0.json"
+facet_path = E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json"
 facet_payload = json.loads(facet_path.read_text(encoding="utf-8"))
 rubric_path = E / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"
 
 assert cfg["version"] == "0.26.0"
 assert cfg["dataset_version"] == "0.5.0"  # calibration provenance remains pinned
-assert cfg["facet_spec_version"] == "0.9.0"
+assert cfg["facet_spec_version"] == "0.9.1"
 assert cfg["rubric_version"] == "0.1.0"
 assert "isolated_component_verification" in cfg["pipeline"]
 assert "deterministic_facet_assembly" in cfg["pipeline"]
@@ -44,7 +46,7 @@ assert cfg["verification_stage"]["v0_26_component_contract"]["full_facet_relatio
 assert cfg["composite_verification_stage"]["v0_26_recovery_contract"]["recover_missing_components_only"] is True
 assert cfg["composite_verification_stage"]["v0_26_recovery_contract"]["may_override_established_components"] is False
 
-assert facet_payload["version"] == "0.9.0"
+assert facet_payload["version"] == "0.9.1"
 assert facet_payload["status"] == "frozen"
 component_count = 0
 for query in facet_payload["queries"]:
@@ -56,15 +58,15 @@ for query in facet_payload["queries"]:
         component_count += len(components)
 assert component_count >= 34
 
-# Frozen semantic artifacts remain unchanged from v0.25.
-assert hashlib.sha256(facet_path.read_bytes()).hexdigest() == "26739c6eb818c7fb7ddbbf3ae1e9e391111b70307b8f3f44f564d1d969c11c1f"
+# Current r3 retains the r2 v0.9.1 facet-boundary artifact and frozen rubric hash.
+assert hashlib.sha256(facet_path.read_bytes()).hexdigest() == "fc20174c8360ed9e3779e56855ce078e90f93aefb491aa9179fcd9897aa34da8"
 assert hashlib.sha256(rubric_path.read_bytes()).hexdigest() == "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e"
 
 runner_text = (E / "run_judge_development.py").read_text(encoding="utf-8")
 assert 'JUDGE_CONFIG_VERSION = "0.26.0"' in runner_text
 assert 'EVALUATION_DATASET_VERSION = "2.1.0"' in runner_text
 assert 'JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"' in runner_text
-assert 'FACET_SPEC_VERSION = "0.9.0"' in runner_text
+assert 'FACET_SPEC_VERSION = "0.9.1"' in runner_text
 assert 'semantic_relevance_v0.26_development' in runner_text
 assert 'v0.26 facet is missing required_components' in runner_text
 assert '"component_evidence_ledger_json"' in runner_text
@@ -84,6 +86,10 @@ for required_text in [
     "grounding_relation",
 ]:
     assert required_text in judge_text, required_text
+
+# r3 intentionally removes the r2 global negative-boundary-precedence wording.
+assert "NEGATIVE-BOUNDARY PRIORITY" not in judge_text
+assert "For example, an important or consequential personal decision" not in judge_text
 
 # The production branch must execute before the retained legacy holistic fixture path.
 component_branch = judge_text.index("if facet.required_components:", judge_text.index("def verify_candidate_evidence"))
@@ -107,6 +113,8 @@ for name in [
     "test_v0_26_component_isolation.py",
     "test_v0_26_deterministic_facet_assembly.py",
     "test_v0_26_missing_component_recovery.py",
+    "test_v0_26_suspense_boundary.py",
+    "test_v0_26_grief_non_regression.py",
     "test_v0_25_component_boundaries.py",
     "test_v0_24_component_completeness.py",
     "test_v0_24_component_evidence_ledger.py",
@@ -123,7 +131,7 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(E / name)], cwd=E, check=True)
 
-print("v0.26.0 package verification passed.")
+print("v0.26.0 r3 package verification passed.")
 print("Judge SHA-256:", hashlib.sha256((E / "semantic_relevance_facet_judge.py").read_bytes()).hexdigest())
 print("Facet-spec SHA-256:", hashlib.sha256(facet_path.read_bytes()).hexdigest())
 print("Rubric SHA-256:", hashlib.sha256(rubric_path.read_bytes()).hexdigest())

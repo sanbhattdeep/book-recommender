@@ -10,7 +10,7 @@
   "rubric_version": "0.1.0",
   "dataset_version": "0.5.0",
   "facet_spec_id": "semantic-relevance-query-facets",
-  "facet_spec_version": "0.9.0",
+  "facet_spec_version": "0.9.1",
   "evaluation_unit": "one user query x one recommended book",
   "pipeline": "facet_independent_book_subject_plus_explicit_subject_relation_plus_isolated_component_verification_plus_deterministic_facet_assembly_plus_missing_component_only_full_context_recovery_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline",
   "evidence_selection_stage": {
@@ -333,7 +333,7 @@
     "tie_break": "When candidates have the same verification relation, the lower selector rank wins.",
     "early_stop": "Stop verifying later candidates after DIRECT is found because no later relation can outrank DIRECT."
   },
-  "calibration_change": "v0.25.0 moves indispensable component identity into facet spec v0.9.0 as canonical component IDs with generic component-specific negative boundaries. Single-span and full-context verification must return exactly those component IDs; Python validates exact completeness/order. Full-context recovery may inspect Stage-A-unseen spans and now accepts 1-4 supporting spans, while exact-ID monotonicity prevents the same audited evidence from resurrecting a universally missing component. Structured-output failure after bounded repair is surfaced as an evaluation error rather than silently converted to semantic UNSUPPORTED. Deterministic 0-4 scoring logic and rubric v0.1.0 remain unchanged.",
+  "calibration_change": "v0.26.0 r3 retains facet spec v0.9.1 and its narrow Q02/F1 suspense boundary, but reverts the r2 global negative-boundary-precedence prompt wording after targeted evidence showed over-conservative drift on Q06/F1 grief. Isolated component verification, deterministic facet assembly, missing-component-only recovery, canonical component IDs, dataset labels, 0-4 scoring, and rubric v0.1.0 remain unchanged.",
   "deterministic_direct_cue_stage": {
     "owner": "deterministic_python_positive_only",
     "purpose": "Resolve only high-confidence lexical or concrete DIRECT evidence before Stage A. v0.16 adds a conservative polarity/contrast guard so a lexical cue cannot become positive DIRECT evidence when the matched concept is explicitly negated, absent, or contrasted away in its local context. A cue can establish relation=direct only; core prominence and final score remain separate.",
