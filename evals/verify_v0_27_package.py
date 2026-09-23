@@ -1,4 +1,4 @@
-"""Static/unit verifier for the v0.27.0 r2 overlay package."""
+"""Static/unit verifier for the v0.27.0 r3 overlay package."""
 from pathlib import Path
 import hashlib, json, subprocess, sys, re
 
@@ -17,16 +17,19 @@ required = [
     EVALS / "analyze_v0_27_development.py",
     EVALS / "datasets/semantic_relevance_v0.27_regression_manifest.v1.0.0.json",
     EVALS / "datasets/semantic_relevance_post_holdout_label_revisions.v1.0.0.json",
-    EVALS / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.4.json",
+    EVALS / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.5.json",
     EVALS / "judge_configs/semantic_relevance_judge.v0.27.0.json",
 ]
 for path in required:
     assert path.exists(), path
 
 config=json.loads((EVALS/"judge_configs/semantic_relevance_judge.v0.27.0.json").read_text(encoding="utf-8"))
-assert config["facet_spec_version"] == "0.9.4"
+assert config["facet_spec_version"] == "0.9.5"
 assert config["version"] == "0.27.0"
 assert config["text_licensed_inference_contract"]["audit_field"] == "external_knowledge_required"
+assert config["text_licensed_inference_contract"]["scope"] == "component_local_after_r1_targeted_regression"
+assert config["text_licensed_inference_contract"]["local_precision_guard"] == "Q09/F2 resistance identity-only text-anchor guard"
+assert any(rule.get("cue_id") == "Q03_F1_promoted_growth_mode_b" for rule in config["deterministic_direct_cue_stage"]["rules"])
 
 
 reg=json.loads((EVALS/"datasets/semantic_relevance_v0.27_regression_manifest.v1.0.0.json").read_text(encoding="utf-8"))
@@ -44,7 +47,7 @@ assert 'EXPECTED_EVALUATION_DATASET_VERSION = "3.0.0"' in dev_an
 assert 'len(gold) != 120' in dev_an
 
 runner=(EVALS/"run_judge_development.py").read_text(encoding="utf-8")
-for token in ('JUDGE_CONFIG_VERSION = "0.27.0"','EVALUATION_DATASET_VERSION = "3.0.0"','FACET_SPEC_VERSION = "0.9.4"','semantic_relevance_v0_27_development'):
+for token in ('JUDGE_CONFIG_VERSION = "0.27.0"','EVALUATION_DATASET_VERSION = "3.0.0"','FACET_SPEC_VERSION = "0.9.5"','semantic_relevance_v0_27_development'):
     assert token in runner, token
 assert "len(dataset) != 120" in runner
 assert 'startswith("U2_").sum()) != 60' in runner
@@ -71,8 +74,8 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(EVALS/name)], cwd=ROOT, check=True)
 
-print("v0.27.0 r2 package verification passed.")
+print("v0.27.0 r3 package verification passed.")
 print("Judge SHA-256:", sha(EVALS/"semantic_relevance_facet_judge.py"))
 print("Scoring SHA-256:", sha(EVALS/"semantic_relevance_facet_scoring.py"))
-print("Facet-spec SHA-256:", sha(EVALS/"facets/semantic_relevance/semantic_relevance_query_facets.v0.9.4.json"))
+print("Facet-spec SHA-256:", sha(EVALS/"facets/semantic_relevance/semantic_relevance_query_facets.v0.9.5.json"))
 print("Rubric SHA-256:", sha(EVALS/"rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"))

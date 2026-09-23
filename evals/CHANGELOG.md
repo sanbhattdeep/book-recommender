@@ -1,5 +1,68 @@
 # Evaluation Changelog
 
+# v0.27.0 r3 changelog
+
+## Targeted-run evidence
+
+The r1 semantic run passed 21/24 targeted expectations. `U2_Q05_T30 La Débâcle` passed, while three cases remained:
+
+- `U_Q03_T02 Save the Date`: 2 -> 0, a new inherited-regression failure.
+- `U2_Q04_T70 Gulliver's Travels`: 3 -> 2, improved but below target.
+- `U2_Q09_T30 The Darling`: 0 -> 2, unchanged severe over-promotion.
+
+Diagnostics showed three distinct mechanisms: Q03's explicit Mode-B wording was overridden by the global r1 policy; Q04 F3 still rejected text-grounded travel/danger evidence; and Q09 imported named-entity history while falsely setting `external_knowledge_required=false`.
+
+## Semantic changes
+
+- Removed the r1 global text-licensed-inference examples from all components.
+- Added narrowly scoped component-local inference contracts for Q03, Q04, Q05, and Q09 only.
+- Added a high-precision deterministic Q03/F1 promoted-growth Mode-B cue.
+- Added a Q09/F2 Python text-anchor precision guard for both isolated verification and full-context recovery so identity/membership alone cannot establish resistance action or an oppressive/authoritarian target.
+- Added facet spec v0.9.5. Relative to v0.9.4, only Q04 and Q09 semantics change:
+  - Q04: `shipwrecked` in the supplied travel narrative is explicitly accepted as a danger/hazard cue.
+  - Q09: political radical identity or named-movement membership alone establishes neither active resistance nor its oppressive/authoritarian target.
+- Q05 v0.9.4 semantics are unchanged; local prompt guidance preserves the r1 fix.
+
+## Unchanged
+
+- Judge config version: 0.27.0
+- Development dataset: 3.0.0 / 120 consumed cases
+- Regression manifest: 1.0.0 / 24 targeted cases
+- Scoring module and thresholds
+- Rubric 0.1.0
+- Model and temperature
+- Canonical component IDs
+
+## Methodology status
+
+All 120 cases are consumed development evidence. There is no independent v0.27 holdout. The frozen v0.26 final-holdout result remains unchanged.
+
+# v0.27.0 r2 changelog
+
+## Packaging / verifier fix
+
+- Repository-wide Python source scanning/compilation in `verify_v0_27_package.py` now uses `utf-8-sig`.
+- This permits pre-existing UTF-8 BOM-prefixed Python files to be verified without producing `SyntaxError: invalid non-printable character U+FEFF`.
+- No judge, prompt, facet, scoring, rubric, dataset, regression expectation, model, or temperature change from r1.
+
+## Added — text-licensed entailment / external-knowledge boundary
+
+Component verification now explicitly distinguishes ordinary semantic entailment licensed by supplied text from facts that would have to come from named-entity or world knowledge. The new `external_knowledge_required` audit field is carried from isolated/recovery verification into the canonical component ledger; a positive result marked as requiring outside knowledge is mechanically rejected.
+
+## Facet spec v0.9.4
+
+Narrow local clarifications were added for the three adjudicated post-holdout judge failures:
+
+- Q04: explicit travel framing plus a named subject's encounters across multiple stated places can entail movement/journey/adventure; location alone remains insufficient.
+- Q05: regime/empire collapse or end linked by the supplied text to revolution/revolutionary violence can establish political-power stake and actual political struggle.
+- Q09: membership in a named political movement/organization cannot import the movement's target or ideology from outside knowledge.
+
+All canonical component IDs, scoring, rubric, model, and temperature remain unchanged.
+
+## Evaluation status
+
+v0.27 development uses 120 consumed cases. There is no independent holdout.
+
 # v0.27.0 r1 changelog
 
 ## Added — text-licensed entailment / external-knowledge boundary
