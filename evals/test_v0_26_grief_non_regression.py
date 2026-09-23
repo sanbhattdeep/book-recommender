@@ -1,4 +1,4 @@
-"""v0.26.0 r5: local negative boundaries must not globally suppress valid grief entailment."""
+"""v0.26.0 r6: local negative boundaries must not globally suppress valid grief entailment."""
 from __future__ import annotations
 
 import json
@@ -43,7 +43,7 @@ assert [c.component_id for c in grief.required_components] == [
     "mourning_or_deep_sorrow_response",
 ]
 
-# r5 preserves the r3 removal of the r2 generic precedence wording from unrelated component calls.
+# r6 preserves the r3 removal of the r2 generic precedence wording from unrelated component calls.
 for component in grief.required_components:
     prompt = build_isolated_component_prompt(
         grief,
@@ -85,4 +85,4 @@ assert result.verification_relation == VerificationRelation.ENTAILED
 assert result.semantic_definition_exclusion_applied is False
 assert all(check.established for check in result.component_checks)
 
-print("v0.26.0 r5 grief non-regression contract passed")
+print("v0.26.0 r6 grief non-regression contract passed")

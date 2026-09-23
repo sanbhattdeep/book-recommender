@@ -1,0 +1,146 @@
+{
+  "release_candidate_id": "semantic_relevance_v0.26.0-r6",
+  "status": "FROZEN_FOR_ONE_TIME_FINAL_HOLDOUT",
+  "frozen_at_utc": "2026-09-23T07:38:14.183347+00:00",
+  "git_commit_sha": "03cb9c816a442826b20d3fdb10a34b5c76096752",
+  "judge_version": "0.26.0",
+  "facet_spec_version": "0.9.3",
+  "rubric_version": "0.1.0",
+  "development_dataset_version": "2.2.0",
+  "artifacts": {
+    "evals/semantic_relevance_facet_judge.py": {
+      "sha256": "3f1f54bd7dba9fd08ddaafa55684c2f8bba8c7c888571996258cce57baeb3614",
+      "size_bytes": 128054
+    },
+    "evals/semantic_relevance_facet_scoring.py": {
+      "sha256": "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808",
+      "size_bytes": 26252
+    },
+    "evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.9.3.json": {
+      "sha256": "1821180bdbd9284db67d9bea661e69049713c29051b1ba5ea297d41690735c01",
+      "size_bytes": 55587
+    },
+    "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json": {
+      "sha256": "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e",
+      "size_bytes": 2449
+    },
+    "evals/judge_configs/semantic_relevance_judge.v0.26.0.json": {
+      "sha256": "49b3baff0c5816571845220372a43a7891a1d1b52cdef126fac1906b3cc377d1",
+      "size_bytes": 52226
+    },
+    "evals/datasets/semantic_relevance_label_revisions.v1.1.0.json": {
+      "sha256": "51db1682bde0351afaa81e52fe8805e91aa3b4aafe73ebebed53eb3aa2759930",
+      "size_bytes": 1292
+    },
+    "evals/datasets/semantic_relevance_v0.26_regression_manifest.v6.2.0.json": {
+      "sha256": "0303c36f7dc916b69eaaab8c875a675dbe42f7bb5b3be1e58e2f2279114a6c6d",
+      "size_bytes": 2568
+    }
+  },
+  "development_evidence": {
+    "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_26_development\\20260922T145732Z",
+    "development_summary_sha256": "71541d68855abdd6c16e9e2efa0a8440d93810d84c3c7c34d48832195af57896",
+    "judge_results_sha256": "c2d5037147ca50af18bce281b612281bc4b5632d033235f14e09d3e24f0ef039",
+    "run_metadata_sha256": "fb2cacea8abcce17c3ccb38981c6a4ee99cc62352e0223ed685405edb5882bd0",
+    "development_dataset_sha256": "8e9464e62afec19a2060ed13cc11bf3c2287c47e3b308989004eee60c0015d75",
+    "cases": 90,
+    "all_reference_checks_pass": true,
+    "all_21_targeted_checks_pass": true,
+    "metrics": {
+      "exact_agreement": 0.6555555555555556,
+      "within_one_agreement": 0.9888888888888889,
+      "mean_absolute_difference": 0.35555555555555557,
+      "linear_weighted_cohens_kappa": 0.7643207855973813,
+      "quadratic_weighted_cohens_kappa": 0.9037372593431483,
+      "binary_relevance_0_vs_positive": {
+        "true_positive": 42,
+        "false_positive": 2,
+        "false_negative": 6,
+        "true_negative": 40,
+        "precision": 0.9545454545454546,
+        "recall": 0.875,
+        "f1": 0.9130434782608695
+      },
+      "error_counts": {
+        "false_zeros": 6,
+        "false_positive_relevance": 2,
+        "absolute_difference_ge_2": 1,
+        "over_promotions_by_2_or_more": 0,
+        "under_promotions_by_2_or_more": 1
+      }
+    }
+  },
+  "stability_evidence": [
+    {
+      "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_26_development\\20260922T144624Z",
+      "judge_results_sha256": "0f3d5aaddb794fcc2c176bc3c8e946d48c58ff00fc6b0a08b46879189868844f",
+      "run_metadata_sha256": "2ae18a81e2362b8347a0a12d687604881b4bc0db36928175b3869555f14bcea9",
+      "U_Q07_T02": 3,
+      "U_Q03_T02": 2
+    },
+    {
+      "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_26_development\\20260922T144919Z",
+      "judge_results_sha256": "7ed3e047539d0ebfe3dc5c0c21e702c3ef17ad47acc9651238686bf28f2e10b7",
+      "run_metadata_sha256": "10e9b68cfc4a2c9a12a5e40efa893e9a6508af75c250ef9f8de75dcfcd5a5947",
+      "U_Q07_T02": 3,
+      "U_Q03_T02": 2
+    },
+    {
+      "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_26_development\\20260922T145213Z",
+      "judge_results_sha256": "7ed3e047539d0ebfe3dc5c0c21e702c3ef17ad47acc9651238686bf28f2e10b7",
+      "run_metadata_sha256": "25e28308dbc2ccdf49cb0096584aa58c4e5213804bc87fd5f0248ff00c8245a4",
+      "U_Q07_T02": 3,
+      "U_Q03_T02": 2
+    }
+  ],
+  "final_holdout_protocol": {
+    "expected_cases": 30,
+    "one_time_only": true,
+    "targeted_fresh_runs_forbidden": true,
+    "resume_same_run_allowed_for_operational_recovery": true,
+    "report_result_even_if_release_checks_fail": true,
+    "no_relabel_or_retune_after_result": true,
+    "pre_registered_release_checks": {
+      "within_one_ge_0_95": {
+        "metric": "within_one_agreement",
+        "op": ">=",
+        "value": 0.95
+      },
+      "exact_ge_0_50": {
+        "metric": "exact_agreement",
+        "op": ">=",
+        "value": 0.5
+      },
+      "quadratic_kappa_ge_0_80": {
+        "metric": "quadratic_weighted_cohens_kappa",
+        "op": ">=",
+        "value": 0.8
+      },
+      "linear_kappa_ge_0_60": {
+        "metric": "linear_weighted_cohens_kappa",
+        "op": ">=",
+        "value": 0.6
+      },
+      "absolute_difference_ge_2_le_1_case": {
+        "metric": "error_counts.absolute_difference_ge_2",
+        "op": "<=",
+        "value": 1
+      },
+      "binary_precision_ge_0_90": {
+        "metric": "binary_relevance_0_vs_positive.precision",
+        "op": ">=",
+        "value": 0.9
+      },
+      "binary_recall_ge_0_80": {
+        "metric": "binary_relevance_0_vs_positive.recall",
+        "op": ">=",
+        "value": 0.8
+      },
+      "deterministic_cue_severe_false_positives_eq_0": {
+        "metric": "deterministic_cue_severe_false_positives",
+        "op": "==",
+        "value": 0
+      }
+    }
+  }
+}

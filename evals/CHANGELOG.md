@@ -1,5 +1,31 @@
 # Evaluation Changelog
 
+## v0.26.0 package r6 — local semantic-contract isolation
+
+- Preserves facet spec `v0.9.3`, including Q03/F1's independently sufficient experienced-development and explicit-growth-promotion modes.
+- Preserves Q07/F1's r4 parent-child referent-binding semantics.
+- Removes the two r5 **global** prompt lines that instructed every isolated-component and missing-component verifier to interpret alternative positive grounding modes / sufficiency clauses.
+- The same semantics now come only from the frozen facet/component definition that declares them; unrelated facets do not receive Q03-style global guidance.
+- Adds `test_v0_26_local_contract_isolation.py`, verifying Q03 prompts contain the local Mode A/Mode B contract while Q07 prompts do not inherit it.
+- Updates the Q03 personal-growth prompt contract test to prove its local definition is surfaced without the removed global instruction.
+- Adds targeted regression manifest `v6.2.0`; the 21 case expectations are unchanged and now explicitly require `U_Q03_T02==2` and `U_Q07_T02>=3` together.
+- Adds `analyze_v0_26_stability.py` for the post-targeted 3-run spot-check of `U_Q03_T02` and `U_Q07_T02`.
+- Development dataset remains `2.2.0`; label revisions remain `1.1.0`; calibration provenance remains `0.5.0`; rubric and scoring are unchanged.
+- Retains the Windows UTF-8 and verifier-syntax fixes from r5 winfix2.
+
+## v0.26.0 package r6 — local semantic-contract isolation
+
+- Preserves facet spec `v0.9.3`, including Q03/F1's independently sufficient experienced-development and explicit-growth-promotion modes.
+- Preserves Q07/F1's r4 parent-child referent-binding semantics.
+- Removes the two r5 **global** prompt lines that instructed every isolated-component and missing-component verifier to interpret alternative positive grounding modes / sufficiency clauses.
+- The same semantics now come only from the frozen facet/component definition that declares them; unrelated facets do not receive Q03-style global guidance.
+- Adds `test_v0_26_local_contract_isolation.py`, verifying Q03 prompts contain the local Mode A/Mode B contract while Q07 prompts do not inherit it.
+- Updates the Q03 personal-growth prompt contract test to prove its local definition is surfaced without the removed global instruction.
+- Adds targeted regression manifest `v6.2.0`; the 21 case expectations are unchanged and now explicitly require `U_Q03_T02==2` and `U_Q07_T02>=3` together.
+- Adds `analyze_v0_26_stability.py` for the post-targeted 3-run spot-check of `U_Q03_T02` and `U_Q07_T02`.
+- Development dataset remains `2.2.0`; label revisions remain `1.1.0`; calibration provenance remains `0.5.0`; rubric and scoring are unchanged.
+- Retains the Windows UTF-8 and verifier-syntax fixes from r5 winfix2.
+
 ## v0.26.0 package r5 — Q03 explicit growth-promotion grounding
 
 - Added facet spec `v0.9.3`, preserving every canonical component ID and changing semantic content only for `Q03/F1 personal growth` relative to `v0.9.2`.

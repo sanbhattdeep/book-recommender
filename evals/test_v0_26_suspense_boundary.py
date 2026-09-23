@@ -1,4 +1,4 @@
-"""v0.26.0 r5: Q02/F1 locally separates decision uncertainty from suspense."""
+"""v0.26.0 r6: Q02/F1 locally separates decision uncertainty from suspense."""
 from __future__ import annotations
 
 import json
@@ -38,7 +38,7 @@ class QueueModel:
 
 
 
-# r5 preserves all canonical IDs from v0.9.1. Q02/F1 remains identical; only Q03/F1 and Q07/F1 change semantically.
+# r6 preserves all canonical IDs from v0.9.1. Q02/F1 remains identical; only Q03/F1 and Q07/F1 change semantically.
 OLD_FACETS = json.loads((E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.1.json").read_text(encoding="utf-8"))
 
 def facet_map(payload):
@@ -143,4 +143,4 @@ result, _ = verify_candidate_evidence(
 assert result.verification_relation == VerificationRelation.ENTAILED
 assert result.semantic_definition_exclusion_applied is False
 
-print("v0.26.0 r5 local suspense decision-boundary contract passed")
+print("v0.26.0 r6 local suspense decision-boundary contract passed")

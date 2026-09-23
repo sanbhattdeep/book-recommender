@@ -1,4 +1,4 @@
-"""v0.26.0 r5: parental opposition can establish a separate parent-child relation."""
+"""v0.26.0 r6: parental opposition can establish a separate parent-child relation."""
 from __future__ import annotations
 
 import json
@@ -84,4 +84,4 @@ result, _ = verify_candidate_evidence(
     CONFIG,
 )
 assert result.verification_relation == VerificationRelation.UNSUPPORTED
-print("v0.26.0 r5 parent-child referent-binding contract passed")
+print("v0.26.0 r6 parent-child referent-binding contract passed")

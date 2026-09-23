@@ -19,9 +19,11 @@ required = [
     E / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json",
     E / "datasets/semantic_relevance_v0.26_regression_manifest.v6.0.0.json",
     E / "datasets/semantic_relevance_v0.26_regression_manifest.v6.1.0.json",
+    E / "datasets/semantic_relevance_v0.26_regression_manifest.v6.2.0.json",
     E / "datasets/semantic_relevance_label_revisions.v1.1.0.json",
     E / "analyze_v0_26_targeted.py",
     E / "analyze_v0_26_development.py",
+    E / "analyze_v0_26_stability.py",
     E / "run_judge_development.py",
     E / "run_judge_development_direct_transport.py",
     E / "build_v0_26_development_dataset.py",
@@ -33,6 +35,7 @@ required = [
     E / "test_v0_26_parent_child_referent_binding.py",
     E / "test_v0_26_personal_growth_scope.py",
     E / "test_v0_26_r4_label_revisions.py",
+    E / "test_v0_26_local_contract_isolation.py",
 ]
 for path in required:
     assert path.exists(), path
@@ -44,7 +47,7 @@ old_facet_payload = json.loads(old_facet_path.read_text(encoding="utf-8"))
 facet_payload = json.loads(facet_path.read_text(encoding="utf-8"))
 rubric_path = E / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"
 label_path = E / "datasets/semantic_relevance_label_revisions.v1.1.0.json"
-regression_path = E / "datasets/semantic_relevance_v0.26_regression_manifest.v6.1.0.json"
+regression_path = E / "datasets/semantic_relevance_v0.26_regression_manifest.v6.2.0.json"
 
 assert cfg["version"] == "0.26.0"
 assert cfg["dataset_version"] == "0.5.0"
@@ -78,8 +81,8 @@ def facet_map(payload):
         for f in q["facets"]
     }
 
-# r5 preserves canonical IDs everywhere and changes semantic content only for
-# Q03/F1 relative to v0.9.2. Q02 suspense and Q07 referent binding stay frozen.
+# r6 preserves the v0.9.3 facet spec unchanged: canonical IDs are stable and
+# only Q03/F1 differs semantically from v0.9.2. Q02/Q07 stay frozen.
 old_map = facet_map(old_facet_payload)
 new_map = facet_map(facet_payload)
 assert old_map.keys() == new_map.keys()
@@ -108,9 +111,9 @@ assert "promotes maturity and growth" in component_text
 assert "do not require proof that a named individual has already completed" in component_text
 assert any("prospective" in x.lower() and "explicit promotion" in x.lower() for x in q03_growth["negative_boundaries"])
 
-# Byte-level contracts. Scoring/rubric remain frozen; judge changes only for
-# explicit spec-fidelity wording; facet spec advances to v0.9.3.
-assert hashlib.sha256((E / "semantic_relevance_facet_judge.py").read_bytes()).hexdigest() == "af005258748c825bc8d66638169de41ab61d1bb3171b67b5d1a770f1400c1fab"
+# Byte-level contracts. Scoring/rubric/facet spec remain frozen; r6 judge differs
+# from r5 only by removing the two global sufficiency-clause prompt lines.
+assert hashlib.sha256((E / "semantic_relevance_facet_judge.py").read_bytes()).hexdigest() == "3f1f54bd7dba9fd08ddaafa55684c2f8bba8c7c888571996258cce57baeb3614"
 assert hashlib.sha256((E / "semantic_relevance_facet_scoring.py").read_bytes()).hexdigest() == "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808"
 assert hashlib.sha256(facet_path.read_bytes()).hexdigest() == "1821180bdbd9284db67d9bea661e69049713c29051b1ba5ea297d41690735c01"
 assert hashlib.sha256(rubric_path.read_bytes()).hexdigest() == "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e"
@@ -123,7 +126,7 @@ assert (label_map["U2_Q01_T02"]["previous_human_score"], label_map["U2_Q01_T02"]
 assert (label_map["U2_Q05_T10"]["previous_human_score"], label_map["U2_Q05_T10"]["new_human_score"]) == (4, 2)
 
 reg = json.loads(regression_path.read_text(encoding="utf-8"))
-assert reg["version"] == "6.1.0"
+assert reg["version"] == "6.2.0"
 assert len(reg["targeted_expectations"]) == 21
 assert reg["targeted_expectations"]["U_Q03_T02"] == {"judge_min": 2, "judge_max": 2}
 assert reg["targeted_expectations"]["U_Q07_T02"]["judge_min"] == 3
@@ -156,12 +159,14 @@ for required_text in [
     "No holistic facet verifier was used",
     "positive result must cite at least one span not previously audited for this missing component",
     "grounding_relation",
-    "The frozen component definition is binding",
-    "Do not silently replace it with a stricter criterion",
 ]:
     assert required_text in judge_text, required_text
 
-assert judge_text.count("The frozen component definition is binding") == 2
+# r6 removes the r5 global sufficiency-clause instruction. Q03's two-mode
+# semantics must come only from its local frozen component definition.
+assert "The frozen component definition is binding" not in judge_text
+assert "alternative positive grounding modes" not in judge_text
+assert "Do not silently replace it with a stricter criterion" not in judge_text
 # Preserve r3/r4 removal of the over-broad r2 global negative-boundary wording.
 assert "NEGATIVE-BOUNDARY PRIORITY" not in judge_text
 assert "For example, an important or consequential personal decision" not in judge_text
@@ -193,6 +198,7 @@ for name in [
     "test_v0_26_parent_child_referent_binding.py",
     "test_v0_26_personal_growth_scope.py",
     "test_v0_26_r4_label_revisions.py",
+    "test_v0_26_local_contract_isolation.py",
     "test_v0_25_component_boundaries.py",
     "test_v0_24_component_completeness.py",
     "test_v0_24_component_evidence_ledger.py",
@@ -209,7 +215,7 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(E / name)], cwd=E, check=True)
 
-print("v0.26.0 r5 winfix2 package verification passed.")
+print("v0.26.0 r6 package verification passed.")
 print("Judge SHA-256:", hashlib.sha256((E / "semantic_relevance_facet_judge.py").read_bytes()).hexdigest())
 print("Scoring SHA-256:", hashlib.sha256((E / "semantic_relevance_facet_scoring.py").read_bytes()).hexdigest())
 print("Facet-spec SHA-256:", hashlib.sha256(facet_path.read_bytes()).hexdigest())

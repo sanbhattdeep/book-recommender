@@ -1,4 +1,4 @@
-"""v0.26.0 r5: personal-growth promotion mode is independently sufficient."""
+"""v0.26.0 r6: Q03 personal-growth promotion mode is independently sufficient and local."""
 from __future__ import annotations
 
 import json
@@ -40,8 +40,9 @@ assert "mode b" in component.definition.lower()
 assert "promotes maturity and growth" in component.definition.lower()
 assert "do not require proof that a named individual has already completed" in component.definition.lower()
 
-# The real model prompt must surface the disjunctive contract and explicitly forbid
-# silently replacing Mode B with an already-completed-outcome requirement.
+# The real model prompt must surface the disjunctive contract from Q03's local
+# component definition. r6 deliberately removes the r5 global sufficiency-clause
+# instruction so unrelated facets are not affected.
 prompt = build_isolated_component_prompt(
     facet=item,
     component=component,
@@ -52,7 +53,9 @@ pl = prompt.lower()
 assert "two independently sufficient positive modes" in pl
 assert "either mode establishes this component" in pl
 assert "promotes maturity and growth" in pl
-assert "do not silently replace it with a stricter criterion" in pl
+assert "do not require proof that a named individual has already completed" in pl
+assert "alternative positive grounding modes" not in pl
+assert "do not silently replace it with a stricter criterion" not in pl
 
 # Positive Mode B: explicit promotion of maturity/growth in intended participants.
 for evidence in [
@@ -87,4 +90,4 @@ for evidence in [
     result, _ = verify_candidate_evidence(model, item, "S1", evidence, CONFIG)
     assert result.verification_relation == VerificationRelation.UNSUPPORTED
 
-print("v0.26.0 r5 personal-growth promotion-mode contract passed")
+print("v0.26.0 r6 personal-growth local promotion-mode contract passed")
