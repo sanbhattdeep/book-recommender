@@ -1,0 +1,29 @@
+{
+  "version": "1.0.0",
+  "dataset_version": "3.0.0",
+  "rubric_version": "0.1.0",
+  "case_count": 120,
+  "methodological_status": "post_holdout_consumed_development_only",
+  "sources": [
+    {
+      "path": "evals\\datasets\\semantic_relevance_v0.26_development.v2.2.0.csv",
+      "cases": 90,
+      "sha256": "8e9464e62afec19a2060ed13cc11bf3c2287c47e3b308989004eee60c0015d75"
+    },
+    {
+      "path": "evals\\datasets\\semantic_relevance_fresh_holdout.v2.0.0.DO_NOT_RUN_YET.csv",
+      "cases": 30,
+      "sha256": "6e869b0d8b6bc85193a4e0366ff3c67742a1828146ba8a1f767a2ca6092b1afb"
+    }
+  ],
+  "post_holdout_label_revisions": {
+    "path": "evals\\datasets\\semantic_relevance_post_holdout_label_revisions.v1.0.0.json",
+    "sha256": "a3c40136dc54563154d49f867627847e240c44f12fc299dc8b9ff602a6101479",
+    "count": 4,
+    "blind": false
+  },
+  "output": "evals\\datasets\\semantic_relevance_v0.27_development.v3.0.0.csv",
+  "output_sha256": "0f91c065dd5c34a3776e9ff2a0524174ccfae8635c34abedb8a732bf6f77f35a",
+  "final_holdout_immutability_note": "The original v0.26.0 r6 final-holdout labels, outputs, metrics, and REVIEW result remain immutable. This 120-case dataset exists only for v0.27+ development after the holdout was consumed.",
+  "future_generalization_requirement": "Use a newly sampled and newly human-labelled unseen pool for any v0.27 generalization/release claim."
+}

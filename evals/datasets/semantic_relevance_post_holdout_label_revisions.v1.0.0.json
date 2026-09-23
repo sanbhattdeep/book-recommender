@@ -1,0 +1,38 @@
+{
+  "version": "1.0.0",
+  "scope": "v0.27 post-holdout development only",
+  "source_evaluation": "frozen v0.26.0 r6 final holdout",
+  "source_dataset": "semantic_relevance_fresh_holdout.v2.0.0.DO_NOT_RUN_YET.csv",
+  "methodology_note": "These revisions were supplied by the human reviewer after the one-time v0.26.0 r6 final-holdout result was observed. They are post-holdout development labels, not blind final-holdout labels, and MUST NOT be used to rewrite or replace the published v0.26.0 r6 final-holdout evidence.",
+  "review_method": "post_holdout_human_readjudication",
+  "revisions": [
+    {
+      "case_id": "U2_Q07_T10",
+      "previous_human_score": 4,
+      "new_human_score": 0,
+      "review_status": "POST_HOLDOUT_READJUDICATED",
+      "reason": "Human reviewer re-adjudicated the case to 0 after the final-holdout run. No additional semantic rationale was supplied with the score; preserve the original final-holdout label in the immutable v0.26 evidence."
+    },
+    {
+      "case_id": "U2_Q06_T10",
+      "previous_human_score": 3,
+      "new_human_score": 0,
+      "review_status": "POST_HOLDOUT_READJUDICATED",
+      "reason": "Human reviewer re-adjudicated the case to 0 after the final-holdout run. No additional semantic rationale was supplied with the score; preserve the original final-holdout label in the immutable v0.26 evidence."
+    },
+    {
+      "case_id": "U2_Q01_T10",
+      "previous_human_score": 2,
+      "new_human_score": 0,
+      "review_status": "POST_HOLDOUT_READJUDICATED",
+      "reason": "Human reviewer re-adjudicated the case to 0 after the final-holdout run. No additional semantic rationale was supplied with the score; preserve the original final-holdout label in the immutable v0.26 evidence."
+    },
+    {
+      "case_id": "U2_Q01_T70",
+      "previous_human_score": 2,
+      "new_human_score": 0,
+      "review_status": "POST_HOLDOUT_READJUDICATED",
+      "reason": "Human reviewer re-adjudicated the case to 0 after the final-holdout run. No additional semantic rationale was supplied with the score; preserve the original final-holdout label in the immutable v0.26 evidence."
+    }
+  ]
+}

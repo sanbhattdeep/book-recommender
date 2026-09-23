@@ -241,6 +241,7 @@ class ComponentEvidenceCheck(BaseModel):
         max_length=MAX_COMPOSITE_CANDIDATES,
     )
     negative_boundary_applied: bool = False
+    external_knowledge_required: bool = False
     reason: str = Field(min_length=1)
 
 
@@ -254,6 +255,7 @@ class IsolatedComponentVerification(BaseModel):
     component_id: str = Field(min_length=1)
     grounding_relation: Literal["missing", "explicit", "entailed"]
     negative_boundary_applied: bool = False
+    external_knowledge_required: bool = False
     reason: str = Field(min_length=1)
 
 
@@ -264,6 +266,7 @@ class FullContextComponentRecovery(BaseModel):
     grounding_relation: Literal["missing", "explicit", "entailed"]
     supporting_span_ids: list[str] = Field(default_factory=list, max_length=MAX_COMPOSITE_CANDIDATES)
     negative_boundary_applied: bool = False
+    external_knowledge_required: bool = False
     reason: str = Field(min_length=1)
 
 
@@ -1285,6 +1288,18 @@ Do not use any information other than the facet, frozen semantic definition, and
 """.strip()
 
 
+TEXT_LICENSED_INFERENCE_POLICY = """
+TEXT-LICENSED INFERENCE POLICY
+- Judge only what the supplied text states or necessarily entails by ordinary language semantics.
+- Do not require exact surface words when a component follows in one short, text-licensed semantic step.
+- Ordinary lexical/syntactic relations stated in the text are usable entailments. For example, "X is Y's daughter" establishes a parent-child relation; a travel account centered on a named subject's encounters across multiple stated places can establish travel/journey; explicit collapse/end of a regime or empire together with revolution, revolutionary violence, overthrow, or a political contest can establish a political-power/state-authority stake and an actual political struggle when those facts are stated in the supplied text.
+- Named entities do NOT import their real-world biography, ideology, targets, history, or typical behavior. A person being called a political radical or a member of a named movement/organization does not by itself establish whom that person opposes or whether the target is authoritarian/oppressive.
+- Genre convention, title familiarity, author familiarity, historical knowledge not stated in the evidence, and typical-world association are outside knowledge and cannot supply a missing component.
+- Set external_knowledge_required=true exactly when a positive decision would require such outside/entity-specific knowledge. In that case grounding_relation MUST be "missing".
+- For explicit or entailed grounding, external_knowledge_required MUST be false.
+""".strip()
+
+
 def build_isolated_component_prompt(
     facet: QueryFacet,
     component: Any,
@@ -1320,6 +1335,8 @@ COMPONENT-SPECIFIC NEGATIVE BOUNDARIES
 EXACT EVIDENCE
 {evidence_span_id}: {evidence_text}
 
+{TEXT_LICENSED_INFERENCE_POLICY}
+
 Return one IsolatedComponentVerification.
 
 Rules:
@@ -1336,6 +1353,7 @@ Rules:
 - A lexical resemblance is not enough when it uses the concept in the wrong
   entity, relationship, temporal, metaphorical, or process sense.
 - Do not use any other book span, title, author, query facet, or world knowledge.
+- Always return external_knowledge_required. If it is true, grounding_relation must be "missing".
 - Do not decide a full-facet relation such as DIRECT/ENTAILED/ADJACENT.
 """.strip()
 
@@ -1352,6 +1370,10 @@ def _validate_isolated_component_result(
     if result.grounding_relation != "missing" and result.negative_boundary_applied:
         raise JudgeOutputValidationError(
             f"{stage_name}: a component blocked by a negative boundary must be missing."
+        )
+    if result.external_knowledge_required and result.grounding_relation != "missing":
+        raise JudgeOutputValidationError(
+            f"{stage_name}: external knowledge cannot positively establish a canonical component."
         )
 
 
@@ -1420,6 +1442,7 @@ def _assemble_single_span_from_component_results(
                 grounding_relation=result.grounding_relation,
                 supporting_span_ids=[evidence_span_id] if established else [],
                 negative_boundary_applied=result.negative_boundary_applied,
+                external_knowledge_required=result.external_knowledge_required,
                 reason=result.reason,
             )
         )
@@ -2068,6 +2091,8 @@ FULL NUMBERED DESCRIPTION
 PRIOR SINGLE-SPAN AUDIT FOR THIS SAME COMPONENT
 {prior}
 
+{TEXT_LICENSED_INFERENCE_POLICY}
+
 Return one FullContextComponentRecovery.
 
 Rules:
@@ -2086,6 +2111,7 @@ Rules:
   explicit cross-span reference whose antecedent is supplied in another cited span.
 - Do not create facts from analogy, metaphor, genre convention, plausibility,
   typical-world association, or outside knowledge.
+- Always return external_knowledge_required. If it is true, grounding_relation must be "missing" and supporting_span_ids must be empty.
 - LOCATION IS NOT MOVEMENT; generic recovery is not redemption; lost time/place
   is not personal significant loss; reconstructing family history is not
   rebuilding one's own life after loss when those boundaries apply.
@@ -2109,6 +2135,10 @@ def _validate_component_recovery_result(
     if unknown:
         raise JudgeOutputValidationError(
             f"component recovery: unknown supporting span IDs: {unknown}."
+        )
+    if result.external_knowledge_required and result.grounding_relation != "missing":
+        raise JudgeOutputValidationError(
+            "component recovery: external knowledge cannot positively establish a canonical component."
         )
     if result.grounding_relation == "missing":
         if ids:
@@ -2205,6 +2235,7 @@ def recover_missing_component(
             grounding_relation="missing",
             supporting_span_ids=[],
             negative_boundary_applied=prior_boundary_applied,
+            external_knowledge_required=False,
             reason=(
                 "component_recovery_rejected_after_bounded_repairs: "
                 + (validation_error or "unknown validation failure")
@@ -2276,6 +2307,7 @@ def verify_composite_evidence(
                         False if established
                         else recovered.negative_boundary_applied or prior_boundary_applied
                     ),
+                    external_knowledge_required=recovered.external_knowledge_required,
                     reason=recovered.reason,
                 )
             )

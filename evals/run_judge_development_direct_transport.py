@@ -1,5 +1,5 @@
 """
-Run one pending development case through the v0.26 development pipeline using direct
+Run one pending development case through the v0.27 development pipeline using direct
 Ollama structured-output transport instead of DeepEval's transport wrapper.
 
 Use only as an operational recovery path for a reproducible DeepEval timeout or
@@ -8,7 +8,7 @@ recorded in the run directory.
 
 Example:
     uv run python evals/run_judge_development_direct_transport.py `
-      --resume evals/runs/semantic_relevance_v0_26_development/<RUN_ID> `
+      --resume evals/runs/semantic_relevance_v0_27_development/<RUN_ID> `
       --case-id U_Q09_T02
 """
 
@@ -56,7 +56,7 @@ class DirectOllamaTransport:
         **_: Any,
     ):
         if schema is None:
-            raise TypeError("v0.26 development expects structured-output schemas.")
+            raise TypeError("v0.27 development expects structured-output schemas.")
 
         schema_name = schema.__name__
 

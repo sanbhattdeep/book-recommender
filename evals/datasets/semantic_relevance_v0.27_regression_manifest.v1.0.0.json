@@ -1,0 +1,117 @@
+{
+  "version": "1.0.0",
+  "purpose": "v0.27 post-holdout development gate: preserve all 21 frozen v0.26 r6 regression protections and add the three remaining adjudicated severe final-holdout judge failures. The four re-adjudicated final-holdout label cases are development-label revisions, not judge-failure targets.",
+  "inherited_from": "semantic_relevance_v0.26_regression_manifest.v6.2.0.json",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q04_T70": {
+      "judge_min": 3
+    },
+    "U2_Q05_T30": {
+      "judge_min": 3
+    },
+    "U2_Q09_T30": {
+      "judge_max": 1
+    }
+  },
+  "new_v0_27_targets": {
+    "U2_Q04_T70": {
+      "human_score": 3,
+      "baseline_judge_score": 0,
+      "target": "judge >= 3",
+      "failure_class": "text-grounded entailment under-promotion"
+    },
+    "U2_Q05_T30": {
+      "human_score": 4,
+      "baseline_judge_score": 2,
+      "target": "judge >= 3",
+      "failure_class": "text-grounded political-conflict component under-promotion"
+    },
+    "U2_Q09_T30": {
+      "human_score": 0,
+      "baseline_judge_score": 2,
+      "target": "judge <= 1",
+      "failure_class": "external-knowledge / unsupported component over-promotion"
+    }
+  },
+  "post_holdout_label_revision_cases": [
+    "U2_Q07_T10",
+    "U2_Q06_T10",
+    "U2_Q01_T10",
+    "U2_Q01_T70"
+  ],
+  "notes": {
+    "U2_Q03_T30": "Blind-review human score revised from 2 to 0 before v0.24.0; inner peace, stress reduction, relaxation, and joy do not automatically establish personal growth.",
+    "v0.26.0": "Focus: U_Q06_T02>=3 and U_Q07_T10/U_Q04_NEG/U_Q06_T70<=1 while preserving Alcoholics Anonymous, In the Beginning, Joy Within, and all other targeted protections.",
+    "U2_Q01_T02": "Blind-review human score revised from 2 to 1: weak redemption match; forgiveness is not established.",
+    "U2_Q05_T10": "Blind-review human score revised from 4 to 2: war is a good match; political-conflict evidence is missing.",
+    "v0.26.0-r4": "Focus: U_Q07_T02>=3 and U_Q03_T02==2 while preserving all r3 protections and the high-precision component-isolation architecture.",
+    "v0.26.0-r5": "Focus: U_Q03_T02==2 under the explicit-growth-promotion mode while preserving U_Q07_T02, Q02 suspense, Q06 grief, blind-review label cases, and all previous high-precision protections.",
+    "v0.26.0-r6": "Focus: U_Q03_T02==2 and U_Q07_T02>=3 simultaneously after reverting the r5 global prompt instruction; Q03/F1 v0.9.3 stays local and all prior high-precision protections remain frozen.",
+    "v0.27.0": "Do not optimize against the immutable v0.26 final-holdout result. The 30 final-holdout cases are now consumed development evidence. Any future generalization claim requires a new unseen pool."
+  }
+}

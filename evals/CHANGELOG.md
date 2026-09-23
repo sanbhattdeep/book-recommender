@@ -1,5 +1,56 @@
 # Evaluation Changelog
 
+# v0.27.0 r1 changelog
+
+## Added — text-licensed entailment / external-knowledge boundary
+
+Component verification now explicitly distinguishes ordinary semantic entailment licensed by supplied text from facts that would have to come from named-entity or world knowledge. The new `external_knowledge_required` audit field is carried from isolated/recovery verification into the canonical component ledger; a positive result marked as requiring outside knowledge is mechanically rejected.
+
+## Facet spec v0.9.4
+
+Narrow local clarifications were added for the three adjudicated post-holdout judge failures:
+
+- Q04: explicit travel framing plus a named subject's encounters across multiple stated places can entail movement/journey/adventure; location alone remains insufficient.
+- Q05: regime/empire collapse or end linked by the supplied text to revolution/revolutionary violence can establish political-power stake and actual political struggle.
+- Q09: membership in a named political movement/organization cannot import the movement's target or ideology from outside knowledge.
+
+All canonical component IDs, scoring, rubric, model, and temperature remain unchanged.
+
+## Evaluation status
+
+v0.27 development uses 120 consumed cases. There is no independent holdout.
+
+# v0.27.0 development changelog — preparation r1
+
+## Methodological transition
+
+The frozen v0.26.0 r6 candidate completed its one-time 30-case final holdout with
+status `REVIEW`. That result is immutable.
+
+v0.27 begins a post-holdout development phase. The 30 final-holdout cases are now
+consumed evidence and may be used for diagnosis/development, but never again as
+an independent holdout.
+
+## Post-holdout human re-adjudication
+
+Four labels were supplied by the human reviewer after the final run:
+
+- U2_Q07_T10: 4 -> 0
+- U2_Q06_T10: 3 -> 0
+- U2_Q01_T10: 2 -> 0
+- U2_Q01_T70: 2 -> 0
+
+These revisions are explicitly recorded as post-holdout/non-blind and apply only
+to the new v0.27 development dataset.
+
+## Remaining severe judge targets
+
+- U2_Q04_T70: 3 vs 0 — text-grounded entailment under-promotion
+- U2_Q05_T30: 4 vs 2 — political-conflict component under-promotion
+- U2_Q09_T30: 0 vs 2 — unsupported/external-knowledge over-promotion
+
+No judge, facet, scoring, or prompt behavior is changed in this preparation package.
+
 ## v0.26.0 package r6 — local semantic-contract isolation
 
 - Preserves facet spec `v0.9.3`, including Q03/F1's independently sufficient experienced-development and explicit-growth-promotion modes.
