@@ -1,4 +1,4 @@
-"""Static/unit verifier for the v0.27.0 r4 overlay package."""
+"""Static/unit verifier for the v0.27.0 r5 overlay package."""
 from pathlib import Path
 import hashlib, json, subprocess, sys, re
 
@@ -55,6 +55,11 @@ for token in ('JUDGE_CONFIG_VERSION = "0.27.0"','EVALUATION_DATASET_VERSION = "3
 assert "len(dataset) != 120" in runner
 assert 'startswith("U2_").sum()) != 60' in runner
 
+judge=(EVALS/"semantic_relevance_facet_judge.py").read_text(encoding="utf-8")
+assert "isolated_component_external_knowledge_conflict_rejected_after_" in judge
+assert "cannot coexist with negative_boundary_applied=true OR with " in judge
+assert "external_knowledge_required=true. If outside/entity-specific knowledge " in judge
+
 # Guard Windows decoding regression: eval Python source may not use bare read_text().
 for p in EVALS.glob("*.py"):
     source_text=p.read_text(encoding="utf-8-sig")
@@ -65,6 +70,7 @@ for p in EVALS.glob("*.py"):
     compile(p.read_text(encoding="utf-8-sig"), str(p), "exec")
 
 for name in [
+    "test_v0_27_external_knowledge_repair.py",
     "test_v0_27_text_licensed_inference.py",
     "test_v0_27_facet_clarifications.py",
     "test_v0_27_post_holdout_label_revisions.py",
@@ -77,7 +83,7 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(EVALS/name)], cwd=ROOT, check=True)
 
-print("v0.27.0 r4 package verification passed.")
+print("v0.27.0 r5 package verification passed.")
 print("Judge SHA-256:", sha(EVALS/"semantic_relevance_facet_judge.py"))
 print("Scoring SHA-256:", sha(EVALS/"semantic_relevance_facet_scoring.py"))
 print("Facet-spec SHA-256:", sha(EVALS/"facets/semantic_relevance/semantic_relevance_query_facets.v0.9.5.json"))

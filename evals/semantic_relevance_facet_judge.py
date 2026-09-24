@@ -1559,9 +1559,19 @@ def verify_isolated_component(
     evidence_span_id: str,
     evidence_text: str,
 ) -> tuple[IsolatedComponentVerification, int]:
-    """Verify exactly one canonical component against one exact source span."""
+    """Verify exactly one canonical component against one exact source span.
+
+    v0.27 r5 keeps the semantic contract unchanged but makes the new
+    ``external_knowledge_required`` audit fail closed instead of crashing an
+    unattended run. The model still gets the normal bounded repair attempt
+    first. Only if every attempt repeats the specific contradiction
+    ``external_knowledge_required=true`` with positive grounding do we
+    deterministically preserve the audit admission and canonicalize that ONE
+    component to missing.
+    """
 
     validation_error: str | None = None
+    last_result: IsolatedComponentVerification | None = None
     for attempt in range(1, MAX_STAGE_ATTEMPTS + 1):
         prompt = build_isolated_component_prompt(
             facet=facet,
@@ -1575,7 +1585,11 @@ def verify_isolated_component(
                 f"{validation_error}\n"
                 "Repair only the structure/consistency of this ONE component result. "
                 f"Return component_id={component.component_id!r}. Positive grounding "
-                "cannot coexist with negative_boundary_applied=true."
+                "cannot coexist with negative_boundary_applied=true OR with "
+                "external_knowledge_required=true. If outside/entity-specific knowledge "
+                "is required, return grounding_relation='missing'. If this exact supplied "
+                "span itself is sufficient for positive grounding, set "
+                "external_knowledge_required=false."
             )
         generated = judge_model.generate(
             prompt=prompt,
@@ -1584,6 +1598,7 @@ def verify_isolated_component(
         try:
             result = unpack_generated_model(generated, IsolatedComponentVerification)
             assert isinstance(result, IsolatedComponentVerification)
+            last_result = result
             result = _q09_text_anchor_guard(
                 facet=facet,
                 component=component,
@@ -1598,6 +1613,31 @@ def verify_isolated_component(
             return result, attempt - 1
         except (JudgeOutputValidationError, ValueError, TypeError) as error:
             validation_error = str(error)
+
+    # The external-knowledge audit is a precision guard, so its own repeated
+    # contradiction has a safe conservative resolution: positive grounding is
+    # rejected. This is intentionally narrower than swallowing arbitrary schema
+    # or semantic validation failures.
+    if (
+        last_result is not None
+        and last_result.component_id == component.component_id
+        and last_result.external_knowledge_required
+        and last_result.grounding_relation != "missing"
+    ):
+        return (
+            IsolatedComponentVerification(
+                component_id=component.component_id,
+                grounding_relation="missing",
+                negative_boundary_applied=last_result.negative_boundary_applied,
+                external_knowledge_required=True,
+                reason=(
+                    "isolated_component_external_knowledge_conflict_rejected_after_"
+                    "bounded_repairs: "
+                    + (validation_error or "positive grounding required external knowledge")
+                ),
+            ),
+            MAX_STAGE_ATTEMPTS - 1,
+        )
 
     raise JudgeOutputValidationError(
         validation_error or "Unable to obtain valid isolated component verification."
@@ -2380,7 +2420,9 @@ def recover_missing_component(
                 "\n\nPREVIOUS VALIDATION FAILURE\n"
                 f"{validation_error}\n"
                 "Repair only this ONE component result. Do not change any other component "
-                "or infer the full facet. If no valid new grounding exists, return "
+                "or infer the full facet. Positive grounding cannot coexist with "
+                "external_knowledge_required=true. If outside/entity-specific knowledge "
+                "is required, or if no valid new grounding exists, return "
                 "grounding_relation='missing' with no supporting spans."
             )
         generated = judge_model.generate(

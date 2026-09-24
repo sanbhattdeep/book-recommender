@@ -1,5 +1,15 @@
 # Evaluation Changelog
 
+# v0.27.0 r5 changelog
+
+- Preserved the r4 semantic changes and the 26/26 targeted-pass evidence.
+- Fixed an unattended-run robustness defect in isolated canonical-component verification.
+- Added explicit retry guidance for the invariant `external_knowledge_required=true => grounding_relation=missing`.
+- Added a narrow deterministic fail-closed fallback after bounded retries only for that exact contradiction.
+- Added equivalent explicit repair wording to missing-component recovery; its existing conservative fallback remains unchanged.
+- Added unit coverage for successful repair and stubborn repeated contradiction.
+- No scoring, rubric, model, dataset-label, targeted-manifest, facet-spec, Q04, Q05, or Q09 semantic change.
+
 # v0.27.0 r4 changelog
 
 - Diagnosed the r3 120-case REVIEW result.
