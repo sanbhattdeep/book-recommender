@@ -1,0 +1,104 @@
+{
+  "package": "semantic_relevance_v0.27.0_unseen_pool_prep_r3",
+  "purpose": "Build 60 fresh retrieval-backed candidates while excluding the union of all historically consumed judge-calibration identities; blind-label them; deterministically split 30/30; lock final holdout; run frozen-r5 validation only after labeling.",
+  "frozen_candidate_manifest_sha256": "3de6ee3a6274a5d066f17ff24bc965b05dfb8d60b785c0210d45d743538d84e5",
+  "freshness_scope": {
+    "required_sources": [
+      "semantic_relevance_v0.27_development.v3.0.0.csv",
+      "semantic_relevance_calibration.v0.5.0.csv (v0.4.0/v0.3.0 identity fallback)"
+    ],
+    "identity_keys": [
+      "isbn13",
+      "normalized_title+authors"
+    ]
+  },
+  "sampling": {
+    "target_raw_ranks": [
+      2,
+      10,
+      30,
+      70
+    ],
+    "search_depth": 250,
+    "random_seed": 20260924,
+    "semantic_retrieval_cases": 48,
+    "deterministic_random_cases": 12
+  },
+  "files": [
+    {
+      "path": "README.md",
+      "sha256": "a53d2b9298dcd13c7c8d524049041d2bd8e0d2447577838c8eee38692a236be7",
+      "bytes": 2378
+    },
+    {
+      "path": "evals/analyze_v0_27_validation.py",
+      "sha256": "6e10bcb6488b25876b6cf33dd604468bc9a6b23f854ab1daac73ee61c86b7cb6",
+      "bytes": 18201
+    },
+    {
+      "path": "evals/build_v0_27_unseen_evaluation_pool.py",
+      "sha256": "e32d0561af851f8011672eca4362e70b1b14091c7dc0b627ffb9870061473765",
+      "bytes": 26611
+    },
+    {
+      "path": "evals/datasets/semantic_relevance_unseen_pool.v3.0.0.template.csv",
+      "sha256": "6fc8a1a5355d5d212bf0ad4fe467f17aedba2b2f3ca80b51284126a4ecaeec39",
+      "bytes": 7601
+    },
+    {
+      "path": "evals/datasets/semantic_relevance_unseen_pool_split_spec.v3.0.0.json",
+      "sha256": "475be745cb1ea95b91dd1bc0a6a62764ba68079d70c6ed8075b23805b4f9decb",
+      "bytes": 1856
+    },
+    {
+      "path": "evals/export_v0_27_unseen_pool_labeling_xlsx.py",
+      "sha256": "4fd33135068b662e4adb893bf50d16d76282640d1870bd35d91c1d53246e453e",
+      "bytes": 7537
+    },
+    {
+      "path": "evals/import_v0_27_unseen_pool_labels_from_xlsx.py",
+      "sha256": "574bf51f741d78e58a505a28673a539c933270363e0ca46830afe525efaf4d4a",
+      "bytes": 5393
+    },
+    {
+      "path": "evals/preflight_v0_27_validation.py",
+      "sha256": "b83378b0e7af1ac2a1c3e258f08e4ea899af5f831630cc9bde77a28efa2d4ad9",
+      "bytes": 2814
+    },
+    {
+      "path": "evals/run_judge_v0_27_validation.py",
+      "sha256": "5c684a6d94acbe9c3086482b14ad6e9424c0ab6a2453ef11e06e9d18581025e5",
+      "bytes": 46568
+    },
+    {
+      "path": "evals/split_v0_27_unseen_pool.py",
+      "sha256": "58f7673bae654706443b8fd6b77d07320248404318db18212a5d7b3f0174738d",
+      "bytes": 6203
+    },
+    {
+      "path": "evals/validate_v0_27_unseen_pool.py",
+      "sha256": "b6ec8cdf6f0f67e3c031c73d065770d4ede8b4629d73e2044a1b8f7c7ef01650",
+      "bytes": 5813
+    },
+    {
+      "path": "evals/verify_v0_27_unseen_pool_package.py",
+      "sha256": "a41fd5cef091fe1551a9b30269fe682327efb2ec7a8b186fed6afe4a247e5d83",
+      "bytes": 4713
+    },
+    {
+      "path": "run_v027_r5_validation_30.ps1",
+      "sha256": "50a0bbf4915d88da7796b64a0ed417f84088ed812c7ec3e36f6c920bdd3f6e6f",
+      "bytes": 3139
+    },
+    {
+      "path": "run_v027_unseen_pool_builder.ps1",
+      "sha256": "584aa11cbee1ded7596e4d10fcb37f54c681b97f1e69cdea7b8d0d219d55a590",
+      "bytes": 3259
+    },
+    {
+      "path": "v0.27.0_unseen_pool_protocol.md",
+      "sha256": "d5b3e5d631a53e64786a3a3bf397327533555c59f5b33afb8389f5cb1e5d3713",
+      "bytes": 2718
+    }
+  ]
+}
