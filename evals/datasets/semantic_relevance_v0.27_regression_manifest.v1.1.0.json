@@ -1,0 +1,137 @@
+{
+  "version": "1.1.0",
+  "purpose": "v0.27 r4 development gate: preserve the 24 r3 targeted protections and add the two collateral full-suite regressions discovered on the 120-case r3 run.",
+  "inherited_from": "semantic_relevance_v0.27_regression_manifest.v1.0.0.json",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q04_T70": {
+      "judge_min": 3
+    },
+    "U2_Q05_T30": {
+      "judge_min": 3
+    },
+    "U2_Q09_T30": {
+      "judge_max": 1
+    },
+    "U2_Q04_T02": {
+      "judge_min": 3
+    },
+    "U_Q05_T30": {
+      "judge_min": 1,
+      "judge_max": 3
+    }
+  },
+  "new_v0_27_targets": {
+    "U2_Q04_T70": {
+      "human_score": 3,
+      "baseline_judge_score": 0,
+      "target": "judge >= 3",
+      "failure_class": "text-grounded entailment under-promotion"
+    },
+    "U2_Q05_T30": {
+      "human_score": 4,
+      "baseline_judge_score": 2,
+      "target": "judge >= 3",
+      "failure_class": "text-grounded political-conflict component under-promotion"
+    },
+    "U2_Q09_T30": {
+      "human_score": 0,
+      "baseline_judge_score": 2,
+      "target": "judge <= 1",
+      "failure_class": "external-knowledge / unsupported component over-promotion"
+    },
+    "U2_Q04_T02": {
+      "human_score": 4,
+      "r3_full_run_judge_score": 2,
+      "target": "judge >= 3",
+      "failure_class": "Q04 action-driven fantasy-adventure under-promotion; supplied protagonist is hunted amid concrete magical dangers"
+    },
+    "U_Q05_T30": {
+      "human_score": 2,
+      "r3_full_run_judge_score": 0,
+      "target": "1 <= judge <= 3",
+      "failure_class": "Q05 named-war lexical grounding regression; supplied text explicitly says WWII"
+    }
+  },
+  "post_holdout_label_revision_cases": [
+    "U2_Q07_T10",
+    "U2_Q06_T10",
+    "U2_Q01_T10",
+    "U2_Q01_T70"
+  ],
+  "notes": {
+    "U2_Q03_T30": "Blind-review human score revised from 2 to 0 before v0.24.0; inner peace, stress reduction, relaxation, and joy do not automatically establish personal growth.",
+    "v0.26.0": "Focus: U_Q06_T02>=3 and U_Q07_T10/U_Q04_NEG/U_Q06_T70<=1 while preserving Alcoholics Anonymous, In the Beginning, Joy Within, and all other targeted protections.",
+    "U2_Q01_T02": "Blind-review human score revised from 2 to 1: weak redemption match; forgiveness is not established.",
+    "U2_Q05_T10": "Blind-review human score revised from 4 to 2: war is a good match; political-conflict evidence is missing.",
+    "v0.26.0-r4": "Focus: U_Q07_T02>=3 and U_Q03_T02==2 while preserving all r3 protections and the high-precision component-isolation architecture.",
+    "v0.26.0-r5": "Focus: U_Q03_T02==2 under the explicit-growth-promotion mode while preserving U_Q07_T02, Q02 suspense, Q06 grief, blind-review label cases, and all previous high-precision protections.",
+    "v0.26.0-r6": "Focus: U_Q03_T02==2 and U_Q07_T02>=3 simultaneously after reverting the r5 global prompt instruction; Q03/F1 v0.9.3 stays local and all prior high-precision protections remain frozen.",
+    "v0.27.0": "Do not optimize against the immutable v0.26 final-holdout result. The 30 final-holdout cases are now consumed development evidence. Any future generalization claim requires a new unseen pool.",
+    "v0.27.0-r4": "After the 120-case r3 run, add Firedrake and A Dance to the Music of Time to the targeted gate. Keep Trapped in the Mirror as the single accepted severe development residual; do not tune it case-specifically."
+  }
+}

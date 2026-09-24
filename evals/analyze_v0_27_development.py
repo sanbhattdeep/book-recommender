@@ -28,7 +28,7 @@ REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.27_regression_manifest.v1.0.0.json"
+    / "semantic_relevance_v0.27_regression_manifest.v1.1.0.json"
 )
 
 

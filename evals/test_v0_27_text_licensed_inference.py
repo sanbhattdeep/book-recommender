@@ -1,4 +1,4 @@
-"""Deterministic contracts for v0.27 r3 localized inference boundaries."""
+"""Deterministic contracts for v0.27 r4 localized inference boundaries."""
 from pathlib import Path
 import json
 import sys
@@ -15,6 +15,8 @@ from semantic_relevance_facet_judge import (
     _validate_isolated_component_result,
     build_isolated_component_prompt,
     build_missing_component_recovery_prompt,
+    build_description_spans,
+    find_deterministic_direct_cue,
     component_local_inference_policy,
     JudgeOutputValidationError,
 )
@@ -60,6 +62,16 @@ q03, q03_component = make_facet(
 q03_policy = component_local_inference_policy(q03, q03_component)
 assert "MODE A" in q03_policy and "MODE B" in q03_policy
 assert "promotes maturity and growth" in q03_policy
+
+# Q04 adventure supports either text-local travel structure OR action-driving conflict.
+q04_adv, adv_component = make_facet("fantasy adventure", "adventure_quest_journey_or_action_exploits")
+adv_prompt = build_isolated_component_prompt(
+    q04_adv, adv_component, "S1",
+    "In a land ruled by shape-lifting Dragon Kings, Cabe is hunted and faces dangers that may destroy him.",
+)
+assert "MODE A" in adv_prompt and "MODE B" in adv_prompt
+assert "hunted" in adv_prompt and "action-driven adventure" in adv_prompt
+assert "no travel/journey wording is present" in adv_prompt
 
 # Q04 movement/danger rules are local to their canonical components.
 q04_move, move_component = make_facet("dangerous journeys", "movement_or_travel")
@@ -182,4 +194,12 @@ mode_b = next(rule for rule in rules if rule.get("cue_id") == "Q03_F1_promoted_g
 assert mode_b["query_id"] == "Q03" and mode_b["facet_id"] == "F1"
 assert mode_b["all_regex_groups"]
 
-print("v0.27 r3 localized inference and external-knowledge contracts passed")
+# Q05 standardized world-war names are text-local war evidence; prominence is still separate.
+war_cue = next(rule for rule in rules if rule.get("cue_id") == "Q05_F1_named_world_war_lexical")
+assert war_cue["query_id"] == "Q05" and war_cue["facet_id"] == "F1"
+q05_war, _ = make_facet("war", "organized_armed_conflict_or_warfare")
+spans = build_description_spans("The rumble of distant events presages the storm of WWII.")
+match = find_deterministic_direct_cue("Q05", q05_war, spans, cfg)
+assert match is not None and match.cue_id == "Q05_F1_named_world_war_lexical"
+
+print("v0.27 r4 localized inference and full-run regression contracts passed")

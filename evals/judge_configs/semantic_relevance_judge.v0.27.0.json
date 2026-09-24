@@ -443,6 +443,15 @@
         ]
       },
       {
+        "cue_id": "Q05_F1_named_world_war_lexical",
+        "query_id": "Q05",
+        "facet_id": "F1",
+        "any_regex": [
+          "\\b(?:WWII|WW2|World War (?:II|2|Two))\\b",
+          "\\b(?:WWI|WW1|World War (?:I|1|One))\\b"
+        ]
+      },
+      {
         "cue_id": "Q06_F1_grief_lexical",
         "query_id": "Q06",
         "facet_id": "F1",
@@ -776,6 +785,7 @@
       "Q05/F2 political conflict"
     ],
     "local_precision_guard": "Q09/F2 resistance identity-only text-anchor guard",
-    "q03_mode_b": "deterministic high-precision promoted-growth cue plus local prompt contract"
+    "q03_mode_b": "deterministic high-precision promoted-growth cue plus local prompt contract",
+    "q05_named_war_lexical": "Standardized textual names such as WWII/World War II are self-identifying war references; prominence remains a separate stage."
   }
 }

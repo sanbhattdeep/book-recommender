@@ -1,4 +1,4 @@
-"""Static/unit verifier for the v0.27.0 r3 overlay package."""
+"""Static/unit verifier for the v0.27.0 r4 overlay package."""
 from pathlib import Path
 import hashlib, json, subprocess, sys, re
 
@@ -15,7 +15,7 @@ required = [
     EVALS / "run_judge_development_direct_transport.py",
     EVALS / "analyze_v0_27_targeted.py",
     EVALS / "analyze_v0_27_development.py",
-    EVALS / "datasets/semantic_relevance_v0.27_regression_manifest.v1.0.0.json",
+    EVALS / "datasets/semantic_relevance_v0.27_regression_manifest.v1.1.0.json",
     EVALS / "datasets/semantic_relevance_post_holdout_label_revisions.v1.0.0.json",
     EVALS / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.5.json",
     EVALS / "judge_configs/semantic_relevance_judge.v0.27.0.json",
@@ -30,16 +30,19 @@ assert config["text_licensed_inference_contract"]["audit_field"] == "external_kn
 assert config["text_licensed_inference_contract"]["scope"] == "component_local_after_r1_targeted_regression"
 assert config["text_licensed_inference_contract"]["local_precision_guard"] == "Q09/F2 resistance identity-only text-anchor guard"
 assert any(rule.get("cue_id") == "Q03_F1_promoted_growth_mode_b" for rule in config["deterministic_direct_cue_stage"]["rules"])
+assert any(rule.get("cue_id") == "Q05_F1_named_world_war_lexical" for rule in config["deterministic_direct_cue_stage"]["rules"])
 
 
-reg=json.loads((EVALS/"datasets/semantic_relevance_v0.27_regression_manifest.v1.0.0.json").read_text(encoding="utf-8"))
-assert len(reg["targeted_expectations"]) == 24
+reg=json.loads((EVALS/"datasets/semantic_relevance_v0.27_regression_manifest.v1.1.0.json").read_text(encoding="utf-8"))
+assert len(reg["targeted_expectations"]) == 26
 assert reg["targeted_expectations"]["U2_Q04_T70"] == {"judge_min": 3}
 assert reg["targeted_expectations"]["U2_Q05_T30"] == {"judge_min": 3}
 assert reg["targeted_expectations"]["U2_Q09_T30"] == {"judge_max": 1}
+assert reg["targeted_expectations"]["U2_Q04_T02"] == {"judge_min": 3}
+assert reg["targeted_expectations"]["U_Q05_T30"] == {"judge_min": 1, "judge_max": 3}
 
 targeted=(EVALS/"analyze_v0_27_targeted.py").read_text(encoding="utf-8")
-assert "semantic_relevance_v0.27_regression_manifest.v1.0.0.json" in targeted
+assert "semantic_relevance_v0.27_regression_manifest.v1.1.0.json" in targeted
 assert "semantic_relevance_v0.27_development.v3.0.0.csv" in targeted
 dev_an=(EVALS/"analyze_v0_27_development.py").read_text(encoding="utf-8")
 assert 'EXPECTED_JUDGE_CONFIG_VERSION = "0.27.0"' in dev_an
@@ -74,7 +77,7 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(EVALS/name)], cwd=ROOT, check=True)
 
-print("v0.27.0 r3 package verification passed.")
+print("v0.27.0 r4 package verification passed.")
 print("Judge SHA-256:", sha(EVALS/"semantic_relevance_facet_judge.py"))
 print("Scoring SHA-256:", sha(EVALS/"semantic_relevance_facet_scoring.py"))
 print("Facet-spec SHA-256:", sha(EVALS/"facets/semantic_relevance/semantic_relevance_query_facets.v0.9.5.json"))

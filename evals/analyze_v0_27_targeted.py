@@ -5,7 +5,7 @@ from pathlib import Path
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_regression_manifest.v1.0.0.json"
+MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_regression_manifest.v1.1.0.json"
 DATASET = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_development.v3.0.0.csv"
 
 

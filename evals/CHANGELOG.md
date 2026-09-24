@@ -1,5 +1,15 @@
 # Evaluation Changelog
 
+# v0.27.0 r4 changelog
+
+- Diagnosed the r3 120-case REVIEW result.
+- Added Q04/F1 action-driven-conflict entailment as an alternative to travel/quest structure.
+- Added a high-precision Q05/F1 deterministic cue for standardized World War I/II names.
+- Expanded the targeted regression manifest from 24 to 26 cases with U2_Q04_T02 and U_Q05_T30.
+- Preserved the r3 Q09 external-knowledge guard and all earlier r6/r3 protections.
+- Deliberately left U_Q03_T10 as the known single severe residual rather than case-tuning it.
+- No scoring/rubric/model/dataset-label/facet-spec change.
+
 # v0.27.0 r3 changelog
 
 ## Targeted-run evidence

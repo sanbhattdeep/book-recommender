@@ -7,7 +7,7 @@ import json
 EVALS = Path(__file__).resolve().parent
 DATASETS = EVALS / "datasets"
 REV = DATASETS / "semantic_relevance_post_holdout_label_revisions.v1.0.0.json"
-REG = DATASETS / "semantic_relevance_v0.27_regression_manifest.v1.0.0.json"
+REG = DATASETS / "semantic_relevance_v0.27_regression_manifest.v1.1.0.json"
 
 revisions = json.loads(REV.read_text(encoding="utf-8"))
 expected = {
@@ -26,10 +26,12 @@ assert "MUST NOT" in revisions["methodology_note"]
 
 reg = json.loads(REG.read_text(encoding="utf-8"))
 targets = reg["targeted_expectations"]
-assert len(targets) == 24, len(targets)
+assert len(targets) == 26, len(targets)
 assert targets["U2_Q04_T70"]["judge_min"] == 3
 assert targets["U2_Q05_T30"]["judge_min"] == 3
 assert targets["U2_Q09_T30"]["judge_max"] == 1
+assert targets["U2_Q04_T02"]["judge_min"] == 3
+assert targets["U_Q05_T30"] == {"judge_min": 1, "judge_max": 3}
 for cid in expected:
     assert cid not in reg["new_v0_27_targets"]
 

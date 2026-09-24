@@ -1313,8 +1313,11 @@ LOCAL PERSONAL-GROWTH CONTRACT
             "adventure_quest_journey_or_action_exploits",
         ): """
 LOCAL Q04 ADVENTURE CONTRACT
-- A supplied travel narrative centered on the named subject's encounters across multiple stated places may entail a journey/adventure in one short text-licensed step.
-- Do not require the surface word "adventure" when the supplied text itself gives the travel structure.
+- There are TWO text-grounded ways to establish the adventure/action component; either one is sufficient.
+- MODE A — travel/quest structure: a supplied travel narrative centered on the named subject's encounters across multiple stated places may entail a journey/adventure in one short text-licensed step.
+- MODE B — action-driving conflict: when the supplied text places the named subject in a fantasy/supernatural setting and explicitly says the subject is hunted, pursued, attacked, or faces an immediate destructive threat or multiple concrete dangers, that can entail an action-driven adventure even when no travel/journey wording is present.
+- Do not require the surface word "adventure" when the supplied text itself gives either Mode A or Mode B.
+- Mere static fantasy setting, intrigue, or abstract danger without an action-driving conflict remains insufficient.
 - Do not use title familiarity, genre convention, or outside knowledge.
 """.strip(),
         (
