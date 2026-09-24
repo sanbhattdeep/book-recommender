@@ -1,0 +1,174 @@
+{
+    "schema_version":  "1.0.0",
+    "candidate":  {
+                      "semantic_relevance_version":  "0.27.0",
+                      "revision":  "r5",
+                      "qualification":  "development_qualified",
+                      "frozen":  true,
+                      "independent_holdout_available":  false,
+                      "independent_holdout_status":  "NONE",
+                      "evidence_scope":  "All 120 v0.27 cases are consumed development evidence. This candidate has not been evaluated on a new independent v0.27 holdout."
+                  },
+    "frozen_artifacts":  {
+                             "judge":  {
+                                           "path":  ".\\evals\\semantic_relevance_facet_judge.py",
+                                           "sha256":  "8b5fe0f478fa4fb8366130e42e76d98f09454052bbd07bdc959f5fefba75f9d0"
+                                       },
+                             "scoring":  {
+                                             "path":  ".\\evals\\semantic_relevance_facet_scoring.py",
+                                             "sha256":  "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808"
+                                         },
+                             "facet_spec":  {
+                                                "version":  "0.9.5",
+                                                "path":  ".\\evals\\facets\\semantic_relevance\\semantic_relevance_query_facets.v0.9.5.json",
+                                                "sha256":  "0c72a2e636e211a28bfffdf5a4cbdeb50554647cfc25b27c561b0cae7527f5f4"
+                                            },
+                             "rubric":  {
+                                            "version":  "0.1.0",
+                                            "path":  ".\\evals\\rubrics\\semantic_relevance\\semantic_relevance_rubric.v0.1.0.json",
+                                            "sha256":  "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e"
+                                        },
+                             "judge_config":  {
+                                                  "version":  "0.27.0",
+                                                  "path":  ".\\evals\\judge_configs\\semantic_relevance_judge.v0.27.0.json",
+                                                  "sha256":  "ca9b6ccb54e3128736ebd7b044410803f1fd024d806d80825953e53d6050581f"
+                                              },
+                             "development_dataset":  {
+                                                         "version":  "3.0.0",
+                                                         "path":  ".\\evals\\datasets\\semantic_relevance_v0.27_development.v3.0.0.csv",
+                                                         "sha256":  "0f91c065dd5c34a3776e9ff2a0524174ccfae8635c34abedb8a732bf6f77f35a"
+                                                     },
+                             "regression_manifest":  {
+                                                         "version":  "1.1.0",
+                                                         "path":  ".\\evals\\datasets\\semantic_relevance_v0.27_regression_manifest.v1.1.0.json",
+                                                         "sha256":  "f28ac6da965a41acebee1ad54d7e9372ba5be41eec8e708e288083f3a9c71b48"
+                                                     },
+                             "post_holdout_label_revisions":  {
+                                                                  "version":  "1.0.0",
+                                                                  "path":  ".\\evals\\datasets\\semantic_relevance_post_holdout_label_revisions.v1.0.0.json",
+                                                                  "sha256":  "a3c40136dc54563154d49f867627847e240c44f12fc299dc8b9ff602a6101479"
+                                                              }
+                         },
+    "development_evidence":  {
+                                 "run_directory":  "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260924T072044Z",
+                                 "cases":  120,
+                                 "exact_agreement":  0.65,
+                                 "within_one_agreement":  0.992,
+                                 "mean_absolute_difference":  0.358,
+                                 "linear_weighted_kappa":  0.764,
+                                 "quadratic_weighted_kappa":  0.908,
+                                 "binary":  {
+                                                "tp":  54,
+                                                "fp":  2,
+                                                "fn":  6,
+                                                "tn":  58,
+                                                "precision":  0.964,
+                                                "recall":  0.9,
+                                                "f1":  0.931
+                                            },
+                                 "error_counts":  {
+                                                      "false_zeros":  6,
+                                                      "false_positive_relevance":  2,
+                                                      "absolute_difference_ge_2":  1,
+                                                      "severe_over_promotions":  0,
+                                                      "severe_under_promotions":  1
+                                                  },
+                                 "targeted_regression":  {
+                                                             "cases":  26,
+                                                             "passed":  26,
+                                                             "status":  "PASS"
+                                                         },
+                                 "development_reference_checks":  {
+                                                                      "within_one_ge_0_95":  "PASS",
+                                                                      "exact_ge_0_50":  "PASS",
+                                                                      "quadratic_kappa_ge_0_80":  "PASS",
+                                                                      "linear_kappa_ge_0_60":  "PASS",
+                                                                      "absolute_difference_ge_2_le_1_case":  "PASS",
+                                                                      "binary_precision_ge_0_90":  "PASS",
+                                                                      "binary_recall_ge_0_80":  "PASS",
+                                                                      "deterministic_cue_severe_false_positives_eq_0":  "PASS"
+                                                                  },
+                                 "overall_status":  "PASS"
+                             },
+    "known_residuals":  [
+                            {
+                                "case_id":  "U_Q03_T10",
+                                "query_id":  "Q03",
+                                "title":  "Trapped in T Mirror",
+                                "human_score":  2,
+                                "judge_score":  0,
+                                "absolute_difference":  2,
+                                "disposition":  "Accepted known development residual; no further case-specific tuning performed."
+                            }
+                        ],
+    "stability_evidence":  {
+                               "fresh_runs":  3,
+                               "cases_per_run":  8,
+                               "total_fresh_judgments":  24,
+                               "semantic_expectation_cases":  7,
+                               "completion_only_cases":  [
+                                                             "U_Q06_T30"
+                                                         ],
+                               "status":  "PASS",
+                               "runs":  [
+                                            {
+                                                "run_number":  1,
+                                                "run_directory":  "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260924T102526Z",
+                                                "completed_cases":  8,
+                                                "scores":  {
+                                                               "U_Q07_T02":  3,
+                                                               "U_Q03_T02":  2,
+                                                               "U2_Q04_T70":  3,
+                                                               "U2_Q04_T02":  3,
+                                                               "U2_Q05_T30":  3,
+                                                               "U_Q05_T30":  2,
+                                                               "U2_Q09_T30":  0,
+                                                               "U_Q06_T30":  3
+                                                           }
+                                            },
+                                            {
+                                                "run_number":  2,
+                                                "run_directory":  "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260924T103748Z",
+                                                "completed_cases":  8,
+                                                "scores":  {
+                                                               "U_Q07_T02":  3,
+                                                               "U_Q03_T02":  2,
+                                                               "U2_Q04_T70":  3,
+                                                               "U2_Q04_T02":  3,
+                                                               "U2_Q05_T30":  3,
+                                                               "U_Q05_T30":  2,
+                                                               "U2_Q09_T30":  0,
+                                                               "U_Q06_T30":  3
+                                                           }
+                                            },
+                                            {
+                                                "run_number":  3,
+                                                "run_directory":  "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260924T105438Z",
+                                                "completed_cases":  8,
+                                                "scores":  {
+                                                               "U_Q07_T02":  3,
+                                                               "U_Q03_T02":  2,
+                                                               "U2_Q04_T70":  3,
+                                                               "U2_Q04_T02":  3,
+                                                               "U2_Q05_T30":  3,
+                                                               "U_Q05_T30":  2,
+                                                               "U2_Q09_T30":  0,
+                                                               "U_Q06_T30":  3
+                                                           }
+                                            }
+                                        ]
+                           },
+    "methodology":  {
+                        "all_v027_cases_consumed":  true,
+                        "independent_holdout_available":  false,
+                        "frozen_v026_final_holdout_result_is_unchanged":  true,
+                        "generalization_claim_allowed":  false,
+                        "next_external_validation_step":  "Construct a new unseen candidate pool and reserve an independent v0.27 holdout before making new holdout-based generalization or release claims."
+                    },
+    "provenance":  {
+                       "frozen_at_utc":  "2026-09-24T11:39:50.5265271Z",
+                       "git_commit":  "7bc1964b4fc4b7358e7d9c3a8adf9cc20b45da89",
+                       "git_branch":  "main",
+                       "git_worktree_dirty":  true
+                   }
+}
