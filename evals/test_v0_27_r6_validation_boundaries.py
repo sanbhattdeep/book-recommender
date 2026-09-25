@@ -21,7 +21,7 @@ q01=json.dumps(qb['Q01'],ensure_ascii=False).lower(); assert 'fall-and-rise' in 
 q02=json.dumps(qb['Q02'],ensure_ascii=False).lower(); assert 'action-packed' in q02 and 'battle' in q02 and 'does not' in q02
 q05=json.dumps(qb['Q05'],ensure_ascii=False).lower(); assert 'mode a' in q05 and 'mode b' in q05 and 'meaningful historical/analytical subject' in q05
 cfg=json.loads((ROOT/'judge_configs/semantic_relevance_judge.v0.27.0.json').read_text(encoding='utf-8'))
-assert cfg['facet_spec_version']=='0.9.6'
+assert cfg['facet_spec_version'] in {'0.9.6','0.9.7'}
 prom='\n'.join(cfg['prominence_stage']['instructions']).lower()
 assert 'constituent-item scope' in prom and 'broader collection/anthology' in prom and 'use other' in prom
 judge=(ROOT/'semantic_relevance_facet_judge.py').read_text(encoding='utf-8')

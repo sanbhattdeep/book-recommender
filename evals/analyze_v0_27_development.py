@@ -1,5 +1,5 @@
 """
-Analyze the 150-case v0.27 r6 consumed post-validation development run without scikit-learn/scipy.
+Analyze the 150-case v0.27 r7 consumed post-validation development run without scikit-learn/scipy.
 
 This is a drop-in replacement for evals/analyze_v0_27_development.py when
 Windows Application Control blocks SciPy native DLLs.
@@ -28,7 +28,7 @@ REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.27_regression_manifest.v1.2.0.json"
+    / "semantic_relevance_v0.27_regression_manifest.v1.3.0.json"
 )
 
 
@@ -145,7 +145,7 @@ def weighted_cohen_kappa(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Analyze the v0.27 r6 150-case consumed post-validation development run."
+        description="Analyze the v0.27 r7 150-case consumed post-validation development run."
     )
     parser.add_argument("--run", required=True)
     args = parser.parse_args()

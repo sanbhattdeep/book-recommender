@@ -884,6 +884,88 @@ def _prominence_from_context_role(
     return FacetProminence(expected)
 
 
+# v0.27 r7: deterministic whole-book scope guard for explicitly singled-out
+# constituent items in a broader collection/anthology. This is deliberately
+# structural rather than case/title specific: verification of the facet itself
+# is untouched; only the whole-book role may be demoted to incidental.
+_CONSTITUENT_ITEM_SCOPE_PATTERNS = (
+    r"\b(?:title|opening|closing|first|last|final)\s+(?:story|tale|essay|chapter|entry|episode|piece)\b",
+    r"\b(?:in|from)\s+(?:one|a|the)\s+(?:story|tale|essay|chapter|entry|episode|piece)\b",
+    r"\b(?:one|a|the)\s+(?:story|tale|essay|chapter|entry|episode|piece)\s+(?:in|from)\b",
+)
+_COLLECTION_SCOPE_PATTERN = r"\b(?:collection|anthology)\b"
+
+
+def _normalized_scope_phrase(text: str) -> str:
+    return re.sub(r"[^a-z0-9]+", " ", text.lower()).strip()
+
+
+def _facet_explicitly_named_at_collection_scope(facet: QueryFacet, text: str) -> bool:
+    """Conservative escape hatch: explicit facet wording attached to collection scope."""
+
+    facet_phrase = _normalized_scope_phrase(facet.text)
+    if not facet_phrase:
+        return False
+    normalized = _normalized_scope_phrase(text)
+    # Inspect a bounded lexical neighborhood around each collection/anthology cue.
+    for match in re.finditer(r"\b(?:collection|anthology)\b", normalized):
+        lo = max(0, match.start() - 180)
+        hi = min(len(normalized), match.end() + 240)
+        if facet_phrase in normalized[lo:hi]:
+            return True
+    return False
+
+
+def _apply_constituent_item_scope_guard(
+    *,
+    facet: QueryFacet,
+    evidence_text: str,
+    spans: dict[str, str],
+    result: ProminenceAssessment,
+) -> ProminenceAssessment:
+    """Demote item-local evidence when the description explicitly marks collection scope.
+
+    The guard activates only when the winning verified evidence itself identifies
+    one singled-out constituent item AND the supplied description identifies a
+    broader collection/anthology. It does not change verification_relation. An
+    explicit collection-level use of the facet wording is a conservative escape
+    hatch, leaving the LLM relation unchanged.
+    """
+
+    if result.subject_relation not in {
+        SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
+        SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER,
+    }:
+        return result
+
+    has_item_scope = any(
+        re.search(pattern, evidence_text, flags=re.IGNORECASE)
+        for pattern in _CONSTITUENT_ITEM_SCOPE_PATTERNS
+    )
+    if not has_item_scope:
+        return result
+
+    full_text = " ".join(spans.values())
+    if re.search(_COLLECTION_SCOPE_PATTERN, full_text, flags=re.IGNORECASE) is None:
+        return result
+
+    if _facet_explicitly_named_at_collection_scope(facet, full_text):
+        return result
+
+    return ProminenceAssessment(
+        subject_relation=SubjectRelation.OTHER,
+        is_substantively_examined=False,
+        supporting_span_ids=list(result.supporting_span_ids),
+        reason=(
+            result.reason
+            + " [v0.27-r7 constituent-item scope guard: verified evidence is explicitly "
+              "confined to one constituent item of a broader collection/anthology; no "
+              "explicit collection-level facet statement was found, so whole-book role "
+              "is forced to OTHER/incidental.]"
+        ),
+    )
+
+
 def _validate_inference_contract(
     relation: VerificationRelation,
     inference_kind: EvidenceInferenceKind,
@@ -1323,7 +1405,9 @@ LOCAL Q01 REDEMPTION-DAMAGE CONTRACT
         ): """
 LOCAL Q01 REDEMPTION-RESTORATION CONTRACT
 - Generic recovery, renewed success, improvement, healing, return to greatness, or escape from despair does NOT by itself establish restoration/atonement in the redemption sense.
-- The supplied text must connect the restoration to the redemption-type damaged state: moral/personal/relational restoration, atonement, regained worth, or restoration of a damaged relationship/state.
+- Directional transition away from a negative condition (for example finding a way out, escaping, leaving behind, overcoming, or moving beyond it) does NOT by itself establish restoration/atonement.
+- The supplied text must connect the restoration to the redemption-type damaged state and establish an actual restorative moral/personal/relational state: atonement, reconciliation, regained worth/standing, or restoration of a damaged relationship/state.
+- Do not convert a negative-state -> better-state trajectory into redemption merely because the starting condition is morally/spiritually negative.
 """.strip(),
         (
             "suspense",
@@ -1331,8 +1415,9 @@ LOCAL Q01 REDEMPTION-RESTORATION CONTRACT
         ): """
 LOCAL Q02 SUSPENSE CONTRACT
 - Action, battle, rebellion, betrayal, military conflict, a threatening antagonist, danger, or high stakes do NOT by themselves establish suspense.
+- Future-tense plot progression (including wording that actions will trigger, cause, attract, ignite, or set in motion later conflict/consequences) does NOT itself establish suspense.
 - Positive grounding requires the supplied text itself to state or necessarily entail story-level tension/anticipation about an unfolding unresolved threat, pursuit, concealment, mystery, discovery, escape, or comparable development.
-- Do not infer a suspenseful reading experience merely because events are action-packed or dangerous.
+- Do not infer a suspenseful reading experience merely because events are action-packed, dangerous, consequential, or described as forthcoming. Do not invent reader anticipation from the fact that future events will occur.
 """.strip(),
         (
             "war",
@@ -3078,6 +3163,12 @@ def evaluate_one_facet(
             config=config,
         )
         total_retries += retries
+        prominence_result = _apply_constituent_item_scope_guard(
+            facet=facet,
+            evidence_text=cue_match.evidence_text,
+            spans=spans,
+            result=prominence_result,
+        )
 
         return (
             FacetPipelineAssessment(
@@ -3374,6 +3465,12 @@ def evaluate_one_facet(
         config=config,
     )
     total_retries += retries
+    prominence_result = _apply_constituent_item_scope_guard(
+        facet=facet,
+        evidence_text=winning_evidence_text,
+        spans=spans,
+        result=prominence_result,
+    )
 
     return (
         FacetPipelineAssessment(

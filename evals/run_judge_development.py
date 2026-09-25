@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.27.0 r6 on the consumed 150-case development set.
+Run development Semantic Recommendation Relevance Judge v0.27.0 r7 on the consumed 150-case development set.
 
 Typical usage
 -------------
@@ -7,7 +7,7 @@ Deterministic scoring tests:
 
     uv run python evals/test_facet_scoring.py
 
-Targeted r6 validation-derived diagnostics:
+Targeted r7 consumed-development diagnostics:
 
     uv run python evals/run_judge_development.py `
       --case-id U3_Q05_T01 `
@@ -93,7 +93,7 @@ JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_validation_development"
 EVALUATION_SCOPE = "consumed_validation_development"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.9.6"
+FACET_SPEC_VERSION = "0.9.7"
 
 
 # =============================================================================
@@ -407,18 +407,18 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # v0.27 r6 consumed-development contract: 60 historical U_ cases + 60 U2_ cases + the 30 now-consumed U3_ validation cases. The separate 30-case final holdout remains independent and is not present here.
+    # v0.27 r7 consumed-development contract: 60 historical U_ cases + 60 U2_ cases + the 30 now-consumed U3_ validation cases. The separate 30-case final holdout remains independent and is not present here.
     # -------------------------------------------------------------------------
     if len(dataset) != 150:
         raise ValueError(
-            "The v0.27 r6 development dataset must contain exactly 150 consumed cases; "
+            "The v0.27 r7 development dataset must contain exactly 150 consumed cases; "
             f"found {len(dataset)}."
         )
 
     prefixes_ok = dataset["case_id"].astype(str).str.startswith(("U_", "U2_", "U3_"))
     if not prefixes_ok.all():
         raise ValueError(
-            "v0.27 r6 development case IDs must use U_, U2_, or consumed-validation U3_ prefixes."
+            "v0.27 r7 development case IDs must use U_, U2_, or consumed-validation U3_ prefixes."
         )
     if int(dataset["case_id"].astype(str).str.startswith("U_").sum()) != 60:
         raise ValueError("Expected exactly 60 historical U_ development cases.")

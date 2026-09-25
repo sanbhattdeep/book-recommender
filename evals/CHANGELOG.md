@@ -1,5 +1,14 @@
 # Evaluation Changelog
 
+# v0.27.0 r7 changelog
+
+- Preserved the successful r6 Q05 war-as-subject repair.
+- Tightened Q01 `restoration_or_atonement` so directional movement away from a negative state cannot alone produce redemption.
+- Tightened Q02 `story_level_tension_or_anticipation` so future-tense dangerous/consequential plot progression cannot alone produce suspense.
+- Added a deterministic constituent-item scope guard for whole-book prominence, with an explicit collection-level facet escape hatch.
+- Added v0.9.7 facet spec and v1.3.0 34-case regression manifest.
+- Kept deterministic scoring, rubric, model/temperature, component IDs, and consumed-development dataset version 3.1.0 unchanged.
+
 # v0.27.0 r6 changelog
 
 - Consumed the first 30-case v0.27 validation as development evidence after r5 validation REVIEW.

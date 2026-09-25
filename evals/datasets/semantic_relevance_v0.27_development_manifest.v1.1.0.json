@@ -27,5 +27,5 @@
     "judge_run_count": 0,
     "included_in_development": false
   },
-  "methodology_note": "The 30-case validation set became development evidence only after its first r5 evaluation and diagnostic review. The 30-case final holdout remains untouched and is the only independent evidence for r6."
+  "methodology_note": "The 30-case validation set became development evidence only after its first r5 evaluation and diagnostic review. The 30-case final holdout remains untouched and is the only independent evidence for r7."
 }
