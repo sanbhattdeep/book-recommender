@@ -1,27 +1,60 @@
 {
-  "schema_version": "1.0.0",
+  "schema_version": "1.2.0",
   "pool_version": "3.0.0",
   "pool_case_count": 60,
-  "queries": {
-    "Q01": "A story about forgiveness and redemption",
-    "Q02": "A suspenseful story involving crime and investigation",
-    "Q03": "A book about personal growth and finding purpose",
-    "Q04": "A fantasy adventure involving magic and dangerous journeys",
-    "Q05": "A historical book about war and political conflict",
-    "Q06": "A moving story about grief, loss, and learning to live again",
-    "Q07": "A story about a complicated relationship between a parent and child",
-    "Q08": "A beginner-friendly book explaining astronomy and the universe",
-    "Q09": "A dystopian story about authoritarian control and resistance",
-    "Q10": "A book about leadership, teamwork, and building effective organizations",
-    "Q11": "An adventure inspired by mythology, gods, and legendary heroes",
-    "Q12": "A thoughtful book about inequality, poverty, and how society distributes wealth"
+  "split_method": "label_aware_balanced_deterministic_backtracking_30_30_before_any_judge_output",
+  "split_seed": "semantic-relevance-v0.27-unseen-v3-label-aware-seed-20260925",
+  "methodology": {
+    "human_labels_completed_before_split": true,
+    "judge_outputs_used_for_split": false,
+    "objective": "Create two 30-case halves while balancing sampling positions and human-score distribution, with each query contributing 2 or 3 cases to each half.",
+    "constraints": [
+      "exactly 30 validation and 30 final-holdout cases",
+      "each query contributes 2 or 3 validation cases and the complement to final holdout",
+      "each sampling slot T01-T05 contributes exactly 6 cases to each half",
+      "validation human-score distribution fixed at 0:18, 1:2, 2:2, 3:8, 4:0",
+      "final-holdout human-score distribution fixed at 0:18, 1:2, 2:2, 3:7, 4:1",
+      "the sole score-4 case is reserved for final holdout so final unseen evidence includes the top ordinal class"
+    ],
+    "tie_break": "Use deterministic SHA-256-prioritized pure-Python backtracking with suffix feasibility bounds; choose the first feasible assignment under that frozen ordering.",
+    "solver": "pure_python_deterministic_backtracking_with_suffix_bounds; no SciPy/native MILP dependency"
   },
-  "cases_per_query": 5,
-  "split_method": "sha256_stratified_30_30",
-  "split_seed": "semantic-relevance-v0.27-unseen-v3-seed-20260924",
-  "split_rule": "Hash each query_id with the seed; the six lexicographically-smallest query hashes receive 3 validation/2 holdout. The other six receive 2 validation/3 holdout. Within each query, hash seed|query_id|case_id|isbn13|normalized-title|normalized-authors; sort ascending and assign the first validation_quota rows to validation. This yields exactly 30 validation and 30 final-holdout cases.",
   "validation_cases": 30,
   "final_holdout_cases": 30,
+  "expected_pool_human_score_distribution": {
+    "0": 36,
+    "1": 4,
+    "2": 4,
+    "3": 15,
+    "4": 1
+  },
+  "expected_validation_human_score_distribution": {
+    "0": 18,
+    "1": 2,
+    "2": 2,
+    "3": 8
+  },
+  "expected_final_holdout_human_score_distribution": {
+    "0": 18,
+    "1": 2,
+    "2": 2,
+    "3": 7,
+    "4": 1
+  },
+  "expected_validation_sampling_slot_distribution": {
+    "T01": 6,
+    "T02": 6,
+    "T03": 6,
+    "T04": 6,
+    "T05": 6
+  },
+  "expected_final_holdout_sampling_slot_distribution": {
+    "T01": 6,
+    "T02": 6,
+    "T03": 6,
+    "T04": 6,
+    "T05": 6
+  },
   "frozen_candidate_manifest": "evals/releases/semantic_relevance_v0.27.0_r5_development_candidate.json",
   "frozen_candidate_manifest_sha256": "3de6ee3a6274a5d066f17ff24bc965b05dfb8d60b785c0210d45d743538d84e5",
   "final_holdout_initial_status": "LOCKED_DO_NOT_RUN"

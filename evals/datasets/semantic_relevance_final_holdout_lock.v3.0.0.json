@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0.0",
+  "status": "LOCKED_DO_NOT_RUN",
+  "reason": "Final holdout must remain untouched until validation is complete and a candidate is frozen for one-time holdout evaluation.",
+  "created_at_utc": "2026-09-25T07:48:04.341315+00:00",
+  "final_holdout_path": "evals\\datasets\\semantic_relevance_final_holdout.v3.0.0.DO_NOT_RUN_YET.csv",
+  "final_holdout_sha256": "cce944bd48b102452c024134560b7b87866b85f5fa1bc1194775138b8976eb2e",
+  "split_manifest_path": "evals\\datasets\\semantic_relevance_unseen_pool_manifest.v3.0.0.json",
+  "split_manifest_sha256": "7d9f363b5150fab32f2c82caec8bc90299fc853191ea1d4a9fc74ca9b24e7426",
+  "frozen_candidate_manifest_sha256": "3de6ee3a6274a5d066f17ff24bc965b05dfb8d60b785c0210d45d743538d84e5",
+  "judge_run_count": 0
+}
