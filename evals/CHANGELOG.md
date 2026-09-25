@@ -1,5 +1,14 @@
 # Evaluation Changelog
 
+# v0.27.0 r6 changelog
+
+- Consumed the first 30-case v0.27 validation as development evidence after r5 validation REVIEW.
+- Added localized Q01 redemption, Q02 suspense, and Q05 war semantic-boundary fixes.
+- Added generic collection/anthology constituent-item prominence guard.
+- Preserved deterministic scoring, rubric v0.1.0, model, temperature, and all canonical component IDs.
+- Added 150-case development dataset builder and 34-case regression manifest v1.2.0.
+- Final 30-case holdout remains locked and untouched.
+
 # v0.27.0 r5 changelog
 
 - Preserved the r4 semantic changes and the 26/26 targeted-pass evidence.

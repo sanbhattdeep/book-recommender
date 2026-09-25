@@ -10,7 +10,7 @@
   "rubric_version": "0.1.0",
   "dataset_version": "0.5.0",
   "facet_spec_id": "semantic-relevance-query-facets",
-  "facet_spec_version": "0.9.5",
+  "facet_spec_version": "0.9.6",
   "evaluation_unit": "one user query x one recommended book",
   "pipeline": "facet_independent_book_subject_plus_explicit_subject_relation_plus_isolated_component_verification_plus_deterministic_facet_assembly_plus_missing_component_only_full_context_recovery_plus_full_description_hard_exclusion_precheck_plus_inference_kind_pipeline_plus_text_licensed_entailment_external_knowledge_guard",
   "evidence_selection_stage": {
@@ -215,6 +215,7 @@
       "DEFINING CONTENT OR NARRATIVE DRIVER: use when the facet is constituent content of the frozen primary subject or a defining premise, world rule, central conflict, major theme, recurring narrative driver, character-arc driver, or defining kind of content. It does not need to be the standalone subject of the book.",
       "CAUSAL OR CONTEXTUAL BACKGROUND: use when the facet mainly explains why some OTHER primary subject, event, population, or situation exists or occurs, and the facet itself is not independently developed as defining content.",
       "EXAMPLE OR META: use when the facet occurs mainly as an example, analogy, teaching device, symbolic illustration, literary criticism, interpretation, scholarship, instruction, or discussion of other works rather than as content of the described work itself.",
+      "CONSTITUENT-ITEM SCOPE: when the supplied description explicitly confines the verified facet to one named story, essay, chapter, entry, episode, or other constituent item inside a broader collection/anthology, do not classify that facet as SAME AS PRIMARY SUBJECT or DEFINING CONTENT OR NARRATIVE DRIVER for the whole book merely because it is important inside that one item. Unless the description says the facet recurs across or defines the collection as a whole, use OTHER (or EXAMPLE OR META only when it is genuinely illustrative/meta), so Python resolves whole-book prominence as incidental.",
       "OTHER: use only for verified content that does not fit the four relationships above.",
       "Do not classify constituent content as causal background. If the frozen subject is myths and legends, the gods and mythic/legendary heroes whose stories constitute those myths are defining content, not causes of mythology.",
       "Do not classify story-defining content as background merely because it sets up later events. A magical world rule, threat, quest structure, or journey can be defining content when it materially forms the described narrative premise.",
@@ -262,7 +263,7 @@
       "defining_content_or_narrative_driver": "The facet is constituent content of the primary subject or a defining premise, world rule, theme, conflict, plot driver, character-arc driver, or defining kind of content.",
       "causal_or_contextual_background": "The facet primarily explains why some other primary subject, event, population, or situation exists or occurs, without itself being defining content.",
       "example_or_meta": "The facet appears mainly as an example, analogy, teaching device, symbolic illustration, criticism, interpretation, scholarship, instruction, or discussion of other works.",
-      "other": "Verified content that does not fit the relationships above."
+      "other": "Verified content that does not fit the relationships above, including content confined to one constituent story/essay/chapter of a broader collection when the description does not show it recurring across or defining the collection."
     },
     "subject_relation_resolution": {
       "precedence": [
@@ -339,7 +340,7 @@
     "tie_break": "When candidates have the same verification relation, the lower selector rank wins.",
     "early_stop": "Stop verifying later candidates after DIRECT is found because no later relation can outrank DIRECT."
   },
-  "calibration_change": "v0.27.0 r3 localizes the r1 text-licensed inference policy after the 24-case targeted run exposed one inherited Q03 regression and two residual post-holdout failures. Unaffected components revert to the frozen r6 verifier wording. Q03 gains a high-precision deterministic Mode-B promoted-growth cue; Q04 locally permits travel/multi-place and shipwreck hazard entailments; Q05 retains its successful local political-conflict entailment contract; Q09 resistance receives a local prompt plus Python text-anchor guard so political identity/named-group membership cannot import unstated historical actions or targets. Scoring, rubric, model, temperature, component IDs, and the consumed 120-case development set are unchanged.",
+  "calibration_change": "v0.27.0 r6 consumes the first 30-case v0.27 validation set as development evidence and applies four localized validation-derived fixes without changing scoring: Q01 redemption rejects generic fall-and-rise arcs without redemption-type damage/restoration; Q02 suspense rejects action/battle/rebellion/betrayal/danger alone; Q05 war allows explicit war-as-subject analysis as an independent grounding mode; and prominence treats a facet confined to one constituent story/essay/chapter in a broader collection as incidental at the whole-book level unless the description shows that facet recurs across or defines the collection. Model, temperature, rubric, component IDs, and deterministic 0-4 aggregation remain unchanged.",
   "deterministic_direct_cue_stage": {
     "owner": "deterministic_python_positive_only",
     "purpose": "Resolve only high-confidence lexical or concrete DIRECT evidence before Stage A. v0.16 adds a conservative polarity/contrast guard so a lexical cue cannot become positive DIRECT evidence when the matched concept is explicitly negated, absent, or contrasted away in its local context. A cue can establish relation=direct only; core prominence and final score remain separate.",

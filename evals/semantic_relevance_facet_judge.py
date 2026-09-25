@@ -1309,6 +1309,43 @@ LOCAL PERSONAL-GROWTH CONTRACT
 - Wording such as "promotes maturity and growth" is positive Mode-B grounding, not a reason to mark the component missing merely because it is prospective or instructional.
 """.strip(),
         (
+            "redemption",
+            "damaged_or_failed_state",
+        ): """
+LOCAL Q01 REDEMPTION-DAMAGE CONTRACT
+- A generic fall from success/greatness into hardship, despair, defeat, low status, or adversity does NOT by itself establish the redemption-type damaged state.
+- Positive grounding requires supplied-text evidence of wrongdoing, guilt, corruption, moral/personal/relational failure, damaged worth, or a comparably redemption-relevant damaged state.
+- Do not use a later recovery or success to retroactively invent the missing damaged-state semantics.
+""".strip(),
+        (
+            "redemption",
+            "restoration_or_atonement",
+        ): """
+LOCAL Q01 REDEMPTION-RESTORATION CONTRACT
+- Generic recovery, renewed success, improvement, healing, return to greatness, or escape from despair does NOT by itself establish restoration/atonement in the redemption sense.
+- The supplied text must connect the restoration to the redemption-type damaged state: moral/personal/relational restoration, atonement, regained worth, or restoration of a damaged relationship/state.
+""".strip(),
+        (
+            "suspense",
+            "story_level_tension_or_anticipation",
+        ): """
+LOCAL Q02 SUSPENSE CONTRACT
+- Action, battle, rebellion, betrayal, military conflict, a threatening antagonist, danger, or high stakes do NOT by themselves establish suspense.
+- Positive grounding requires the supplied text itself to state or necessarily entail story-level tension/anticipation about an unfolding unresolved threat, pursuit, concealment, mystery, discovery, escape, or comparable development.
+- Do not infer a suspenseful reading experience merely because events are action-packed or dangerous.
+""".strip(),
+        (
+            "war",
+            "organized_armed_conflict_or_warfare",
+        ): """
+LOCAL Q05 WAR CONTRACT
+- There are TWO independent text-grounded modes; either is sufficient.
+- MODE A — warfare itself: the supplied evidence establishes sustained armed conflict, organized belligerent sides, military forces, battles, campaigns, or clearly established warfare.
+- MODE B — war as subject: the supplied evidence explicitly says the work studies, analyzes, explains, interprets, or is about war/wars/warfare itself, including its history, strategy, causes, effects, or preservation/avoidance. A specific battle need not be described in MODE B.
+- A merely approaching, presaged, distant, background, or temporal mention of war does NOT establish MODE B.
+- Do not use outside historical knowledge.
+""".strip(),
+        (
             "fantasy adventure",
             "adventure_quest_journey_or_action_exploits",
         ): """

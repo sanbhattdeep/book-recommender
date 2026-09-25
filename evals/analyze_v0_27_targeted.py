@@ -1,12 +1,12 @@
-"""Check the preregistered v0.27.0 targeted regression on a partial run."""
+"""Check the v0.27.0 r6 targeted regression on a partial run."""
 from __future__ import annotations
 import argparse, json
 from pathlib import Path
 import pandas as pd
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
-MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_regression_manifest.v1.1.0.json"
-DATASET = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_development.v3.0.0.csv"
+MANIFEST = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_regression_manifest.v1.2.0.json"
+DATASET = REPO_ROOT / "evals" / "datasets" / "semantic_relevance_v0.27_development.v3.1.0.csv"
 
 
 def resolve(raw: str) -> Path:

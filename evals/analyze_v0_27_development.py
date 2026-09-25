@@ -1,5 +1,5 @@
 """
-Analyze the 120-case v0.27 consumed post-holdout development run without scikit-learn/scipy.
+Analyze the 150-case v0.27 r6 consumed post-validation development run without scikit-learn/scipy.
 
 This is a drop-in replacement for evals/analyze_v0_27_development.py when
 Windows Application Control blocks SciPy native DLLs.
@@ -21,14 +21,14 @@ import pandas as pd
 REPO_ROOT = Path(__file__).resolve().parents[1]
 
 EXPECTED_JUDGE_CONFIG_VERSION = "0.27.0"
-EXPECTED_EVALUATION_DATASET_VERSION = "3.0.0"
-EXPECTED_EVALUATION_DATASET_ROLE = "post_holdout_development"
-EXPECTED_EVALUATION_SCOPE = "consumed_unseen_pool_development"
+EXPECTED_EVALUATION_DATASET_VERSION = "3.1.0"
+EXPECTED_EVALUATION_DATASET_ROLE = "post_validation_development"
+EXPECTED_EVALUATION_SCOPE = "consumed_validation_development"
 REGRESSION_MANIFEST = (
     REPO_ROOT
     / "evals"
     / "datasets"
-    / "semantic_relevance_v0.27_regression_manifest.v1.1.0.json"
+    / "semantic_relevance_v0.27_regression_manifest.v1.2.0.json"
 )
 
 
@@ -145,7 +145,7 @@ def weighted_cohen_kappa(
 
 def main() -> None:
     parser = argparse.ArgumentParser(
-        description="Analyze the v0.27 120-case consumed post-holdout development run."
+        description="Analyze the v0.27 r6 150-case consumed post-validation development run."
     )
     parser.add_argument("--run", required=True)
     args = parser.parse_args()
@@ -196,9 +196,9 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    if len(gold) != 120:
+    if len(gold) != 150:
         raise ValueError(
-            f"Expected 120 development gold cases, found {len(gold)}."
+            f"Expected 150 development gold cases, found {len(gold)}."
         )
 
     if gold["case_id"].duplicated().any():
@@ -223,13 +223,13 @@ def main() -> None:
         validate="one_to_one",
     )
 
-    if len(comparison) != 120:
+    if len(comparison) != 150:
         missing = sorted(
             set(gold["case_id"])
             - set(judged["case_id"])
         )
         raise ValueError(
-            f"Development run is incomplete: compared {len(comparison)}/120. "
+            f"Development run is incomplete: compared {len(comparison)}/150. "
             f"Missing judge results: {missing}"
         )
 
@@ -607,9 +607,9 @@ def main() -> None:
         encoding="utf-8",
     )
 
-    print("Post-holdout development summary")
+    print("Post-validation development summary")
     print("-------------------------")
-    print(f"Cases compared:            {len(comparison)}/120")
+    print(f"Cases compared:            {len(comparison)}/150")
     print(f"Exact agreement:           {exact:.1%}")
     print(f"Within ±1 agreement:       {within_one:.1%}")
     print(f"Mean absolute difference:  {mae:.3f}")

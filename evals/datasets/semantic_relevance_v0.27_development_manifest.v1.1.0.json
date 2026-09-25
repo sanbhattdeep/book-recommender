@@ -1,0 +1,31 @@
+{
+  "version": "1.1.0",
+  "dataset_version": "3.1.0",
+  "rubric_version": "0.1.0",
+  "case_count": 150,
+  "methodological_status": "post_validation_consumed_development_only",
+  "sources": [
+    {
+      "path": "evals\\datasets\\semantic_relevance_v0.27_development.v3.0.0.csv",
+      "cases": 120,
+      "sha256": "0f91c065dd5c34a3776e9ff2a0524174ccfae8635c34abedb8a732bf6f77f35a"
+    },
+    {
+      "path": "evals\\datasets\\semantic_relevance_validation.v3.0.0.csv",
+      "cases": 30,
+      "sha256": "55f4099240c9108d91a3342d809ea73210568a1dd0df98d7b056742ea35cb24f",
+      "status": "consumed_after_r5_unseen_validation"
+    }
+  ],
+  "output": "evals\\datasets\\semantic_relevance_v0.27_development.v3.1.0.csv",
+  "output_sha256": "72810fa61cc71e28f05beaec9664f2ccdee55d5834272c44e2f1cc97cafeee7d",
+  "independent_final_holdout": {
+    "path": "evals\\datasets\\semantic_relevance_final_holdout.v3.0.0.DO_NOT_RUN_YET.csv",
+    "cases": 30,
+    "sha256": "cce944bd48b102452c024134560b7b87866b85f5fa1bc1194775138b8976eb2e",
+    "status": "LOCKED_DO_NOT_RUN",
+    "judge_run_count": 0,
+    "included_in_development": false
+  },
+  "methodology_note": "The 30-case validation set became development evidence only after its first r5 evaluation and diagnostic review. The 30-case final holdout remains untouched and is the only independent evidence for r6."
+}
