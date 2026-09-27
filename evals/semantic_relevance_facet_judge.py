@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.28.0 with isolated component verification, deterministic facet assembly, and speculative-entailment audit.
+Semantic facet judge v0.28.0 with isolated component verification, deterministic facet assembly, and localized v0.28 boundary repairs.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -966,6 +966,65 @@ def _apply_constituent_item_scope_guard(
     )
 
 
+
+# v0.28 r2: deterministic prominence isolation for lexical cues that occur only
+# as one item in a possessive enumeration. Verification remains DIRECT; only
+# whole-book role is capped when the prominence model has no independent span.
+_POSSESSIVE_ENUM_ITEM_RE = re.compile(
+    r"\b(?:his|her|their|my|our|your)\s+[A-Za-z][A-Za-z'’-]*(?:\s+[A-Za-z][A-Za-z'’-]*){0,3}",
+    flags=re.IGNORECASE,
+)
+
+
+def _apply_direct_cue_list_mention_guard(
+    *,
+    evidence_span_id: str,
+    evidence_text: str,
+    result: ProminenceAssessment,
+) -> ProminenceAssessment:
+    """Demote a direct cue that is only one item in an enumerated side-detail list.
+
+    A deterministic lexical cue establishes semantic presence, not whole-book
+    prominence. This guard is intentionally narrow: it activates only when
+    (1) the prominence model promoted the facet to central/substantive,
+    (2) all cited role support is confined to the same cue span, and
+    (3) that span contains a comma-separated possessive enumeration with at
+        least three items ("his king, his lover, his friends, his gods, ...").
+
+    If another description span independently supports the facet's book-level
+    role, the model's prominence decision is preserved.
+    """
+
+    if result.subject_relation not in {
+        SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
+        SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER,
+    }:
+        return result
+
+    independent_support = {
+        sid for sid in result.supporting_span_ids if sid != evidence_span_id
+    }
+    if independent_support:
+        return result
+
+    possessive_items = _POSSESSIVE_ENUM_ITEM_RE.findall(evidence_text)
+    if len(possessive_items) < 3 or evidence_text.count(",") < 2:
+        return result
+
+    return ProminenceAssessment(
+        subject_relation=SubjectRelation.OTHER,
+        is_substantively_examined=False,
+        supporting_span_ids=list(result.supporting_span_ids),
+        reason=(
+            result.reason
+            + " [v0.28-r2 direct-cue list-mention guard: deterministic lexical "
+              "presence occurs only as one item in a possessive enumeration and "
+              "no independent role-supporting span was cited; whole-book role is "
+              "forced to OTHER/incidental.]"
+        ),
+    )
+
+
 def _validate_inference_contract(
     relation: VerificationRelation,
     inference_kind: EvidenceInferenceKind,
@@ -1641,10 +1700,7 @@ Rules:
 - grounding_relation="explicit" only when this evidence itself directly states,
   directly paraphrases, or unmistakably instantiates this component.
 - grounding_relation="entailed" only when this component necessarily follows in
-  one short semantic step from this exact evidence. NECESSARY means no material
-  alternative reading of the exact text leaves the component unestablished. If
-  your rationale would need words such as could, might, possibly, plausibly,
-  can be interpreted as, or potential for, return grounding_relation="missing".
+  one short semantic step from this exact evidence.
 - grounding_relation="missing" when the component is absent, merely plausible,
   analogous, metaphorical, dependent on typical-world knowledge, or blocked by
   a negative boundary.
@@ -1656,72 +1712,6 @@ Rules:
 - Always return external_knowledge_required. If it is true, grounding_relation must be "missing".
 - Do not decide a full-facet relation such as DIRECT/ENTAILED/ADJACENT.
 """.strip()
-
-
-_SPECULATIVE_ENTAILMENT_MARKERS = (
-    " could ",
-    " might ",
-    " possibly ",
-    " plausibly ",
-    " can be interpreted ",
-    " potential for ",
-    " may indicate ",
-    " may suggest ",
-)
-
-
-def _reason_admits_speculative_entailment(reason: str) -> str | None:
-    """Return the first hedge showing that an ENTAILED rationale is not necessary.
-
-    v0.28.0 r1 intentionally keys this fail-closed audit only to explicit
-    possibility/interpretation language in the model's own rationale. It does
-    not reject ordinary words such as ``implies`` because valid one-step
-    entailments may use them.
-    """
-    normalized = " " + re.sub(r"\s+", " ", str(reason).casefold()).strip() + " "
-    return next((marker.strip() for marker in _SPECULATIVE_ENTAILMENT_MARKERS if marker in normalized), None)
-
-
-def _apply_speculative_isolated_entailment_guard(
-    result: IsolatedComponentVerification,
-) -> IsolatedComponentVerification:
-    if result.grounding_relation != "entailed":
-        return result
-    marker = _reason_admits_speculative_entailment(result.reason)
-    if marker is None:
-        return result
-    return IsolatedComponentVerification(
-        component_id=result.component_id,
-        grounding_relation="missing",
-        negative_boundary_applied=result.negative_boundary_applied,
-        external_knowledge_required=False,
-        reason=(
-            "v0.28 speculative_entailment_guard: ENTAILED rejected because the "
-            f"model rationale explicitly admitted non-necessary grounding via {marker!r}. "
-            "Plausibility or interpretability is not necessary semantic entailment."
-        ),
-    )
-
-
-def _apply_speculative_recovery_entailment_guard(
-    result: FullContextComponentRecovery,
-) -> FullContextComponentRecovery:
-    if result.grounding_relation != "entailed":
-        return result
-    marker = _reason_admits_speculative_entailment(result.reason)
-    if marker is None:
-        return result
-    return FullContextComponentRecovery(
-        component_id=result.component_id,
-        grounding_relation="missing",
-        supporting_span_ids=[],
-        negative_boundary_applied=result.negative_boundary_applied,
-        external_knowledge_required=False,
-        reason=(
-            "v0.28 speculative_entailment_guard: recovery ENTAILED rejected because "
-            f"the model rationale explicitly admitted non-necessary grounding via {marker!r}."
-        ),
-    )
 
 
 def _validate_isolated_component_result(
@@ -1790,7 +1780,6 @@ def verify_isolated_component(
             result = unpack_generated_model(generated, IsolatedComponentVerification)
             assert isinstance(result, IsolatedComponentVerification)
             last_result = result
-            result = _apply_speculative_isolated_entailment_guard(result)
             result = _q09_text_anchor_guard(
                 facet=facet,
                 component=component,
@@ -2513,9 +2502,7 @@ Rules:
 - This stage may inspect spans that Stage A did not select.
 - grounding_relation="explicit" when the cited span(s) directly establish only
   this component; "entailed" when they jointly/individually necessarily establish
-  only this component in one short inference; otherwise "missing". If the
-  rationale would need could, might, possibly, plausibly, can be interpreted as,
-  or potential for, the component is not necessarily entailed and must be missing.
+  only this component in one short inference; otherwise "missing".
 - Positive grounding requires 1-{MAX_COMPOSITE_CANDIDATES} exact supplied span IDs.
 - Missing requires supporting_span_ids=[].
 - If a component-specific negative boundary applies, return missing and
@@ -2626,7 +2613,6 @@ def recover_missing_component(
         try:
             result = unpack_generated_model(generated, FullContextComponentRecovery)
             assert isinstance(result, FullContextComponentRecovery)
-            result = _apply_speculative_recovery_entailment_guard(result)
             result = _q09_recovery_text_anchor_guard(
                 facet=facet,
                 component=component,
@@ -3240,6 +3226,11 @@ def evaluate_one_facet(
             facet=facet,
             evidence_text=cue_match.evidence_text,
             spans=spans,
+            result=prominence_result,
+        )
+        prominence_result = _apply_direct_cue_list_mention_guard(
+            evidence_span_id=span_id,
+            evidence_text=cue_match.evidence_text,
             result=prominence_result,
         )
 

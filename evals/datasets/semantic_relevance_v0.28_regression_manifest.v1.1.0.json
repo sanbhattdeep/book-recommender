@@ -1,0 +1,176 @@
+{
+  "version": "1.1.0",
+  "purpose": "v0.28.0 r2 consumed-development gate: roll back the over-broad r1 global speculative-entailment guard, retain the localized Q03/Q11 repairs, add deterministic direct-cue list-mention prominence isolation, preserve all 34 r7 targets, and keep U3_Q10_T01/U3_Q11_T04 diagnostic-only.",
+  "inherited_from": "semantic_relevance_v0.28_regression_manifest.v1.0.0.json",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q04_T70": {
+      "judge_min": 3
+    },
+    "U2_Q05_T30": {
+      "judge_min": 3
+    },
+    "U2_Q09_T30": {
+      "judge_max": 1
+    },
+    "U2_Q04_T02": {
+      "judge_min": 3
+    },
+    "U_Q05_T30": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U3_Q05_T01": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q01_T03": {
+      "judge_max": 0
+    },
+    "U3_Q02_T05": {
+      "judge_max": 0
+    },
+    "U3_Q07_T01": {
+      "judge_min": 1,
+      "judge_max": 1
+    },
+    "U3_Q05_T02": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q05_T04": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q02_T02": {
+      "judge_min": 3
+    },
+    "U3_Q07_T04": {
+      "judge_max": 0
+    },
+    "U3_Q03_T01": {
+      "judge_max": 0
+    },
+    "U3_Q11_T02": {
+      "judge_max": 1
+    }
+  },
+  "new_v0_28_r1_targets": {
+    "U3_Q03_T01": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 2,
+      "target": "judge == 0",
+      "failure_class": "Q03 personal-growth false entailment from enlightenment/happiness/generic beneficial effects"
+    },
+    "U3_Q11_T02": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 3,
+      "target": "judge <= 1",
+      "failure_class": "Q11 compound over-promotion: speculative adventure + legendary-hero entailment plus direct-cue gods prominence; incidental lexical presence may remain score 1"
+    }
+  },
+  "diagnostic_only_cases": {
+    "U3_Q10_T01": {
+      "human_score": 2,
+      "v0_27_r7_final_judge_score": 0,
+      "reason": "facet-spec / label-policy tension for organizational effectiveness; do not tune until adjudicated"
+    },
+    "U3_Q11_T04": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 2,
+      "reason": "adventure-boundary ambiguity; do not tune until adjudicated"
+    }
+  },
+  "methodology_note": "The v0.27 final holdout is consumed. These cases may be used only as development diagnostics/regression evidence from v0.28 onward. They cannot support a new generalization claim.",
+  "r1_targeted_failure_repair": {
+    "U_Q06_T02": {
+      "r1_judge_score": 1,
+      "required_r2": "judge >= 3",
+      "cause": "global speculative-entailment guard suppressed valid grief/loss entailment"
+    },
+    "U_Q07_T02": {
+      "r1_judge_score": 0,
+      "required_r2": "judge >= 3",
+      "cause": "global necessary-entailment prompt shift broke the frozen parent-child referent-binding behavior"
+    },
+    "U2_Q04_T70": {
+      "r1_judge_score": 2,
+      "required_r2": "judge >= 3",
+      "cause": "global verifier tightening changed a previously protected multi-facet positive"
+    },
+    "U3_Q11_T02": {
+      "r1_judge_score": 2,
+      "required_r2": "judge <= 1",
+      "cause": "Q11 adventure/legendary-hero repairs worked, but direct lexical gods cue was still promoted to substantive"
+    },
+    "U3_Q03_T01": {
+      "r1_judge_score": 0,
+      "required_r2": "judge == 0",
+      "cause": "successful localized Q03 repair to preserve"
+    }
+  }
+}
