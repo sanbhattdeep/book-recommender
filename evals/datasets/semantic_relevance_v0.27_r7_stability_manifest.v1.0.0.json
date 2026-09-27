@@ -1,0 +1,17 @@
+{
+  "manifest_version": "1.0.0",
+  "judge_version": "0.27.0",
+  "facet_spec_version": "0.9.7",
+  "dataset_version": "3.1.0",
+  "purpose": "Three fresh-run stability spot-check for the localized v0.27.0 r7 boundaries plus matched positive controls.",
+  "required_fresh_runs": 3,
+  "expectations": {
+    "U3_Q01_T03": {"judge_min": 0, "judge_max": 0, "role": "r7_redemption_negative"},
+    "U_Q01_T02":  {"judge_min": 2, "judge_max": 3, "role": "q01_positive_control"},
+    "U3_Q02_T05": {"judge_min": 0, "judge_max": 0, "role": "r7_suspense_negative"},
+    "U_Q02_T02":  {"judge_min": 3, "judge_max": 4, "role": "q02_positive_control"},
+    "U3_Q07_T01": {"judge_min": 1, "judge_max": 1, "role": "r7_collection_item_incidental"},
+    "U_Q07_T02":  {"judge_min": 3, "judge_max": 4, "role": "q07_positive_control"},
+    "U3_Q05_T01": {"judge_min": 2, "judge_max": 3, "role": "r6_war_repair_frozen_control"}
+  }
+}

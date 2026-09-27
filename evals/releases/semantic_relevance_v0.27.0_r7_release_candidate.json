@@ -1,0 +1,215 @@
+{
+  "release_candidate_id": "semantic_relevance_v0.27.0-r7",
+  "status": "FROZEN_FOR_ONE_TIME_FINAL_HOLDOUT",
+  "frozen_at_utc": "2026-09-27T04:50:15.367498+00:00",
+  "git_commit_sha": "0526515aa3292ce1fe672f5147a6db9ae6b7b550",
+  "judge_version": "0.27.0",
+  "facet_spec_version": "0.9.7",
+  "rubric_version": "0.1.0",
+  "development_dataset_version": "3.1.0",
+  "artifacts": {
+    "evals/semantic_relevance_facet_judge.py": {
+      "sha256": "d7504a62721f7120dda50cdc6cea759fced8ea85c98d1766baf62bfd2fb716d1",
+      "size_bytes": 148137
+    },
+    "evals/semantic_relevance_facet_scoring.py": {
+      "sha256": "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808",
+      "size_bytes": 26252
+    },
+    "evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.9.7.json": {
+      "sha256": "2f54203336c8125e9bec6751afba6fc8aa45e046527e992550468f6a8aaa25de",
+      "size_bytes": 61839
+    },
+    "evals/judge_configs/semantic_relevance_judge.v0.27.0.json": {
+      "sha256": "d96347852d982d1f9242520519eac55ff7e0dd8c598b0eb02f82eeeb6c17bff2",
+      "size_bytes": 54986
+    },
+    "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json": {
+      "sha256": "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e",
+      "size_bytes": 2449
+    },
+    "evals/datasets/semantic_relevance_v0.27_regression_manifest.v1.3.0.json": {
+      "sha256": "8e3280827881c85c3f1975fe57f17b50de06ec55226dbfd9c10b39e486645c2c",
+      "size_bytes": 7313
+    },
+    "evals/datasets/semantic_relevance_v0.27_r7_stability_manifest.v1.0.0.json": {
+      "sha256": "fa4d3b82b3573e9301d3768d821704ef7d057feb4e095d83ec292ef285b47122",
+      "size_bytes": 910
+    }
+  },
+  "development_evidence": {
+    "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260925T123917Z",
+    "development_summary_sha256": "0a9a38ea0d1ac94398458d9e2c64a6e4adfc103011b64f0f948329d1b0751eca",
+    "judge_results_sha256": "6bf87c8f9007069fa4b045e61bb6c578a0706200830a89916fcd623dcab7a4a6",
+    "run_metadata_sha256": "3330933c112a298a254e2b3afa6a38f4445350cd5eb0a3cce0bd35ecff02a265",
+    "development_dataset_sha256": "72810fa61cc71e28f05beaec9664f2ccdee55d5834272c44e2f1cc97cafeee7d",
+    "cases": 150,
+    "all_reference_checks_pass": true,
+    "all_34_targeted_checks_pass": true,
+    "metrics": {
+      "exact_agreement": 0.6733333333333333,
+      "within_one_agreement": 0.9933333333333333,
+      "mean_absolute_difference": 0.3333333333333333,
+      "linear_weighted_cohens_kappa": 0.7743003310261811,
+      "quadratic_weighted_cohens_kappa": 0.9116467683106408,
+      "binary_relevance_0_vs_positive": {
+        "true_positive": 65,
+        "false_positive": 3,
+        "false_negative": 7,
+        "true_negative": 75,
+        "precision": 0.9558823529411765,
+        "recall": 0.9027777777777778,
+        "f1": 0.9285714285714286
+      },
+      "error_counts": {
+        "false_zeros": 7,
+        "false_positive_relevance": 3,
+        "absolute_difference_ge_2": 1,
+        "over_promotions_by_2_or_more": 0,
+        "under_promotions_by_2_or_more": 1
+      }
+    }
+  },
+  "stability_evidence": {
+    "required_fresh_runs": 3,
+    "cases_per_run": 7,
+    "runs": [
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260927T023402Z",
+        "judge_results_sha256": "7ae72abe5d8f0bb6c3d8dca729dc671df92b663dce01828f4712ee43cf73115d",
+        "run_metadata_sha256": "1c8c1c4d23ecf5176e92322cdcbfac421ea7b17def2383dfb1cffdd3a0abeac6",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2
+        }
+      },
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260927T031200Z",
+        "judge_results_sha256": "591d2beec4b2fc5574a02dfef0107d4042ac4ae01ce58cc767afbfcd37671b17",
+        "run_metadata_sha256": "98f00e4a37b1038e90ebc8251ab6e32aaef51a08e5933000a4e0e1cf94baedae",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2
+        }
+      },
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_27_development\\20260927T040746Z",
+        "judge_results_sha256": "c74bce42192ced6a66b6b9448645bf446e9f34c735b089372842a7bc9ddf4a03",
+        "run_metadata_sha256": "b303c27e63fad69fa392ab9ff8c3be4878ab72720179c8debdc412999de413af",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2
+        }
+      }
+    ],
+    "observed_score_sequences": {
+      "U3_Q01_T03": [
+        0,
+        0,
+        0
+      ],
+      "U_Q01_T02": [
+        2,
+        2,
+        2
+      ],
+      "U3_Q02_T05": [
+        0,
+        0,
+        0
+      ],
+      "U_Q02_T02": [
+        3,
+        3,
+        3
+      ],
+      "U3_Q07_T01": [
+        1,
+        1,
+        1
+      ],
+      "U_Q07_T02": [
+        3,
+        3,
+        3
+      ],
+      "U3_Q05_T01": [
+        2,
+        2,
+        2
+      ]
+    },
+    "identical_across_three_runs": true
+  },
+  "independent_final_holdout": {
+    "path": "evals\\datasets\\semantic_relevance_final_holdout.v3.0.0.DO_NOT_RUN_YET.csv",
+    "sha256": "cce944bd48b102452c024134560b7b87866b85f5fa1bc1194775138b8976eb2e",
+    "status": "LOCKED_DO_NOT_RUN",
+    "judge_run_count": 0
+  },
+  "final_holdout_protocol": {
+    "expected_cases": 30,
+    "one_time_only": true,
+    "targeted_fresh_runs_forbidden": true,
+    "resume_same_run_allowed_for_operational_recovery": true,
+    "report_result_even_if_release_checks_fail": true,
+    "no_relabel_or_retune_after_result": true,
+    "pre_registered_release_checks": {
+      "within_one_ge_0_95": {
+        "metric": "within_one_agreement",
+        "op": ">=",
+        "value": 0.95
+      },
+      "exact_ge_0_50": {
+        "metric": "exact_agreement",
+        "op": ">=",
+        "value": 0.5
+      },
+      "quadratic_kappa_ge_0_80": {
+        "metric": "quadratic_weighted_cohens_kappa",
+        "op": ">=",
+        "value": 0.8
+      },
+      "linear_kappa_ge_0_60": {
+        "metric": "linear_weighted_cohens_kappa",
+        "op": ">=",
+        "value": 0.6
+      },
+      "absolute_difference_ge_2_le_1_case": {
+        "metric": "error_counts.absolute_difference_ge_2",
+        "op": "<=",
+        "value": 1
+      },
+      "binary_precision_ge_0_90": {
+        "metric": "binary_relevance_0_vs_positive.precision",
+        "op": ">=",
+        "value": 0.9
+      },
+      "binary_recall_ge_0_80": {
+        "metric": "binary_relevance_0_vs_positive.recall",
+        "op": ">=",
+        "value": 0.8
+      },
+      "deterministic_cue_severe_false_positives_eq_0": {
+        "metric": "deterministic_cue_severe_false_positives",
+        "op": "==",
+        "value": 0
+      }
+    }
+  }
+}
