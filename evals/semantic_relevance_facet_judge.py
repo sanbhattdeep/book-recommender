@@ -1,5 +1,5 @@
 """
-Semantic facet judge v0.26.0 with isolated component verification and deterministic facet assembly.
+Semantic facet judge v0.28.0 with isolated component verification, deterministic facet assembly, and speculative-entailment audit.
 
 The v0.22 architecture the model analyzes each book description
 ONCE without seeing the user query or any facet, producing a frozen book-level
@@ -1641,7 +1641,10 @@ Rules:
 - grounding_relation="explicit" only when this evidence itself directly states,
   directly paraphrases, or unmistakably instantiates this component.
 - grounding_relation="entailed" only when this component necessarily follows in
-  one short semantic step from this exact evidence.
+  one short semantic step from this exact evidence. NECESSARY means no material
+  alternative reading of the exact text leaves the component unestablished. If
+  your rationale would need words such as could, might, possibly, plausibly,
+  can be interpreted as, or potential for, return grounding_relation="missing".
 - grounding_relation="missing" when the component is absent, merely plausible,
   analogous, metaphorical, dependent on typical-world knowledge, or blocked by
   a negative boundary.
@@ -1653,6 +1656,72 @@ Rules:
 - Always return external_knowledge_required. If it is true, grounding_relation must be "missing".
 - Do not decide a full-facet relation such as DIRECT/ENTAILED/ADJACENT.
 """.strip()
+
+
+_SPECULATIVE_ENTAILMENT_MARKERS = (
+    " could ",
+    " might ",
+    " possibly ",
+    " plausibly ",
+    " can be interpreted ",
+    " potential for ",
+    " may indicate ",
+    " may suggest ",
+)
+
+
+def _reason_admits_speculative_entailment(reason: str) -> str | None:
+    """Return the first hedge showing that an ENTAILED rationale is not necessary.
+
+    v0.28.0 r1 intentionally keys this fail-closed audit only to explicit
+    possibility/interpretation language in the model's own rationale. It does
+    not reject ordinary words such as ``implies`` because valid one-step
+    entailments may use them.
+    """
+    normalized = " " + re.sub(r"\s+", " ", str(reason).casefold()).strip() + " "
+    return next((marker.strip() for marker in _SPECULATIVE_ENTAILMENT_MARKERS if marker in normalized), None)
+
+
+def _apply_speculative_isolated_entailment_guard(
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    if result.grounding_relation != "entailed":
+        return result
+    marker = _reason_admits_speculative_entailment(result.reason)
+    if marker is None:
+        return result
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=result.negative_boundary_applied,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28 speculative_entailment_guard: ENTAILED rejected because the "
+            f"model rationale explicitly admitted non-necessary grounding via {marker!r}. "
+            "Plausibility or interpretability is not necessary semantic entailment."
+        ),
+    )
+
+
+def _apply_speculative_recovery_entailment_guard(
+    result: FullContextComponentRecovery,
+) -> FullContextComponentRecovery:
+    if result.grounding_relation != "entailed":
+        return result
+    marker = _reason_admits_speculative_entailment(result.reason)
+    if marker is None:
+        return result
+    return FullContextComponentRecovery(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        supporting_span_ids=[],
+        negative_boundary_applied=result.negative_boundary_applied,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28 speculative_entailment_guard: recovery ENTAILED rejected because "
+            f"the model rationale explicitly admitted non-necessary grounding via {marker!r}."
+        ),
+    )
 
 
 def _validate_isolated_component_result(
@@ -1721,6 +1790,7 @@ def verify_isolated_component(
             result = unpack_generated_model(generated, IsolatedComponentVerification)
             assert isinstance(result, IsolatedComponentVerification)
             last_result = result
+            result = _apply_speculative_isolated_entailment_guard(result)
             result = _q09_text_anchor_guard(
                 facet=facet,
                 component=component,
@@ -2443,7 +2513,9 @@ Rules:
 - This stage may inspect spans that Stage A did not select.
 - grounding_relation="explicit" when the cited span(s) directly establish only
   this component; "entailed" when they jointly/individually necessarily establish
-  only this component in one short inference; otherwise "missing".
+  only this component in one short inference; otherwise "missing". If the
+  rationale would need could, might, possibly, plausibly, can be interpreted as,
+  or potential for, the component is not necessarily entailed and must be missing.
 - Positive grounding requires 1-{MAX_COMPOSITE_CANDIDATES} exact supplied span IDs.
 - Missing requires supporting_span_ids=[].
 - If a component-specific negative boundary applies, return missing and
@@ -2554,6 +2626,7 @@ def recover_missing_component(
         try:
             result = unpack_generated_model(generated, FullContextComponentRecovery)
             assert isinstance(result, FullContextComponentRecovery)
+            result = _apply_speculative_recovery_entailment_guard(result)
             result = _q09_recovery_text_anchor_guard(
                 facet=facet,
                 component=component,

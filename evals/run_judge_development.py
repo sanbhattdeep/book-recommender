@@ -1,5 +1,5 @@
 """
-Run development Semantic Recommendation Relevance Judge v0.27.0 r7 on the consumed 150-case development set.
+Run development Semantic Recommendation Relevance Judge v0.28.0 r1 on the consumed 180-case development set.
 
 Typical usage
 -------------
@@ -15,14 +15,14 @@ Targeted r7 consumed-development diagnostics:
       --case-id U3_Q02_T05 `
       --case-id U3_Q07_T01
 
-Full 150-case development run:
+Full 180-case development run:
 
     uv run python evals/run_judge_development.py
 
 Resume an interrupted run:
 
     uv run python evals/run_judge_development.py `
-      --resume evals/runs/semantic_relevance_v0_27_development/<RUN_ID>
+      --resume evals/runs/semantic_relevance_v0_28_development/<RUN_ID>
 
 v0.26 architecture
 -----------------
@@ -87,13 +87,13 @@ from semantic_relevance_facet_scoring import (
 # do not silently edit that file. Create a new version instead.
 # =============================================================================
 
-JUDGE_CONFIG_VERSION = "0.27.0"
-EVALUATION_DATASET_VERSION = "3.1.0"
+JUDGE_CONFIG_VERSION = "0.28.0"
+EVALUATION_DATASET_VERSION = "4.0.0"
 JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
-EVALUATION_DATASET_ROLE = "post_validation_development"
-EVALUATION_SCOPE = "consumed_validation_development"
+EVALUATION_DATASET_ROLE = "post_v0_27_final_holdout_development"
+EVALUATION_SCOPE = "consumed_v0_27_development_and_final_holdout"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.9.7"
+FACET_SPEC_VERSION = "0.9.8"
 
 
 # =============================================================================
@@ -113,7 +113,7 @@ EVALS_DIR = REPO_ROOT / "evals"
 DATASET_FILE = (
     EVALS_DIR
     / "datasets"
-    / f"semantic_relevance_v0.27_development.v{EVALUATION_DATASET_VERSION}.csv"
+    / f"semantic_relevance_v0.28_development.v{EVALUATION_DATASET_VERSION}.csv"
 )
 
 RUBRIC_FILE = (
@@ -139,7 +139,7 @@ JUDGE_CONFIG_FILE = (
 RUNS_DIR = (
     EVALS_DIR
     / "runs"
-    / "semantic_relevance_v0_27_development"
+    / "semantic_relevance_v0_28_development"
 )
 
 
@@ -407,25 +407,25 @@ def validate_inputs(
         )
 
     # -------------------------------------------------------------------------
-    # v0.27 r7 consumed-development contract: 60 historical U_ cases + 60 U2_ cases + the 30 now-consumed U3_ validation cases. The separate 30-case final holdout remains independent and is not present here.
+    # v0.28 r1 consumed-development contract: 60 U_ + 60 U2_ + 60 U3_ cases. Both the prior validation and the one-time v0.27 final holdout are now consumed development evidence.
     # -------------------------------------------------------------------------
-    if len(dataset) != 150:
+    if len(dataset) != 180:
         raise ValueError(
-            "The v0.27 r7 development dataset must contain exactly 150 consumed cases; "
+            "The v0.28 r1 development dataset must contain exactly 180 consumed cases; "
             f"found {len(dataset)}."
         )
 
     prefixes_ok = dataset["case_id"].astype(str).str.startswith(("U_", "U2_", "U3_"))
     if not prefixes_ok.all():
         raise ValueError(
-            "v0.27 r7 development case IDs must use U_, U2_, or consumed-validation U3_ prefixes."
+            "v0.28 r1 development case IDs must use U_, U2_, or consumed U3_ prefixes."
         )
     if int(dataset["case_id"].astype(str).str.startswith("U_").sum()) != 60:
         raise ValueError("Expected exactly 60 historical U_ development cases.")
     if int(dataset["case_id"].astype(str).str.startswith("U2_").sum()) != 60:
         raise ValueError("Expected exactly 60 consumed U2_ fresh-pool cases.")
-    if int(dataset["case_id"].astype(str).str.startswith("U3_").sum()) != 30:
-        raise ValueError("Expected exactly 30 consumed U3_ validation cases.")
+    if int(dataset["case_id"].astype(str).str.startswith("U3_").sum()) != 60:
+        raise ValueError("Expected exactly 60 consumed U3_ cases (30 prior validation + 30 prior final holdout).")
 
     # -------------------------------------------------------------------------
     # Human gold-label completeness.
@@ -504,7 +504,7 @@ def validate_inputs(
         )
     ) != JUDGE_CALIBRATION_DATASET_VERSION:
         raise ValueError(
-            "Judge v0.27.0 config remains pinned to its original "
+            "Judge v0.28.0 config remains pinned to its original "
             "calibration/development dataset version "
             f"{JUDGE_CALIBRATION_DATASET_VERSION}; found "
             f"{config.get('dataset_version')!r}."
@@ -556,7 +556,7 @@ def validate_inputs(
     ) != "frozen":
         raise ValueError(
             "Facet specification must have status='frozen' before running "
-            "Judge v0.27.0."
+            "Judge v0.28.0."
         )
 
     if str(
@@ -1089,7 +1089,7 @@ def load_existing_results(
     if missing_columns:
         raise ValueError(
             "Existing judge_results.csv is not compatible with "
-            "Judge v0.27.0. Missing columns: "
+            "Judge v0.28.0. Missing columns: "
             f"{sorted(missing_columns)}"
         )
 
@@ -1108,8 +1108,8 @@ def main() -> None:
 
     parser = argparse.ArgumentParser(
         description=(
-            "Run development facet-based Judge Config v0.27.0 on the "
-            "150-case consumed post-validation development set using local Ollama."
+            "Run development facet-based Judge Config v0.28.0 on the "
+            "180-case consumed post-v0.27-final-holdout development set using local Ollama."
         )
     )
 

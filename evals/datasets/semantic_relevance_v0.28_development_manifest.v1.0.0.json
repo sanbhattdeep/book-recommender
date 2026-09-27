@@ -1,0 +1,27 @@
+{
+  "version": "1.0.0",
+  "dataset_version": "4.0.0",
+  "rubric_version": "0.1.0",
+  "case_count": 180,
+  "methodological_status": "post_v0_27_final_holdout_consumed_development_only",
+  "sources": [
+    {
+      "path": "evals\\datasets\\semantic_relevance_v0.27_development.v3.1.0.csv",
+      "cases": 150,
+      "sha256": "72810fa61cc71e28f05beaec9664f2ccdee55d5834272c44e2f1cc97cafeee7d",
+      "status": "consumed_v0_27_development"
+    },
+    {
+      "path": "evals\\datasets\\semantic_relevance_final_holdout.v3.0.0.DO_NOT_RUN_YET.csv",
+      "cases": 30,
+      "sha256": "cce944bd48b102452c024134560b7b87866b85f5fa1bc1194775138b8976eb2e",
+      "status": "consumed_v0_27_final_holdout",
+      "prior_lock_status": "FINAL_HOLDOUT_COMPLETED",
+      "prior_judge_run_count": 1
+    }
+  ],
+  "output": "evals\\datasets\\semantic_relevance_v0.28_development.v4.0.0.csv",
+  "output_sha256": "fdf9ccbd8d131fa80c1e994681802b7f99050f497a60e503188c3e9ae7a3b83b",
+  "independent_v0_28_evidence": null,
+  "methodology_note": "All 180 cases are consumed development/regression evidence. The v0.27 final holdout must never be reused as unseen validation or holdout. Any v0.28 generalization claim requires a newly sampled/blind-labelled unseen pool and a new untouched final holdout."
+}
