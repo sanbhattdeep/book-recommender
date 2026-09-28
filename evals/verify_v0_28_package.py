@@ -1,4 +1,4 @@
-"""Static/unit verifier for v0.28.0 r3. No judge-model calls."""
+"""Static/unit verifier for v0.28.0 r4. No judge-model calls."""
 from pathlib import Path
 import hashlib, json, subprocess, sys, re
 
@@ -12,16 +12,19 @@ required = [
     E / "semantic_relevance_facet_judge.py",
     E / "semantic_relevance_facet_scoring.py",
     E / "run_judge_development.py",
-    E / "build_v0_28_r3_development_dataset.py",
-    E / "analyze_v0_28_r3_targeted.py",
-    E / "analyze_v0_28_r3_development.py",
-    ROOT / "prepare_v028_r3.ps1",
-    ROOT / "run_v028_r3_targeted.ps1",
-    ROOT / "run_v028_r3_full_180.ps1",
-    E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.2.0.json",
+    E / "build_v0_28_r4_development_dataset.py",
+    E / "analyze_v0_28_r4_targeted.py",
+    E / "analyze_v0_28_r4_development.py",
+    ROOT / "prepare_v028_r4.ps1",
+    ROOT / "run_v028_r4_targeted.ps1",
+    ROOT / "run_v028_r4_full_180.ps1",
+    ROOT / "run_v028_r4_stability.ps1",
+    E / "datasets/semantic_relevance_v0.28_r4_stability_manifest.v1.1.0.json",
+    E / "analyze_v0_28_r4_stability.py",
+    E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.3.0.json",
     E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.9.json",
     E / "judge_configs/semantic_relevance_judge.v0.28.0.json",
-    ROOT / "v0.28.0_r3_package_manifest.json",
+    ROOT / "v0.28.0_r4_package_manifest.json",
 ]
 for path in required:
     assert path.exists(), path
@@ -34,10 +37,10 @@ assert cfg["version"] == "0.28.0"
 assert cfg["facet_spec_version"] == "0.9.9"
 
 reg = json.loads(
-    (E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.2.0.json")
+    (E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.3.0.json")
     .read_text(encoding="utf-8")
 )
-assert len(reg["targeted_expectations"]) == 40
+assert len(reg["targeted_expectations"]) == 41
 assert set(reg["diagnostic_only_cases"]) == {"U3_Q10_T01", "U3_Q11_T04"}
 
 runner = (E / "run_judge_development.py").read_text(encoding="utf-8")
@@ -50,7 +53,7 @@ for token in [
 ]:
     assert token in runner, token
 
-builder = (E / "build_v0_28_r3_development_dataset.py").read_text(encoding="utf-8")
+builder = (E / "build_v0_28_r4_development_dataset.py").read_text(encoding="utf-8")
 for token in [
     "FINAL_HOLDOUT_COMPLETED",
     "judge_run_count",
@@ -71,6 +74,8 @@ for path in E.glob("*.py"):
 for name in [
     "test_v0_28_entailment_discipline.py",
     "test_v0_28_direct_cue_prominence_guard.py",
+    "test_v0_28_r4_contract.py",
+    "test_v0_28_r4_stability_contract.py",
     "test_v0_28_r3_contract.py",
     "test_v0_28_r3_localized_guards.py",
     "test_v0_28_r3_full_180_contract.py",
@@ -84,10 +89,10 @@ for name in [
 ]:
     subprocess.run([sys.executable, str(E / name)], cwd=ROOT, check=True)
 
-print("v0.28.0 r3 package verification passed.")
+print("v0.28.0 r4 package verification passed.")
 print("Judge SHA-256:", sha(E / "semantic_relevance_facet_judge.py"))
 print("Scoring SHA-256:", sha(E / "semantic_relevance_facet_scoring.py"))
 print("Facet-spec SHA-256:", sha(E / "facets/semantic_relevance/semantic_relevance_query_facets.v0.9.9.json"))
 print("Judge-config SHA-256:", sha(E / "judge_configs/semantic_relevance_judge.v0.28.0.json"))
-print("Regression-manifest SHA-256:", sha(E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.2.0.json"))
+print("Regression-manifest SHA-256:", sha(E / "datasets/semantic_relevance_v0.28_regression_manifest.v1.3.0.json"))
 print("Rubric SHA-256:", sha(E / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"))

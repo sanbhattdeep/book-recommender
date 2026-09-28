@@ -1,0 +1,247 @@
+{
+  "version": "1.3.0",
+  "purpose": "v0.28.0 r4 consumed-development gate: preserve all r3 Q03/Q11 repairs and correct the r3 stability regression where a whole-work thematic enumeration ('this story of ... redemption') was incorrectly demoted to incidental by the broad prominence list instruction. Character-side-detail/possessive lists remain incidental unless independently developed. Retain all prior targets and keep U3_Q10_T01/U3_Q11_T04 diagnostic-only.",
+  "inherited_from": "semantic_relevance_v0.28_regression_manifest.v1.2.0.json",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q04_T70": {
+      "judge_min": 3
+    },
+    "U2_Q05_T30": {
+      "judge_min": 3
+    },
+    "U2_Q09_T30": {
+      "judge_max": 1
+    },
+    "U2_Q04_T02": {
+      "judge_min": 3
+    },
+    "U_Q05_T30": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U3_Q05_T01": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q01_T03": {
+      "judge_max": 0
+    },
+    "U3_Q02_T05": {
+      "judge_max": 0
+    },
+    "U3_Q07_T01": {
+      "judge_min": 1,
+      "judge_max": 1
+    },
+    "U3_Q05_T02": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q05_T04": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q02_T02": {
+      "judge_min": 3
+    },
+    "U3_Q07_T04": {
+      "judge_max": 0
+    },
+    "U3_Q03_T01": {
+      "judge_max": 0
+    },
+    "U3_Q11_T02": {
+      "judge_max": 1
+    },
+    "U_Q11_T70": {
+      "judge_min": 1
+    },
+    "U2_Q11_T70": {
+      "judge_min": 1
+    },
+    "U3_Q11_T03": {
+      "judge_min": 1
+    },
+    "U3_Q03_T04": {
+      "judge_max": 1
+    },
+    "U_Q01_T02": {
+      "judge_min": 2,
+      "judge_max": 3
+    }
+  },
+  "new_v0_28_r1_targets": {
+    "U3_Q03_T01": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 2,
+      "target": "judge == 0",
+      "failure_class": "Q03 personal-growth false entailment from enlightenment/happiness/generic beneficial effects"
+    },
+    "U3_Q11_T02": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 3,
+      "target": "judge <= 1",
+      "failure_class": "Q11 compound over-promotion: speculative adventure + legendary-hero entailment plus direct-cue gods prominence; incidental lexical presence may remain score 1"
+    }
+  },
+  "diagnostic_only_cases": {
+    "U3_Q10_T01": {
+      "human_score": 2,
+      "v0_27_r7_final_judge_score": 0,
+      "reason": "facet-spec / label-policy tension for organizational effectiveness; do not tune until adjudicated"
+    },
+    "U3_Q11_T04": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 2,
+      "reason": "adventure-boundary ambiguity; do not tune until adjudicated"
+    }
+  },
+  "methodology_note": "The v0.27 final holdout is consumed. These cases may be used only as development diagnostics/regression evidence from v0.28 onward. They cannot support a new generalization claim.",
+  "r1_targeted_failure_repair": {
+    "U_Q06_T02": {
+      "r1_judge_score": 1,
+      "required_r2": "judge >= 3",
+      "cause": "global speculative-entailment guard suppressed valid grief/loss entailment"
+    },
+    "U_Q07_T02": {
+      "r1_judge_score": 0,
+      "required_r2": "judge >= 3",
+      "cause": "global necessary-entailment prompt shift broke the frozen parent-child referent-binding behavior"
+    },
+    "U2_Q04_T70": {
+      "r1_judge_score": 2,
+      "required_r2": "judge >= 3",
+      "cause": "global verifier tightening changed a previously protected multi-facet positive"
+    },
+    "U3_Q11_T02": {
+      "r1_judge_score": 2,
+      "required_r2": "judge <= 1",
+      "cause": "Q11 adventure/legendary-hero repairs worked, but direct lexical gods cue was still promoted to substantive"
+    },
+    "U3_Q03_T01": {
+      "r1_judge_score": 0,
+      "required_r2": "judge == 0",
+      "cause": "successful localized Q03 repair to preserve"
+    }
+  },
+  "r2_full180_failure_repair": {
+    "U_Q11_T70": {
+      "human_score": 2,
+      "r7_judge_score": 2,
+      "r2_judge_score": 0,
+      "required_r3": "judge >= 1",
+      "cause": "Q11 negative mission boundary incorrectly rejected explicit narrative expedition"
+    },
+    "U2_Q11_T70": {
+      "human_score": 2,
+      "r7_judge_score": 2,
+      "r2_judge_score": 0,
+      "required_r3": "judge >= 1",
+      "cause": "Q11 boundary rejected concrete hazardous pursuit: sent after a basilisk whose gaze could turn men to stone"
+    },
+    "U3_Q11_T03": {
+      "human_score": 2,
+      "r7_judge_score": 2,
+      "r2_judge_score": 0,
+      "required_r3": "judge >= 1",
+      "cause": "Q11 boundary rejected explicit take-up-arms / battle / army action-driving conflict"
+    },
+    "U3_Q03_T04": {
+      "human_score": 0,
+      "r7_judge_score": 1,
+      "r2_judge_score": 2,
+      "required_r3": "judge <= 1",
+      "cause": "Q03 Mode-B wording over-promoted generic intellectual learning / wising up to personal growth"
+    },
+    "controls_to_preserve": {
+      "U3_Q03_T01": "judge == 0",
+      "U3_Q11_T02": "judge <= 1"
+    },
+    "baseline_severe_not_targeted": {
+      "U_Q03_T10": "existing pre-v0.28 severe mismatch; do not tune in r3"
+    }
+  },
+  "r3_stability_failure_repair": {
+    "U_Q01_T02": {
+      "human_score": 2,
+      "r7_stability_scores": [
+        2,
+        2,
+        2
+      ],
+      "r2_full180_judge_score": 1,
+      "r3_stability_scores": [
+        1,
+        1,
+        1
+      ],
+      "required_r4": "judge 2-3",
+      "cause": "prominence-stage list instruction overgeneralized from side-detail enumerations to an explicit whole-work thematic characterization ('this story of ... redemption')"
+    }
+  }
+}

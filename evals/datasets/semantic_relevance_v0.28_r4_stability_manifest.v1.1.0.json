@@ -1,0 +1,76 @@
+{
+  "manifest_version": "1.1.0",
+  "judge_version": "0.28.0",
+  "facet_spec_version": "0.9.9",
+  "dataset_version": "4.0.0",
+  "purpose": "Three fresh-run stability spot-check for inherited controls plus v0.28 r4 whole-work thematic-enumeration prominence repair and retained r3 Q03/Q11 boundaries.",
+  "required_fresh_runs": 3,
+  "require_identical_scores": false,
+  "expectations": {
+    "U3_Q01_T03": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "r7_redemption_negative"
+    },
+    "U_Q01_T02": {
+      "judge_min": 2,
+      "judge_max": 3,
+      "role": "r4_whole_work_thematic_enumeration_positive"
+    },
+    "U3_Q02_T05": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "r7_suspense_negative"
+    },
+    "U_Q02_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "q02_positive_control"
+    },
+    "U3_Q07_T01": {
+      "judge_min": 1,
+      "judge_max": 1,
+      "role": "r7_collection_item_incidental"
+    },
+    "U_Q07_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "q07_positive_control"
+    },
+    "U3_Q05_T01": {
+      "judge_min": 2,
+      "judge_max": 3,
+      "role": "r6_war_repair_frozen_control"
+    },
+    "U3_Q03_T01": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "v028_personal_growth_false_positive_repair"
+    },
+    "U3_Q11_T02": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "v028_q11_list_mention_and_overentailment_repair"
+    },
+    "U_Q11_T70": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "r3_explicit_expedition_positive"
+    },
+    "U2_Q11_T70": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "r3_perilous_quest_positive"
+    },
+    "U3_Q11_T03": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "r3_concrete_battle_positive"
+    },
+    "U3_Q03_T04": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "r3_generic_learning_not_personal_growth"
+    }
+  }
+}

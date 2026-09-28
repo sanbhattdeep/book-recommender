@@ -1,5 +1,29 @@
 # Evaluation Changelog
 
+# Semantic relevance v0.28.0 r4
+
+Development-only revision after r3 passed targeted/full-180 but failed stability on `U_Q01_T02`.
+
+## Why r4 exists
+
+The r3 stability run was perfectly deterministic across all 13 cases, but `U_Q01_T02` produced `1,1,1` instead of its frozen positive-control range `2-3`. The source explicitly characterizes the whole work as a story of several themes including redemption. The r2 prominence instruction had overgeneralized list demotion from character-side-detail lists to whole-work thematic lists.
+
+## Semantic change
+
+- Whole-work thematic enumerations such as `this story of ... redemption` may be substantive.
+- Character possession/relation/obligation enumerations such as `his king, his lover, his friends, his gods` remain incidental unless independently developed.
+- Judge implementation, facet spec 0.9.9, scoring, and rubric are unchanged from r3.
+
+## Gates
+
+1. `prepare_v028_r4.ps1` (no judge calls)
+2. `run_v028_r4_targeted.ps1` — 41 gated + 2 diagnostic = 43 cases
+3. `run_v028_r4_full_180.ps1` — fresh 180-case consumed-development run
+4. `run_v028_r4_stability.ps1` — restart-safe 3 fresh runs x 13 cases
+
+No independent v0.28 holdout exists yet.
+
+
 # Semantic Relevance v0.28.0 r2
 
 Development-only repair after the v0.28.0 r1 targeted gate failed.
