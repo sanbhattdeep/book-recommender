@@ -93,7 +93,7 @@ JUDGE_CALIBRATION_DATASET_VERSION = "0.5.0"
 EVALUATION_DATASET_ROLE = "post_v0_27_final_holdout_development"
 EVALUATION_SCOPE = "consumed_v0_27_development_and_final_holdout"
 RUBRIC_VERSION = "0.1.0"
-FACET_SPEC_VERSION = "0.9.8"
+FACET_SPEC_VERSION = "0.9.9"
 
 
 # =============================================================================

@@ -1448,6 +1448,7 @@ LOCAL PERSONAL-GROWTH CONTRACT
 - MODE A (experienced development) and MODE B (explicitly promoted development) are INDEPENDENTLY sufficient.
 - Do NOT require proof that a named person has already experienced development when the evidence explicitly says that a path, practice, program, guidance, or activity promotes/fosters/cultivates/builds/leads to maturity or personal growth in its intended people.
 - Wording such as "promotes maturity and growth" is positive Mode-B grounding, not a reason to mark the component missing merely because it is prospective or instructional.
+- Generic intellectual learning, becoming more knowledgeable/wiser, philosophy education, "begin to learn", or "wising up" is NOT personal growth unless the exact evidence independently states development, growth, maturity, transformation, changed mindset/behavior/ability, confidence, habits, skills, or self-understanding.
 """.strip(),
         (
             "redemption",
@@ -1477,6 +1478,15 @@ LOCAL Q02 SUSPENSE CONTRACT
 - Future-tense plot progression (including wording that actions will trigger, cause, attract, ignite, or set in motion later conflict/consequences) does NOT itself establish suspense.
 - Positive grounding requires the supplied text itself to state or necessarily entail story-level tension/anticipation about an unfolding unresolved threat, pursuit, concealment, mystery, discovery, escape, or comparable development.
 - Do not infer a suspenseful reading experience merely because events are action-packed, dangerous, consequential, or described as forthcoming. Do not invent reader anticipation from the fact that future events will occur.
+""".strip(),
+        (
+            "adventure",
+            "adventure_like_progression",
+        ): """
+LOCAL Q11 ADVENTURE CONTRACT
+- An explicit narrative quest, journey, or expedition positively establishes adventure-like progression unless it is only meta-discussion/example use.
+- Concrete sustained hazardous action can also establish progression when the supplied text itself states the action and peril, including taking up arms in a battle/army struggle or being sent in pursuit of a dangerous target whose peril is stated.
+- A bare mission, duty, objective, rescue, conflict, or requirement to set something right remains insufficient. Do not invent unseen progression.
 """.strip(),
         (
             "war",
@@ -1656,6 +1666,183 @@ def _q09_recovery_text_anchor_guard(
     )
 
 
+
+# v0.28 r3: localized component guards derived from the r2 full-180 regressions.
+# These guards are intentionally facet/component-scoped. They do not restore the
+# rejected r1 global speculative-entailment filter.
+_Q03_GROWTH_ANCHOR_RE = re.compile(
+    r"\b(?:personal\s+growth|grow(?:s|th|ing)?|develop(?:s|ed|ing|ment)?|"
+    r"improv(?:e|es|ed|ing|ement)|matur(?:e|es|ed|ing|ity)|"
+    r"transform(?:s|ed|ing|ation)?|self[- ](?:understanding|awareness|development|improvement)|"
+    r"confidence|mindset|behavio[u]?r|habit(?:s)?|skill(?:s)?|abilit(?:y|ies))\b",
+    flags=re.IGNORECASE,
+)
+_Q03_INTELLECTUAL_LEARNING_RE = re.compile(
+    r"\b(?:wising\s+up|wise|wiser|wisdom|learn(?:s|ed|ing)?|knowledge|"
+    r"philosoph(?:y|ical)|intellectual|thinking|thoughts?|mull(?:ing)?)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q11_META_ADVENTURE_RE = re.compile(
+    r"\b(?:literary\s+(?:criticism|analysis)|analysis\s+of|instruction(?:al)?|"
+    r"symbolism|archetype(?:s)?|example\s+(?:in|of)|discussion\s+of\s+other\s+works)\b",
+    flags=re.IGNORECASE,
+)
+_Q11_EXPLICIT_PROGRESS_RE = re.compile(
+    r"\b(?:quest|journey|expedition)\b",
+    flags=re.IGNORECASE,
+)
+_Q11_BATTLE_ACTION_RE = re.compile(
+    r"\btake(?:s|n)?\s+up\s+arms\b.*\b(?:battle|army|besieged|struggle|fight|war)\b"
+    r"|\b(?:battle|army|besieged|struggle|fight|war)\b.*\btake(?:s|n)?\s+up\s+arms\b",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+_Q11_SENT_AFTER_RE = re.compile(
+    r"\bsent\b.{0,120}\bafter\b",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+_Q11_EXPLICIT_PERIL_RE = re.compile(
+    r"\b(?:deadly|danger(?:ous)?|peril(?:ous)?|kill(?:s|ed|ing)?|destroy(?:s|ed|ing)?|"
+    r"attack(?:s|ed|ing)?|turn(?:s|ed|ing)?\s+(?:men|people|them|him|her)\s+to\s+stone|"
+    r"whose\s+gaze\s+could\s+turn\s+men\s+to\s+stone)\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _q03_r3_learning_only_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Reject intellectual-learning-only evidence for Q03 personal growth.
+
+    The r2 full run promoted generic learning/wisdom language in a philosophy
+    primer to personal growth. The frozen Q03 contract requires development,
+    maturity, transformation, changed mindset/behavior/ability, confidence,
+    habits, skills, or self-understanding—not mere acquisition of knowledge.
+    """
+
+    if (
+        facet.text.strip().lower() != "personal growth"
+        or component.component_id != "actual_self_development_or_self_understanding"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+    if _Q03_GROWTH_ANCHOR_RE.search(evidence_text):
+        return result
+    if _Q03_INTELLECTUAL_LEARNING_RE.search(evidence_text) is None:
+        return result
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r3 Q03 intellectual-learning guard: generic learning, wisdom, "
+            "philosophical education, or 'wising up' without an independent "
+            "development/growth anchor does not establish personal growth."
+        ),
+    )
+
+
+def _q11_r3_adventure_positive_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Restore text-explicit Q11 adventure evidence rejected by the r2 boundary.
+
+    Positive override is narrow:
+    - an explicit narrative quest/journey/expedition (not meta-discussion), or
+    - concrete sustained hazardous action such as taking up arms in battle, or
+      being sent after a target with peril explicitly stated in the same span.
+
+    A bare mission, duty, rescue, goal, conflict, or "set things right" statement
+    does not satisfy any of these patterns.
+    """
+
+    if (
+        facet.text.strip().lower() != "adventure"
+        or component.component_id != "adventure_like_progression"
+        or result.grounding_relation != "missing"
+    ):
+        return result
+    if _Q11_META_ADVENTURE_RE.search(evidence_text):
+        return result
+
+    explicit_progression = _Q11_EXPLICIT_PROGRESS_RE.search(evidence_text) is not None
+    battle_progression = _Q11_BATTLE_ACTION_RE.search(evidence_text) is not None
+    hazardous_pursuit = (
+        _Q11_SENT_AFTER_RE.search(evidence_text) is not None
+        and _Q11_EXPLICIT_PERIL_RE.search(evidence_text) is not None
+    )
+    if not (explicit_progression or battle_progression or hazardous_pursuit):
+        return result
+
+    mode = (
+        "explicit quest/journey/expedition"
+        if explicit_progression
+        else "concrete battle/action progression"
+        if battle_progression
+        else "hazardous pursuit progression"
+    )
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="entailed",
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r3 Q11 positive adventure guard: exact supplied evidence "
+            f"establishes {mode}; no outside knowledge or unseen progression is required."
+        ),
+    )
+
+
+def _apply_v028_r3_isolated_component_guards(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    result = _q03_r3_learning_only_guard(facet, component, evidence_text, result)
+    result = _q11_r3_adventure_positive_guard(facet, component, evidence_text, result)
+    return result
+
+
+def _apply_v028_r3_recovery_guard(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    result: FullContextComponentRecovery,
+) -> FullContextComponentRecovery:
+    """Keep Q03 full-context recovery from reintroducing learning-only growth."""
+
+    if (
+        facet.text.strip().lower() != "personal growth"
+        or component.component_id != "actual_self_development_or_self_understanding"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+    evidence_text = " ".join(spans.get(span_id, "") for span_id in result.supporting_span_ids)
+    if _Q03_GROWTH_ANCHOR_RE.search(evidence_text):
+        return result
+    if _Q03_INTELLECTUAL_LEARNING_RE.search(evidence_text) is None:
+        return result
+    return FullContextComponentRecovery(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        supporting_span_ids=[],
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r3 Q03 recovery guard: full-context support is only generic "
+            "intellectual learning/wisdom without an independent personal-growth anchor."
+        ),
+    )
+
+
 def build_isolated_component_prompt(
     facet: QueryFacet,
     component: Any,
@@ -1781,6 +1968,12 @@ def verify_isolated_component(
             assert isinstance(result, IsolatedComponentVerification)
             last_result = result
             result = _q09_text_anchor_guard(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
+            result = _apply_v028_r3_isolated_component_guards(
                 facet=facet,
                 component=component,
                 evidence_text=evidence_text,
@@ -2614,6 +2807,12 @@ def recover_missing_component(
             result = unpack_generated_model(generated, FullContextComponentRecovery)
             assert isinstance(result, FullContextComponentRecovery)
             result = _q09_recovery_text_anchor_guard(
+                facet=facet,
+                component=component,
+                spans=spans,
+                result=result,
+            )
+            result = _apply_v028_r3_recovery_guard(
                 facet=facet,
                 component=component,
                 spans=spans,

@@ -1,5 +1,49 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r2
+
+Development-only repair after the v0.28.0 r1 targeted gate failed.
+
+## r1 diagnosis
+- `U3_Q03_T01` was repaired successfully and must remain `0`.
+- The global speculative-entailment prompt/guard was over-broad and regressed:
+  - `U_Q06_T02`
+  - `U_Q07_T02`
+  - `U2_Q04_T70`
+- `U3_Q11_T02` improved from `3` to `2`, proving the localized adventure and
+  legendary-hero boundaries worked, but the direct lexical `gods` cue was still
+  promoted from concept presence to substantive whole-book prominence.
+
+## r2 changes
+1. Roll back the global r1 speculative-entailment prompt and deterministic
+   wording-based guard to the r7 behavior.
+2. Preserve the localized Q03 personal-growth boundary from r1.
+3. Preserve the localized Q11 adventure and legendary-hero boundaries from r1.
+4. Add deterministic direct-cue prominence isolation for a narrow structural
+   pattern: a cue occurring only as one item in a possessive enumeration and
+   having no independent role-supporting span is capped to incidental.
+5. Preserve all 36 gated targeted expectations and both diagnostic-only cases.
+6. Keep scoring, rubric, facet-spec version, judge-config version, and the
+   180-case consumed-development dataset unchanged.
+
+No independent v0.28 validation or final holdout exists yet.
+
+# Semantic Relevance v0.28.0 r1
+
+Development-only revision after the one-time v0.27 r7 final holdout.
+
+## Scope
+- Preserve all 34 r7 targeted contracts.
+- Hard-fix only high-confidence consumed-holdout judge defects: U3_Q03_T01 and U3_Q11_T02.
+- Keep U3_Q10_T01 and U3_Q11_T04 diagnostic-only pending semantic adjudication.
+- Fail closed when an ENTAILED component rationale explicitly admits speculation (could/might/possibly/plausibly/can be interpreted/potential for).
+- Strengthen Q03 personal-growth and Q11 adventure/legendary-hero boundaries.
+- Reinforce that direct lexical verification proves presence, not prominence.
+- Keep deterministic scoring and rubric byte-identical to r7.
+- Build 180-case consumed development evidence by adding the consumed v0.27 final holdout to the prior 150 cases.
+
+No v0.28 unseen validation or final holdout exists yet.
+
 # v0.27.0 r7 changelog
 
 - Preserved the successful r6 Q05 war-as-subject repair.
