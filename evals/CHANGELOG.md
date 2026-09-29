@@ -1,5 +1,22 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r6
+
+r6 is a new semantic revision after the r5 targeted gate failed on two inherited positive controls. r5 is not modified retroactively.
+
+## r6 repairs
+
+1. **Q01 whole-work thematic enumeration** — a deterministic direct cue in a sentence explicitly characterizing the story/book/work as being of/about themes is forced to substantive/defining role. This makes the r4 prompt-level rule robust to model prominence variation.
+2. **Q11 explicit myth/legend hero content** — if the supplied description itself presents myths/legends as stories involving heroes, legendary/mythic hero identity is positively grounded. The r5 analytical origin/provenance exclusion remains authoritative.
+
+All five r5 independent-validation repairs remain unchanged. The final holdout remains locked/unseen.
+
+Judge SHA-256: `aab36e98b9faa7a9dd771e3732b59ba685ff073e72d0bdc855cccebf447fafa8`
+Scoring SHA-256: `8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808`
+Facet spec 0.9.11 SHA-256: `e734cb73fdf5dd5847e78193c20930c165ce2771b79c2ffffce181f7cc9c4b53`
+Judge config 0.28.0-r6 SHA-256: `b1be0036fcddfd644f3f2ec02ad6ea47af0e75c08efd3eb46de1d7f52d5df462`
+Regression manifest 1.5.0 SHA-256: `ccc5aa2814c4fc991ffa97bbeaeed4c5f8dd60e073d8bf767905d4f9c2ebbe8d`
+
 # Semantic Relevance v0.28.0 r5
 
 r5 starts **after** the one-time r4 independent validation failed its preregistered gate.

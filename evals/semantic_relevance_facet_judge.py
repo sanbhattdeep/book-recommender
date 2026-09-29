@@ -2069,6 +2069,121 @@ def _apply_v028_r5_prominence_guard(
     )
 
 
+# v0.28 r6: deterministic non-regression repairs after the r5 targeted gate.
+# These protect two inherited positive controls without weakening the r5
+# negative boundaries that fixed the independent-validation defects.
+
+_WHOLE_WORK_THEMATIC_FRAME_RE = re.compile(
+    r"\b(?:this|the)\s+(?:story|book|work|novel|narrative|memoir)\s+"
+    r"(?:is\s+)?(?:of|about|explores?|examines?|centers?\s+on|focuses?\s+on)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q11_EXPLICIT_MYTH_LEGEND_HERO_CONTENT_RE = re.compile(
+    r"\b(?:myths?|legends?|mythology|mythological|mythic)\b.{0,260}"
+    r"\b(?:stories?\s+of\s+)?(?:gods?\s+and\s+)?heroes?\b"
+    r"|\bheroes?\b.{0,260}\b(?:myths?|legends?|mythology|mythological|mythic)\b",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+
+def _r6_whole_work_thematic_enumeration_positive_guard(
+    facet: QueryFacet,
+    evidence_text: str,
+    result: ProminenceAssessment,
+) -> ProminenceAssessment:
+    """Promote explicit whole-work thematic enumeration to substantive role.
+
+    r4 introduced this as a prompt-level rule. r5 showed that the model can
+    still occasionally return OTHER for a direct lexical cue in a sentence
+    such as "this story of friendship, love, tragedy, and redemption". When
+    the evidence explicitly frames the *whole work* as being of/about themes
+    and names the frozen facet, the role is deterministically substantive.
+
+    This does not apply to possessive side-detail enumerations (his king, his
+    lover, his gods, ...), because those lack the whole-work frame.
+    """
+    if result.subject_relation in {
+        SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
+        SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER,
+    } and result.is_substantively_examined:
+        return result
+
+    if _WHOLE_WORK_THEMATIC_FRAME_RE.search(evidence_text) is None:
+        return result
+
+    facet_phrase = _normalized_scope_phrase(facet.text)
+    if not facet_phrase:
+        return result
+    normalized = _normalized_scope_phrase(evidence_text)
+    if facet_phrase not in normalized:
+        return result
+
+    return ProminenceAssessment(
+        subject_relation=SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER,
+        is_substantively_examined=True,
+        supporting_span_ids=list(result.supporting_span_ids),
+        reason=(
+            result.reason
+            + " [v0.28-r6 whole-work thematic-enumeration positive guard: the "
+              "directly verified facet is explicitly named in a sentence that "
+              "characterizes the story/book/work itself as being of/about those "
+              "themes; role is DEFINING_CONTENT_OR_NARRATIVE_DRIVER/substantive.]"
+        ),
+    )
+
+
+def _q11_r6_explicit_myth_hero_positive_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Recover hero identity when myths/legends are explicitly hero stories.
+
+    The r5 provenance guard must still reject analytical phrases such as
+    "evidence for the origin of the legend of X". This positive guard activates
+    only when the description itself presents myth/legend content together with
+    heroes, and there is no legend-origin/provenance analytical framing.
+    """
+    if (
+        facet.text.strip().lower() != "legendary heroes"
+        or component.component_id != "legendary_or_mythic_hero_identity"
+        or result.grounding_relation != "missing"
+    ):
+        return result
+
+    if _Q11_EXPLICIT_MYTH_LEGEND_HERO_CONTENT_RE.search(evidence_text) is None:
+        return result
+
+    if _Q11_LEGEND_PROVENANCE_RE.search(evidence_text):
+        return result
+
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="entailed",
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r6 Q11 explicit myth/legend hero-content guard: the supplied "
+            "description itself presents myths/legends together with hero stories, "
+            "so legendary/mythic hero identity is necessarily grounded without "
+            "outside knowledge."
+        ),
+    )
+
+
+def _apply_v028_r6_isolated_component_guards(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    return _q11_r6_explicit_myth_hero_positive_guard(
+        facet, component, evidence_text, result
+    )
+
+
 def _q03_r3_learning_only_guard(
     facet: QueryFacet,
     component: Any,
@@ -2340,6 +2455,12 @@ def verify_isolated_component(
                 result=result,
             )
             result = _apply_v028_r5_isolated_component_guards(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
+            result = _apply_v028_r6_isolated_component_guards(
                 facet=facet,
                 component=component,
                 evidence_text=evidence_text,
@@ -3801,6 +3922,11 @@ def evaluate_one_facet(
         )
         prominence_result = _apply_direct_cue_list_mention_guard(
             evidence_span_id=span_id,
+            evidence_text=cue_match.evidence_text,
+            result=prominence_result,
+        )
+        prominence_result = _r6_whole_work_thematic_enumeration_positive_guard(
+            facet=facet,
             evidence_text=cue_match.evidence_text,
             result=prominence_result,
         )
