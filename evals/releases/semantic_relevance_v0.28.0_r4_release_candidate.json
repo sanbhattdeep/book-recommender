@@ -1,0 +1,280 @@
+{
+  "release_candidate_id": "semantic_relevance_v0.28.0-r4",
+  "status": "FROZEN_BEFORE_NEW_UNSEEN_V0_28_EVIDENCE",
+  "frozen_at_utc": "2026-09-29T06:11:01.606764+00:00",
+  "git_commit_sha": "d67aaea4d330b97e62b8721fd67da4888aef2773",
+  "judge_version": "0.28.0",
+  "facet_spec_version": "0.9.9",
+  "rubric_version": "0.1.0",
+  "development_dataset_version": "4.0.0",
+  "methodology_note": "The candidate is frozen after passing targeted regression, the complete 180-case consumed-development gate, and three fresh 13-case stability runs. The 180 cases are all consumed development evidence. The v0.27 final holdout was consumed once and is not independent evidence for v0.28. Any v0.28 generalization claim must use newly sampled and blind-labelled evidence created only after this freeze.",
+  "artifacts": {
+    "evals/semantic_relevance_facet_judge.py": {
+      "sha256": "2ad6fb76876c3d892de3299a7867d6d7bff8b8456975796b310e3969b9b09c1b",
+      "size_bytes": 158921
+    },
+    "evals/semantic_relevance_facet_scoring.py": {
+      "sha256": "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808",
+      "size_bytes": 26252
+    },
+    "evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.9.9.json": {
+      "sha256": "378fe3d381703a07b22256b4b5e26e578d2336391cc3e4d861591bdbe314aafe",
+      "size_bytes": 65665
+    },
+    "evals/judge_configs/semantic_relevance_judge.v0.28.0.json": {
+      "sha256": "82e75d61e0b1c02bc126edd40749b480a5643a966c05725802688b98dc78c64b",
+      "size_bytes": 56130
+    },
+    "evals/datasets/semantic_relevance_v0.28_regression_manifest.v1.3.0.json": {
+      "sha256": "28aa38338e3130a23e6b891b707e0a3ba886805d62845f5e91cea87744bd6973",
+      "size_bytes": 6598
+    },
+    "evals/datasets/semantic_relevance_v0.28_r4_stability_manifest.v1.1.0.json": {
+      "sha256": "9a87ed55667a6dbcc25df286aea983eaeb2c57edcf53c2f7b2c0b248d0d83bab",
+      "size_bytes": 1925
+    },
+    "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json": {
+      "sha256": "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e",
+      "size_bytes": 2449
+    }
+  },
+  "package_manifest": {
+    "path": "v0.28.0_r4_package_manifest.json",
+    "sha256": "99de8041a97eec0c33a3e1b4ec32a359c1464d3c0590b506731a0e58a079c81b"
+  },
+  "development_evidence": {
+    "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_28_development\\20260928T150657Z",
+    "development_summary_sha256": "b7c07e6c9579fa1505909ec73471e6246b776d01fa7a9c018cb3be1ca4785e00",
+    "judge_results_sha256": "36e989a17bb2c3f8c8ce711541d2f472c568e5ee0cc2d6996d7511d053b85bbd",
+    "run_metadata_sha256": "bf8d82f880be14c82d873ed7629c3924c0634f53a3a7727e45588291a0aedaa9",
+    "development_dataset_sha256": "fdf9ccbd8d131fa80c1e994681802b7f99050f497a60e503188c3e9ae7a3b83b",
+    "cases": 180,
+    "all_41_targeted_checks_pass": true,
+    "all_8_frozen_150_reference_checks_pass": true,
+    "consumed30_no_new_severe_regressions": true,
+    "metrics": {
+      "overall_180": {
+        "cases": 180,
+        "exact_agreement": 0.6833333333333333,
+        "within_one_agreement": 0.9888888888888889,
+        "mean_absolute_difference": 0.3277777777777778,
+        "linear_weighted_kappa": 0.7742058936088787,
+        "quadratic_weighted_kappa": 0.909945681522188,
+        "binary": {
+          "tp": 73,
+          "fp": 4,
+          "fn": 11,
+          "tn": 92,
+          "precision": 0.948051948051948,
+          "recall": 0.8690476190476191,
+          "f1": 0.906832298136646
+        },
+        "errors": {
+          "false_zeros": 11,
+          "false_positive_relevance": 4,
+          "absolute_difference_ge_2": 2,
+          "over_promotions_ge_2": 0,
+          "under_promotions_ge_2": 2,
+          "deterministic_cue_severe_false_positives": 0
+        }
+      },
+      "prior_v0_27_development_150": {
+        "cases": 150,
+        "exact_agreement": 0.68,
+        "within_one_agreement": 0.9933333333333333,
+        "mean_absolute_difference": 0.32666666666666666,
+        "linear_weighted_kappa": 0.7785210630988971,
+        "quadratic_weighted_kappa": 0.9137445033261924,
+        "binary": {
+          "tp": 64,
+          "fp": 2,
+          "fn": 8,
+          "tn": 76,
+          "precision": 0.9696969696969697,
+          "recall": 0.8888888888888888,
+          "f1": 0.927536231884058
+        },
+        "errors": {
+          "false_zeros": 8,
+          "false_positive_relevance": 2,
+          "absolute_difference_ge_2": 1,
+          "over_promotions_ge_2": 0,
+          "under_promotions_ge_2": 1,
+          "deterministic_cue_severe_false_positives": 0
+        }
+      },
+      "consumed_v0_27_final_holdout_30": {
+        "cases": 30,
+        "exact_agreement": 0.7,
+        "within_one_agreement": 0.9666666666666667,
+        "mean_absolute_difference": 0.3333333333333333,
+        "linear_weighted_kappa": 0.7466216216216217,
+        "quadratic_weighted_kappa": 0.8870056497175142,
+        "binary": {
+          "tp": 9,
+          "fp": 2,
+          "fn": 3,
+          "tn": 16,
+          "precision": 0.8181818181818182,
+          "recall": 0.75,
+          "f1": 0.7826086956521738
+        },
+        "errors": {
+          "false_zeros": 3,
+          "false_positive_relevance": 2,
+          "absolute_difference_ge_2": 1,
+          "over_promotions_ge_2": 0,
+          "under_promotions_ge_2": 1,
+          "deterministic_cue_severe_false_positives": 0
+        }
+      }
+    }
+  },
+  "stability_evidence": {
+    "required_fresh_runs": 3,
+    "cases_per_run": 13,
+    "runs": [
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_28_development\\20260929T045644Z_stability_r4_run1",
+        "judge_results_sha256": "cdbd4b0fb9e3b0ee2147fac6392b73c58f4fbca46d463c61520ade5618170dee",
+        "run_metadata_sha256": "b9b6ac9630413cf9ffb05e64c97d2c799e9d9210575bc5025731533b8ab49509",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2,
+          "U3_Q03_T01": 0,
+          "U3_Q11_T02": 1,
+          "U_Q11_T70": 2,
+          "U2_Q11_T70": 2,
+          "U3_Q11_T03": 2,
+          "U3_Q03_T04": 0
+        }
+      },
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_28_development\\20260929T052257Z_stability_r4_run2",
+        "judge_results_sha256": "7ba0c082afb8003ad7c17e8cc00d13685679427bdc58117c19fc3eb5eefe10eb",
+        "run_metadata_sha256": "4b86d9ac97c77982b565fcdbe59f0965bc9f6abb2968239fa6c813f5015df694",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2,
+          "U3_Q03_T01": 0,
+          "U3_Q11_T02": 1,
+          "U_Q11_T70": 2,
+          "U2_Q11_T70": 2,
+          "U3_Q11_T03": 2,
+          "U3_Q03_T04": 0
+        }
+      },
+      {
+        "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_28_development\\20260929T054353Z_stability_r4_run3",
+        "judge_results_sha256": "cdd0227537d478a223290f584c1867765925059dfcdf384b734e5d4abc472cea",
+        "run_metadata_sha256": "c2a32ed0fe3bbcb1bb105e1786e341fb88dd8f177fe443913728cc3c372e0fcc",
+        "scores": {
+          "U3_Q01_T03": 0,
+          "U_Q01_T02": 2,
+          "U3_Q02_T05": 0,
+          "U_Q02_T02": 3,
+          "U3_Q07_T01": 1,
+          "U_Q07_T02": 3,
+          "U3_Q05_T01": 2,
+          "U3_Q03_T01": 0,
+          "U3_Q11_T02": 1,
+          "U_Q11_T70": 2,
+          "U2_Q11_T70": 2,
+          "U3_Q11_T03": 2,
+          "U3_Q03_T04": 0
+        }
+      }
+    ],
+    "observed_score_sequences": {
+      "U3_Q01_T03": [
+        0,
+        0,
+        0
+      ],
+      "U_Q01_T02": [
+        2,
+        2,
+        2
+      ],
+      "U3_Q02_T05": [
+        0,
+        0,
+        0
+      ],
+      "U_Q02_T02": [
+        3,
+        3,
+        3
+      ],
+      "U3_Q07_T01": [
+        1,
+        1,
+        1
+      ],
+      "U_Q07_T02": [
+        3,
+        3,
+        3
+      ],
+      "U3_Q05_T01": [
+        2,
+        2,
+        2
+      ],
+      "U3_Q03_T01": [
+        0,
+        0,
+        0
+      ],
+      "U3_Q11_T02": [
+        1,
+        1,
+        1
+      ],
+      "U_Q11_T70": [
+        2,
+        2,
+        2
+      ],
+      "U2_Q11_T70": [
+        2,
+        2,
+        2
+      ],
+      "U3_Q11_T03": [
+        2,
+        2,
+        2
+      ],
+      "U3_Q03_T04": [
+        0,
+        0,
+        0
+      ]
+    },
+    "identical_across_three_runs": true
+  },
+  "consumed_v0_27_final_holdout": {
+    "status": "FINAL_HOLDOUT_COMPLETED",
+    "judge_run_count": 1,
+    "sha256": "cce944bd48b102452c024134560b7b87866b85f5fa1bc1194775138b8976eb2e",
+    "role": "consumed_development_regression_evidence_only"
+  },
+  "independent_v0_28_evidence": {
+    "status_at_freeze": "NOT_YET_CREATED_OR_CONSUMED",
+    "required_for_generalization_claim": true,
+    "must_be_newly_sampled_after_freeze": true,
+    "must_be_blind_labelled_before_judge_execution": true,
+    "must_not_be_used_for_retuning_this_candidate": true
+  }
+}

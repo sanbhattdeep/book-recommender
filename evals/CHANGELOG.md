@@ -1,5 +1,29 @@
 # Evaluation Changelog
 
+# Semantic relevance v0.28 unseen-pool build r1
+
+This overlay starts the first genuinely independent evidence cycle after
+freezing **v0.28.0 r4**.
+
+It performs only two data-preparation actions:
+
+1. build a 60-case `U4_` pool from raw application retrieval while excluding all
+   historically consumed candidate identities; and
+2. export a blind Excel workbook for human labeling.
+
+It does **not** import completed labels, split the pool, run validation, run the
+final holdout, or invoke the semantic-relevance judge.
+
+Run from the repository root:
+
+```powershell
+powershell.exe -NoProfile -ExecutionPolicy Bypass `
+  -File .\run_v028_unseen_pool_builder.ps1 2>&1 |
+  Tee-Object -FilePath .\v028_unseen_pool_build_output.txt
+```
+
+After a PASS, human-label all 60 workbook rows. Do not run any U4 judge calls.
+
 # Semantic relevance v0.28.0 r4
 
 Development-only revision after r3 passed targeted/full-180 but failed stability on `U_Q01_T02`.
