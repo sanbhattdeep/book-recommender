@@ -1,0 +1,65 @@
+{
+  "protocol_version": "1.0.0",
+  "candidate_release": "v0.28.0_r4",
+  "release_candidate_id": "semantic_relevance_v0.28.0-r4",
+  "release_candidate_manifest_sha256": "6d1f390a21d804351ff75def5bfd74e7e5eafbd48685aa4ee50058b6af670faa",
+  "validation_dataset": "evals/datasets/semantic_relevance_validation.v4.0.0.DO_NOT_RUN_YET.csv",
+  "validation_dataset_sha256": "41b548363a984fd8f1a923e23fbb8b1db2c9b6bd3e00c9d43102ecca0c47672f",
+  "final_holdout_dataset": "evals/datasets/semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv",
+  "final_holdout_dataset_sha256": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+  "split_manifest_sha256": "889673f565cc7c377f6f0c11b690c709c10e93b574e9ad404c852cb2f2d742df",
+  "source_labelled_pool_sha256": "df742aa351a292c8a84fe330887f745d87c761dba40ba346c1ac9aa21a5368f0",
+  "validation_cases": 30,
+  "one_time_validation_run": true,
+  "resume_same_run_after_interruption": true,
+  "fresh_targeted_validation_runs_forbidden": true,
+  "final_holdout_must_remain_locked": true,
+  "judge_outputs_used_for_protocol": false,
+  "pre_registered_checks": {
+    "within_one_ge_0_95": {
+      "metric": "within_one_agreement",
+      "op": ">=",
+      "value": 0.95
+    },
+    "exact_ge_0_50": {
+      "metric": "exact_agreement",
+      "op": ">=",
+      "value": 0.5
+    },
+    "quadratic_kappa_ge_0_80": {
+      "metric": "quadratic_weighted_cohens_kappa",
+      "op": ">=",
+      "value": 0.8
+    },
+    "linear_kappa_ge_0_60": {
+      "metric": "linear_weighted_cohens_kappa",
+      "op": ">=",
+      "value": 0.6
+    },
+    "absolute_difference_ge_2_le_1_case": {
+      "metric": "error_counts.absolute_difference_ge_2",
+      "op": "<=",
+      "value": 1
+    },
+    "binary_precision_ge_0_90": {
+      "metric": "binary_relevance_0_vs_positive.precision",
+      "op": ">=",
+      "value": 0.9
+    },
+    "binary_recall_ge_0_80": {
+      "metric": "binary_relevance_0_vs_positive.recall",
+      "op": ">=",
+      "value": 0.8
+    },
+    "deterministic_cue_severe_false_positives_eq_0": {
+      "metric": "deterministic_cue_severe_false_positives",
+      "op": "==",
+      "value": 0
+    }
+  },
+  "decision_rule": {
+    "all_checks_pass": "PASS_TO_FINAL_HOLDOUT_REVIEW",
+    "any_check_fails": "REVIEW_STOP_FINAL_HOLDOUT"
+  },
+  "methodology_note": "This is the first judge consumption of the 30-case U4 validation split. The other 30 U4 cases remain the independent final holdout. Validation is one-time for this frozen candidate; interruptions must resume the same run. Do not run the final holdout automatically."
+}

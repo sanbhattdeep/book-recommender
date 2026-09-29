@@ -1,0 +1,49 @@
+{
+  "review_manifest_version": "1.0.0",
+  "dataset_version": "4.0.0",
+  "source_labeling_workbook": "semantic_relevance_unseen_pool.v4.0.0_labeling(1).xlsx",
+  "source_labeling_workbook_sha256": "2d5a9ae61793fa346d81f51b82a878701a9752680f108340522f4d4c4be3145d",
+  "judge_outputs_used_for_review": false,
+  "review_status": "FINAL_HUMAN_LABELS_FROZEN",
+  "mechanical_validation": {
+    "cases": 60,
+    "all_scores_in_0_to_4": true,
+    "all_reasons_nonblank": true,
+    "all_review_status_labelled": true,
+    "query_counts": {
+      "Q01": 5,
+      "Q02": 5,
+      "Q03": 5,
+      "Q04": 5,
+      "Q05": 5,
+      "Q06": 5,
+      "Q07": 5,
+      "Q08": 5,
+      "Q09": 5,
+      "Q10": 5,
+      "Q11": 5,
+      "Q12": 5
+    },
+    "human_score_distribution": {
+      "0": 38,
+      "1": 6,
+      "2": 8,
+      "3": 6,
+      "4": 2
+    }
+  },
+  "explicit_pre_split_re_reviews": [
+    {
+      "case_id": "U4_Q01_T04",
+      "final_human_score": 0,
+      "final_human_reason": "no match with forgiveness and redemption",
+      "note": "Human re-review completed before any judge output."
+    },
+    {
+      "case_id": "U4_Q03_T03",
+      "final_human_score": 1,
+      "final_human_reason": "weak match with personal growth and no match with finding purpose",
+      "note": "Human re-review completed before any judge output."
+    }
+  ]
+}

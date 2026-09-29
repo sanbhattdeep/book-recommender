@@ -1,0 +1,29 @@
+{
+  "manifest_version": "2.0.0",
+  "dataset_version": "5.0.0",
+  "evidence_role": "consumed_development_only",
+  "cases": 210,
+  "composition": {
+    "prior_consumed_development": 180,
+    "consumed_r4_independent_validation": 30,
+    "untouched_final_holdout_included": false
+  },
+  "post_validation_adjudications": [
+    "U4_Q12_T05"
+  ],
+  "prefix_counts": {
+    "U_": 60,
+    "U2_": 60,
+    "U3_": 60,
+    "U4_": 30
+  },
+  "source_hashes": {
+    "evals\\datasets\\semantic_relevance_v0.28_development.v4.0.0.csv": "fdf9ccbd8d131fa80c1e994681802b7f99050f497a60e503188c3e9ae7a3b83b",
+    "evals\\datasets\\semantic_relevance_validation.v4.0.0.DO_NOT_RUN_YET.csv": "41b548363a984fd8f1a923e23fbb8b1db2c9b6bd3e00c9d43102ecca0c47672f",
+    "evals\\datasets\\semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+    "evals\\datasets\\semantic_relevance_v0.28_post_validation_label_adjudications.v1.0.0.json": "68f5d85fd5905034d813234b9f9df8202252ef1598e9676b5247902e55a7b893"
+  },
+  "output_file": "evals\\datasets\\semantic_relevance_v0.28_development.v5.0.0.csv",
+  "output_sha256": "21e53ee575fab0f99e69ffabee705f8afcc843878a33d640d6ada795be1ea520",
+  "methodology_note": "The r4 validation is consumed and may be used only as r5 development/regression evidence. Its original r4 result is immutable. The remaining 30-case independent final holdout is excluded and remains locked/unseen."
+}

@@ -1,5 +1,34 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r5
+
+r5 starts **after** the one-time r4 independent validation failed its preregistered gate.
+
+The r4 validation result is immutable and is now consumed development evidence. The
+separate 30-case U4 final holdout remains locked and is not included in this package's
+development dataset.
+
+## Localized semantic changes
+
+1. **Q02** — interpersonal truth/secret disclosure and relationship consequences do not
+   become suspense without an independent story-level suspense anchor.
+2. **Q06** — war/trauma/injury recovery cannot invent grief or significant loss.
+3. **Q10** — explicit organization-level dysfunction -> alignment/productivity/goal
+   improvement positively establishes building effective organizations.
+4. **Q11** — research about the origin/provenance of a legend is analytical/meta content,
+   not automatically mythology or legendary-hero narrative content.
+5. **Q12** — background social-class contrast without developed inequality/resource
+   analysis is capped at incidental prominence.
+
+## Versioning
+
+- judge implementation SHA-256: `7bcbbbd44ffcc2c38dd8fb3ea7327fd0c79da7b777bb8f2381ff464992cb36dc`
+- frozen scoring SHA-256: `8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808`
+- facet spec: `0.9.10` / `a51d288bfd84c8c200692a92484e5e3a79ac05e2d99274fb3fb2d4d53ef30d7b`
+- judge config: `0.28.0-r5` / `1ec3c6350cb106bf678020f81d64045ca4b29005dd563c892a492a86cd53750a`
+- regression manifest: `1.4.0` / `1467ef1c48d72d5a6d200e8dcb807c2cc07c103de71e35e451e313703a072d94`
+- post-validation adjudication manifest: `68f5d85fd5905034d813234b9f9df8202252ef1598e9676b5247902e55a7b893`
+
 # Semantic relevance v0.28 unseen-pool build r1
 
 This overlay starts the first genuinely independent evidence cycle after

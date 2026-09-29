@@ -1,0 +1,18 @@
+{
+  "lock_version": "1.0.0",
+  "candidate_release": "v0.28.0_r4",
+  "evidence_role": "independent_final_holdout",
+  "dataset_version": "4.0.0",
+  "dataset_file": "semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv",
+  "dataset_sha256": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+  "source_labelled_pool_sha256": "df742aa351a292c8a84fe330887f745d87c761dba40ba346c1ac9aa21a5368f0",
+  "split_manifest_file": "semantic_relevance_unseen_split_manifest.v4.0.0.json",
+  "split_manifest_sha256": "889673f565cc7c377f6f0c11b690c709c10e93b574e9ad404c852cb2f2d742df",
+  "release_candidate_manifest": "evals/releases/semantic_relevance_v0.28.0_r4_release_candidate.json",
+  "release_candidate_manifest_sha256": "6d1f390a21d804351ff75def5bfd74e7e5eafbd48685aa4ee50058b6af670faa",
+  "status": "LOCKED_DO_NOT_RUN",
+  "judge_run_count": 0,
+  "judge_outputs_used_for_split": false,
+  "human_labels_frozen": true,
+  "finality_marker_present": false
+}

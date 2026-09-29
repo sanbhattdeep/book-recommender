@@ -1,0 +1,19 @@
+{
+  "version": "1.0.0",
+  "purpose": "Record human post-validation adjudication for r5 development only; never retroactively alter the consumed r4 validation result.",
+  "source_validation_dataset": "semantic_relevance_validation.v4.0.0.DO_NOT_RUN_YET.csv",
+  "source_validation_sha256": "41b548363a984fd8f1a923e23fbb8b1db2c9b6bd3e00c9d43102ecca0c47672f",
+  "r4_validation_decision": "REVIEW_STOP_FINAL_HOLDOUT",
+  "r4_validation_result_remains_immutable": true,
+  "adjudications": [
+    {
+      "case_id": "U4_Q12_T05",
+      "title": "Heart Songs and Other Stories",
+      "original_human_score": 0,
+      "adjudicated_human_score": 1,
+      "adjudicated_human_reason": "Weak/incidental socioeconomic-class overlap: the description contrasts a dispossessed working class with a neorural bourgeoisie, but it does not substantively develop inequality, poverty, or wealth distribution.",
+      "rationale": "Genuine class-disparity signal exists, but only as background/character context; score 1 captures incidental relevance.",
+      "use_from_revision": "v0.28.0 r5 development"
+    }
+  ]
+}

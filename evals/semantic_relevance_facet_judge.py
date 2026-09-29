@@ -1478,6 +1478,67 @@ LOCAL Q02 SUSPENSE CONTRACT
 - Future-tense plot progression (including wording that actions will trigger, cause, attract, ignite, or set in motion later conflict/consequences) does NOT itself establish suspense.
 - Positive grounding requires the supplied text itself to state or necessarily entail story-level tension/anticipation about an unfolding unresolved threat, pursuit, concealment, mystery, discovery, escape, or comparable development.
 - Do not infer a suspenseful reading experience merely because events are action-packed, dangerous, consequential, or described as forthcoming. Do not invent reader anticipation from the fact that future events will occur.
+- A future or rhetorical interpersonal disclosure such as "will the friendship/relationship survive when X learns the truth/secret?" is NOT by itself story-level suspense.
+- Relationship consequences, embarrassment, obsession, sexual/romantic disclosure, or a secret being learned do not become suspense merely because the blurb asks what will happen next.
+- Positive grounding still requires an independently tension-producing threat, pursuit, concealment under danger, mystery/investigation, escape, impending danger, or equivalent sustained narrative tension.
+""".strip(),
+        (
+            "grief",
+            "significant_loss",
+        ): """
+LOCAL Q06 LOSS-ANCHOR CONTRACT — r5 trauma boundary
+- War trauma, combat, wounds, injury, horrors of war, PTSD-like distress, survival, or healing from trauma do NOT by themselves establish a significant loss.
+- Positive grounding requires an actual significant deprivation/ending stated in the supplied text, such as death/bereavement, separation, disappearance, loss of an important relationship/person/role, or a comparable concrete loss.
+""".strip(),
+        (
+            "loss",
+            "actual_significant_deprivation_or_ending",
+        ): """
+LOCAL Q06 LOSS CONTRACT — r5 trauma boundary
+- Trauma, war, injury, wounds, danger, suffering, or the need to heal are not themselves the query's loss facet.
+- Do not convert "horrors of war", being wounded, or needing something worth living for into an unstated death, bereavement, separation, disappearance, or other significant deprivation.
+""".strip(),
+        (
+            "learning to live again",
+            "prior_grief_or_major_loss",
+        ): """
+LOCAL Q06 RECOVERY CONTRACT — r5 prior-loss requirement
+- Recovery, healing, rebuilding, or finding something worth living for after war/trauma/injury does NOT establish "learning to live again" unless the supplied text independently establishes grief or a major/significant loss that motivates the recovery.
+- Trauma recovery and post-war recovery are not interchangeable with grief/loss recovery.
+""".strip(),
+        (
+            "building effective organizations",
+            "organizational_design_management_or_improvement",
+        ): """
+LOCAL Q10 ORGANIZATIONAL-IMPROVEMENT CONTRACT — r5 positive boundary
+- Solving organizational silos, barriers, politics, infighting, structural/cultural/process dysfunction, or transforming such dysfunction into alignment/clarity is direct text-grounded organizational improvement.
+- Do not require the surface phrase "building effective organizations" when the supplied text explicitly describes an intervention that improves how an organization functions.
+""".strip(),
+        (
+            "building effective organizations",
+            "organizational_effectiveness_goal",
+        ): """
+LOCAL Q10 ORGANIZATIONAL-EFFECTIVENESS CONTRACT — r5 positive boundary
+- Productivity, achievement of corporate/organizational goals, collective performance, clarity, alignment, or equivalent organization-level outcomes explicitly tied to solving organizational dysfunction establish the effectiveness/improvement goal.
+- Mere mention of an organization without a performance/improvement relation remains insufficient.
+""".strip(),
+        (
+            "mythology",
+            "mythic_or_mythological_basis",
+        ): """
+LOCAL Q11 LEGEND-PROVENANCE CONTRACT — r5 analytical boundary
+- Scholarship/evidence about where a legend originated, its historical source, ritual origin, transmission, or provenance does NOT by itself establish mythology as substantive content of the described work.
+- A work may analyze the origin of a legend without retelling myths or presenting mythological settings/events/figures.
+- Positive grounding requires the supplied description itself to present mythology/mythic tradition or an explicit retelling/reworking, not merely research about a legend's origin.
+""".strip(),
+        (
+            "legendary heroes",
+            "legendary_or_mythic_hero_identity",
+        ): """
+LOCAL Q11 LEGEND-PROVENANCE HERO CONTRACT — r5 analytical boundary
+- The phrase "the legend of X" inside scholarship/provenance/origin discussion does NOT automatically establish X as a legendary hero.
+- Positive grounding requires the supplied description to identify a hero/heroic figure as legendary or mythic, or unmistakably present such a legendary heroic figure as content.
+- Research about how a legend originated is meta/analytical evidence, not sufficient legendary-hero identity.
 """.strip(),
         (
             "adventure",
@@ -1707,6 +1768,305 @@ _Q11_EXPLICIT_PERIL_RE = re.compile(
     r"whose\s+gaze\s+could\s+turn\s+men\s+to\s+stone)\b",
     flags=re.IGNORECASE,
 )
+
+
+
+# v0.28 r5: localized guards derived from the one-time independent r4 validation.
+# These are semantic-pattern guards, not title/case-ID special cases.
+
+_Q02_INTERPERSONAL_DISCLOSURE_RE = re.compile(
+    r"\b(?:friendship|relationship|marriage|romance|love|bond|family)\b"
+    r".{0,180}\b(?:learn(?:s|ed|ing)?|discover(?:s|ed|ing)?|find(?:s|ing)?\s+out)\b"
+    r".{0,80}\b(?:truth|secret|obsession|affair|feelings?)\b"
+    r"|\b(?:learn(?:s|ed|ing)?|discover(?:s|ed|ing)?|find(?:s|ing)?\s+out)\b"
+    r".{0,80}\b(?:truth|secret|obsession|affair|feelings?)\b"
+    r".{0,180}\b(?:friendship|relationship|marriage|romance|love|bond|family)\b",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+_Q02_INDEPENDENT_SUSPENSE_ANCHOR_RE = re.compile(
+    r"\b(?:suspense(?:ful)?|tension|threat(?:en(?:s|ed|ing)?)?|pursu(?:e|es|ed|ing|it)|"
+    r"chase(?:s|d|ing)?|stalk(?:s|ed|ing)?|escape(?:s|d|ing)?|mystery|investigat(?:e|es|ed|ing|ion)|"
+    r"detective(?:s)?|crime(?:s)?|criminal(?:s|ity)?|murder(?:s|ed|er|ers|ing)?|kidnap(?:s|ped|ping)?|"
+    r"attack(?:s|ed|ing)?|danger(?:ous)?|peril(?:ous)?|conceal(?:s|ed|ing|ment)|on\s+the\s+run)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q06_TRAUMA_CONTEXT_RE = re.compile(
+    r"\b(?:war|combat|battle|wound(?:s|ed|ing)?|injur(?:y|ies|ed)|horrors?|trauma|traumatic|"
+    r"ptsd|surviv(?:e|es|ed|ing|or|ors)|shell[- ]shock(?:ed)?)\b",
+    flags=re.IGNORECASE,
+)
+_Q06_ACTUAL_LOSS_ANCHOR_RE = re.compile(
+    r"\b(?:death|dead|dies|died|bereavement|bereaved|grief|grieving|mourn(?:s|ed|ing)?|"
+    r"separation|separated|disappearance|disappeared|orphan(?:ed|s)?|widow(?:ed|er|ers|s)?|"
+    r"funeral|divorce(?:d)?|loss\s+of|lost\s+(?:his|her|their|my|our|a|an)\s+"
+    r"(?:wife|husband|spouse|partner|mother|father|parent|child|son|daughter|friend|family|home|job|role))\b",
+    flags=re.IGNORECASE,
+)
+
+_Q10_ORG_SYSTEM_RE = re.compile(
+    r"\b(?:silo(?:s)?|organizational\s+politics|organizational\s+barriers?|barriers?|infighting|"
+    r"structure|culture|management\s+systems?|process(?:es)?|collective\s+performance|"
+    r"organizational\s+dysfunction|workplace\s+dysfunction)\b",
+    flags=re.IGNORECASE,
+)
+_Q10_IMPROVEMENT_ACTION_RE = re.compile(
+    r"\b(?:address(?:es|ed|ing)?|solv(?:e|es|ed|ing)|transform(?:s|ed|ing)?|improv(?:e|es|ed|ing)|"
+    r"develop(?:s|ed|ing)?|help(?:s|ed|ing)?|fix(?:es|ed|ing)?|align(?:s|ed|ing)?|"
+    r"eliminat(?:e|es|ed|ing)|reduc(?:e|es|ed|ing)|overcom(?:e|es|ing)|approach)\b",
+    flags=re.IGNORECASE,
+)
+_Q10_EFFECTIVENESS_OUTCOME_RE = re.compile(
+    r"\b(?:productivity|performance|corporate\s+goals?|organizational\s+goals?|"
+    r"effective(?:ness)?|clarity|alignment|function(?:s|ed|ing)?\s+effectively)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q11_LEGEND_PROVENANCE_RE = re.compile(
+    r"\b(?:evidence|origin(?:s|ated|ating)?|histor(?:y|ical)|source(?:s)?|provenance|"
+    r"ritual|scholar(?:ship|ly)?|study|analysis|suppressed|transmission)\b",
+    flags=re.IGNORECASE,
+)
+_Q11_LEGEND_TERM_RE = re.compile(r"\b(?:legend|legends|myth|myths)\b", flags=re.IGNORECASE)
+_Q11_EXPLICIT_MYTH_CONTENT_RE = re.compile(
+    r"\b(?:mythology|mythological|mythic|retell(?:s|ing|ing|ed)?|rework(?:s|ed|ing)?|"
+    r"gods?|goddess(?:es)?|deit(?:y|ies))\b",
+    flags=re.IGNORECASE,
+)
+_Q11_EXPLICIT_HERO_IDENTITY_RE = re.compile(
+    r"\b(?:legendary\s+hero(?:es)?|mythic\s+hero(?:es)?|heroic\s+figure(?:s)?|"
+    r"hero(?:es)?|warrior(?:s)?|champion(?:s)?)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q12_CLASS_BACKGROUND_RE = re.compile(
+    r"\b(?:working\s+class|middle\s+class|upper\s+class|lower\s+class|bourgeois(?:ie)?|"
+    r"proletariat|social\s+class(?:es)?|class\s+background|class\s+identity)\b",
+    flags=re.IGNORECASE,
+)
+_Q12_EXPLICIT_INEQUALITY_ANALYSIS_RE = re.compile(
+    r"\b(?:inequalit(?:y|ies)|unequal|wealth\s+gap|income\s+gap|economic\s+disparit(?:y|ies)|"
+    r"poverty|impoverished|income|wealth|resources?|material\s+conditions?|opportunit(?:y|ies)|"
+    r"distribution|redistribution|allocation|stratification|class\s+inequality)\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _q02_r5_interpersonal_disclosure_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Do not convert relationship-disclosure consequences into suspense."""
+
+    if (
+        facet.text.strip().lower() != "suspense"
+        or component.component_id != "story_level_tension_or_anticipation"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+    if _Q02_INTERPERSONAL_DISCLOSURE_RE.search(evidence_text) is None:
+        return result
+    if _Q02_INDEPENDENT_SUSPENSE_ANCHOR_RE.search(evidence_text):
+        return result
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r5 Q02 interpersonal-disclosure guard: future/rhetorical relationship "
+            "consequences from learning a truth/secret do not independently establish "
+            "story-level suspense without a separate threat, pursuit, mystery/investigation, "
+            "escape, danger, or comparable suspense anchor."
+        ),
+    )
+
+
+def _q06_r5_trauma_without_loss_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Prevent trauma/war recovery from inventing grief or significant loss."""
+
+    if result.grounding_relation == "missing":
+        return result
+    if facet.text.strip().lower() not in {"grief", "loss", "learning to live again"}:
+        return result
+    if _Q06_TRAUMA_CONTEXT_RE.search(evidence_text) is None:
+        return result
+    if _Q06_ACTUAL_LOSS_ANCHOR_RE.search(evidence_text):
+        return result
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r5 Q06 trauma-without-loss guard: war/trauma/injury/recovery language "
+            "does not establish grief, significant loss, or grief/loss-driven rebuilding "
+            "without an actual loss anchor in the supplied evidence."
+        ),
+    )
+
+
+def _q10_r5_organizational_improvement_positive_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Recover explicit organization-level improvement/effectiveness evidence."""
+
+    if (
+        facet.text.strip().lower() != "building effective organizations"
+        or result.grounding_relation != "missing"
+    ):
+        return result
+
+    has_system = _Q10_ORG_SYSTEM_RE.search(evidence_text) is not None
+    has_action = _Q10_IMPROVEMENT_ACTION_RE.search(evidence_text) is not None
+    has_outcome = _Q10_EFFECTIVENESS_OUTCOME_RE.search(evidence_text) is not None
+
+    positive = False
+    if component.component_id == "organizational_design_management_or_improvement":
+        positive = has_system and has_action
+    elif component.component_id == "organizational_effectiveness_goal":
+        positive = has_system and has_outcome and (has_action or "organiz" in evidence_text.lower() or "corporate" in evidence_text.lower())
+
+    if not positive:
+        return result
+
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="entailed",
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r5 Q10 organizational-improvement guard: the exact evidence explicitly "
+            "connects organization-level dysfunction/process issues with an improvement "
+            "action or effectiveness outcome; no outside knowledge is required."
+        ),
+    )
+
+
+def _q11_r5_legend_provenance_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Keep scholarship about a legend's origin from becoming myth/hero content."""
+
+    if result.grounding_relation == "missing":
+        return result
+    if _Q11_LEGEND_PROVENANCE_RE.search(evidence_text) is None or _Q11_LEGEND_TERM_RE.search(evidence_text) is None:
+        return result
+
+    facet_name = facet.text.strip().lower()
+    if facet_name == "mythology" and component.component_id == "mythic_or_mythological_basis":
+        if _Q11_EXPLICIT_MYTH_CONTENT_RE.search(evidence_text):
+            return result
+    elif facet_name == "legendary heroes" and component.component_id == "legendary_or_mythic_hero_identity":
+        if _Q11_EXPLICIT_HERO_IDENTITY_RE.search(evidence_text):
+            return result
+    else:
+        return result
+
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r5 Q11 legend-provenance guard: analytical evidence about the origin, "
+            "source, ritual, history, or provenance of a legend does not by itself establish "
+            "substantive mythology or a legendary-hero identity."
+        ),
+    )
+
+
+def _apply_v028_r5_isolated_component_guards(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    result = _q02_r5_interpersonal_disclosure_guard(facet, component, evidence_text, result)
+    result = _q06_r5_trauma_without_loss_guard(facet, component, evidence_text, result)
+    result = _q10_r5_organizational_improvement_positive_guard(facet, component, evidence_text, result)
+    result = _q11_r5_legend_provenance_guard(facet, component, evidence_text, result)
+    return result
+
+
+def _apply_v028_r5_recovery_guard(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    result: FullContextComponentRecovery,
+) -> FullContextComponentRecovery:
+    """Apply the negative r5 boundaries after full-context recovery as well."""
+
+    if result.grounding_relation == "missing":
+        return result
+    evidence_text = " ".join(spans.get(span_id, "") for span_id in result.supporting_span_ids)
+
+    # Q02/Q06/Q11 negative boundaries must not be bypassed by recovery.
+    probe = IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation=result.grounding_relation,
+        negative_boundary_applied=result.negative_boundary_applied,
+        external_knowledge_required=result.external_knowledge_required,
+        reason=result.reason,
+    )
+    guarded = _q02_r5_interpersonal_disclosure_guard(facet, component, evidence_text, probe)
+    guarded = _q06_r5_trauma_without_loss_guard(facet, component, evidence_text, guarded)
+    guarded = _q11_r5_legend_provenance_guard(facet, component, evidence_text, guarded)
+    if guarded.grounding_relation == "missing":
+        return FullContextComponentRecovery(
+            component_id=result.component_id,
+            grounding_relation="missing",
+            supporting_span_ids=[],
+            negative_boundary_applied=True,
+            external_knowledge_required=False,
+            reason=guarded.reason,
+        )
+    return result
+
+
+def _apply_v028_r5_prominence_guard(
+    facet: QueryFacet,
+    evidence_text: str,
+    result: ProminenceAssessment,
+) -> ProminenceAssessment:
+    """Cap background class contrast at incidental Q12 inequality prominence."""
+
+    if facet.text.strip().lower() != "inequality":
+        return result
+    if result.subject_relation not in {
+        SubjectRelation.SAME_AS_PRIMARY_SUBJECT,
+        SubjectRelation.DEFINING_CONTENT_OR_NARRATIVE_DRIVER,
+    }:
+        return result
+    if _Q12_CLASS_BACKGROUND_RE.search(evidence_text) is None:
+        return result
+    if _Q12_EXPLICIT_INEQUALITY_ANALYSIS_RE.search(evidence_text):
+        return result
+    return ProminenceAssessment(
+        subject_relation=SubjectRelation.OTHER,
+        is_substantively_examined=False,
+        supporting_span_ids=list(result.supporting_span_ids),
+        reason=(
+            result.reason
+            + " [v0.28-r5 Q12 class-background guard: social-class labels/contrast are "
+              "present, but the evidence does not explicitly develop unequal resources, "
+              "income/wealth, opportunity, material conditions, distribution, or an "
+              "inequality analysis; whole-book role is capped at OTHER/incidental.]"
+        ),
+    )
 
 
 def _q03_r3_learning_only_guard(
@@ -1974,6 +2334,12 @@ def verify_isolated_component(
                 result=result,
             )
             result = _apply_v028_r3_isolated_component_guards(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
+            result = _apply_v028_r5_isolated_component_guards(
                 facet=facet,
                 component=component,
                 evidence_text=evidence_text,
@@ -2818,6 +3184,12 @@ def recover_missing_component(
                 spans=spans,
                 result=result,
             )
+            result = _apply_v028_r5_recovery_guard(
+                facet=facet,
+                component=component,
+                spans=spans,
+                result=result,
+            )
             _validate_component_recovery_result(
                 result=result,
                 component=component,
@@ -3432,6 +3804,11 @@ def evaluate_one_facet(
             evidence_text=cue_match.evidence_text,
             result=prominence_result,
         )
+        prominence_result = _apply_v028_r5_prominence_guard(
+            facet=facet,
+            evidence_text=cue_match.evidence_text,
+            result=prominence_result,
+        )
 
         return (
             FacetPipelineAssessment(
@@ -3732,6 +4109,11 @@ def evaluate_one_facet(
         facet=facet,
         evidence_text=winning_evidence_text,
         spans=spans,
+        result=prominence_result,
+    )
+    prominence_result = _apply_v028_r5_prominence_guard(
+        facet=facet,
+        evidence_text=winning_evidence_text,
         result=prominence_result,
     )
 
