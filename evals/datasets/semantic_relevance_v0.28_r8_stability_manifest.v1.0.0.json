@@ -1,0 +1,113 @@
+{
+  "manifest_version": "1.0.0",
+  "judge_version": "0.28.0-r8",
+  "facet_spec_version": "0.9.13",
+  "dataset_version": "5.0.0",
+  "purpose": "Three fresh-run stability spot-check after the r8 full-210 consumed-development gate. Panel contains the inherited v0.28 stability controls plus the r5-r8 repair-critical cases. Every case must remain inside its preregistered score range on every fresh run; the observed per-case score span across the three runs must not exceed 1.",
+  "evidence_role": "consumed_development_only",
+  "required_fresh_runs": 3,
+  "max_observed_score_span": 1,
+  "require_identical_scores": false,
+  "expectations": {
+    "U3_Q01_T03": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "redemption_negative"
+    },
+    "U_Q01_T02": {
+      "judge_min": 2,
+      "judge_max": 3,
+      "role": "q01_whole_work_theme_positive"
+    },
+    "U3_Q02_T05": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "suspense_negative"
+    },
+    "U_Q02_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "q02_positive_control"
+    },
+    "U3_Q07_T01": {
+      "judge_min": 1,
+      "judge_max": 1,
+      "role": "collection_item_incidental"
+    },
+    "U_Q07_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "q07_positive_control"
+    },
+    "U3_Q05_T01": {
+      "judge_min": 2,
+      "judge_max": 3,
+      "role": "war_repair_control"
+    },
+    "U3_Q03_T01": {
+      "judge_min": 0,
+      "judge_max": 0,
+      "role": "personal_growth_false_positive_repair"
+    },
+    "U3_Q11_T02": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "q11_list_mention_negative"
+    },
+    "U_Q11_T70": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "q11_expedition_positive"
+    },
+    "U2_Q11_T70": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "q11_perilous_quest_positive"
+    },
+    "U3_Q11_T03": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "q11_concrete_battle_positive"
+    },
+    "U3_Q03_T04": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "generic_learning_not_personal_growth"
+    },
+    "U4_Q02_T05": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "r5_interpersonal_disclosure_not_suspense"
+    },
+    "U4_Q06_T02": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "r5_trauma_without_loss_negative"
+    },
+    "U4_Q10_T02": {
+      "judge_min": 1,
+      "judge_max": 3,
+      "role": "r5_org_improvement_positive"
+    },
+    "U4_Q11_T03": {
+      "judge_min": 0,
+      "judge_max": 1,
+      "role": "r5_legend_provenance_negative"
+    },
+    "U4_Q12_T05": {
+      "judge_min": 1,
+      "judge_max": 1,
+      "role": "r5_class_background_incidental"
+    },
+    "U_Q11_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "r6_explicit_myth_hero_positive"
+    },
+    "U2_Q11_T02": {
+      "judge_min": 3,
+      "judge_max": 4,
+      "role": "r8_cross_span_classical_myth_positive"
+    }
+  }
+}
