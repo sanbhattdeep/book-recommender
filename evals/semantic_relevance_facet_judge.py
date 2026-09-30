@@ -2263,6 +2263,77 @@ def _apply_v028_r7_isolated_component_guards(
     )
 
 
+def _q11_r8_cross_span_classical_myth_component_check(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+) -> ComponentEvidenceCheck | None:
+    """Deterministically compose Q11 mythology across multiple exact spans.
+
+    r7 correctly defined the semantic rule but applied it only to one isolated
+    evidence span at a time. Some blurbs distribute the proof: one sentence
+    states that the narrative is based on/retells classical mythic source
+    material, while another sentence contains the supernatural mythic figures,
+    creatures, or events.
+
+    This helper returns a positive component check only when:
+      * the facet/component is Q11 mythology -> mythic basis;
+      * the full supplied description contains explicit classical myth/epic
+        source or retelling language;
+      * a supplied span contains explicit supernatural mythic narrative content;
+      * the full description is not analytical legend-origin/provenance prose.
+
+    No case ID, title, author, ISBN, or external entity knowledge is used.
+    """
+
+    if (
+        facet.text.strip().lower() != "mythology"
+        or component.component_id != "mythic_or_mythological_basis"
+    ):
+        return None
+
+    full_text = " ".join(spans.values())
+    if _Q11_LEGEND_PROVENANCE_RE.search(full_text):
+        return None
+
+    source_ids = [
+        span_id
+        for span_id, span_text in spans.items()
+        if _Q11_CLASSICAL_MYTH_SOURCE_RE.search(span_text)
+    ]
+    content_ids = [
+        span_id
+        for span_id, span_text in spans.items()
+        if _Q11_EXPLICIT_MYTHIC_NARRATIVE_CONTENT_RE.search(span_text)
+    ]
+
+    if not source_ids or not content_ids:
+        return None
+
+    supporting: list[str] = []
+    for span_id in source_ids + content_ids:
+        if span_id not in supporting:
+            supporting.append(span_id)
+        if len(supporting) >= MAX_COMPOSITE_CANDIDATES:
+            break
+
+    return ComponentEvidenceCheck(
+        component_id=component.component_id,
+        established=True,
+        grounding_relation="entailed",
+        supporting_span_ids=supporting,
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r8 Q11 cross-span classical-myth-content guard: one exact "
+            "description span explicitly ties the narrative to classical mythic/"
+            "epic source material while another exact span explicitly depicts "
+            "supernatural mythic figures, creatures, or events. Together they "
+            "ground the mythology component without outside knowledge."
+        ),
+    )
+
+
 def _q03_r3_learning_only_guard(
     facet: QueryFacet,
     component: Any,
@@ -3469,6 +3540,23 @@ def verify_composite_evidence(
                 checks.append(existing.model_copy(deep=True))
                 recovery_notes.append(f"{component.component_id}=kept_from_single_span")
                 continue
+
+            # v0.28 r8: deterministic cross-span composition for one narrow Q11
+            # mythology boundary. This runs before model-based missing-component
+            # recovery because the source and mythic-content evidence may live in
+            # different exact spans even though neither span is sufficient alone.
+            deterministic_cross_span = _q11_r8_cross_span_classical_myth_component_check(
+                facet=facet,
+                component=component,
+                spans=spans,
+            )
+            if deterministic_cross_span is not None:
+                checks.append(deterministic_cross_span)
+                recovery_notes.append(
+                    f"{component.component_id}=r8_cross_span_deterministic"
+                )
+                continue
+
             recovered, retries = recover_missing_component(
                 judge_model=judge_model,
                 facet=facet,

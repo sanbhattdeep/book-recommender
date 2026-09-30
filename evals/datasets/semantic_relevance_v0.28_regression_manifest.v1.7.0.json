@@ -1,0 +1,280 @@
+{
+  "version": "1.7.0",
+  "purpose": "v0.28.0 r8 targeted gate. Inherit all 52 r7 expectations. The sole r7 targeted failure U2_Q11_T02 remains gated at judge 3-4; r8 changes only the evidence-composition stage so its classical-myth source and supernatural narrative signals can be combined across exact spans.",
+  "inherited_from": "semantic_relevance_v0.28_regression_manifest.v1.6.0.json",
+  "targeted_expectations": {
+    "U2_Q12_T30": {
+      "judge_max": 1
+    },
+    "U2_Q05_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q11_T30": {
+      "judge_max": 1
+    },
+    "U_Q02_NEG": {
+      "judge_max": 1
+    },
+    "U2_Q04_T10": {
+      "judge_min": 3
+    },
+    "U_Q06_T02": {
+      "judge_min": 3
+    },
+    "U_Q10_T30": {
+      "judge_max": 1
+    },
+    "U_Q11_T02": {
+      "judge_min": 3
+    },
+    "U_Q12_T02": {
+      "judge_min": 2
+    },
+    "U_Q07_T10": {
+      "judge_max": 1
+    },
+    "U_Q01_NEG": {
+      "judge_max": 1
+    },
+    "U_Q01_T30": {
+      "judge_max": 1
+    },
+    "U_Q01_T70": {
+      "judge_max": 1
+    },
+    "U_Q04_NEG": {
+      "judge_max": 1
+    },
+    "U_Q06_T10": {
+      "judge_max": 1
+    },
+    "U_Q06_T70": {
+      "judge_max": 1
+    },
+    "U2_Q03_T30": {
+      "judge_max": 1
+    },
+    "U_Q07_T02": {
+      "judge_min": 3
+    },
+    "U_Q03_T02": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q01_T02": {
+      "judge_max": 2
+    },
+    "U2_Q05_T10": {
+      "judge_min": 2,
+      "judge_max": 2
+    },
+    "U2_Q04_T70": {
+      "judge_min": 3
+    },
+    "U2_Q05_T30": {
+      "judge_min": 3
+    },
+    "U2_Q09_T30": {
+      "judge_max": 1
+    },
+    "U2_Q04_T02": {
+      "judge_min": 3
+    },
+    "U_Q05_T30": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U3_Q05_T01": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q01_T03": {
+      "judge_max": 0
+    },
+    "U3_Q02_T05": {
+      "judge_max": 0
+    },
+    "U3_Q07_T01": {
+      "judge_min": 1,
+      "judge_max": 1
+    },
+    "U3_Q05_T02": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q05_T04": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U3_Q02_T02": {
+      "judge_min": 3
+    },
+    "U3_Q07_T04": {
+      "judge_max": 0
+    },
+    "U3_Q03_T01": {
+      "judge_max": 0
+    },
+    "U3_Q11_T02": {
+      "judge_max": 1
+    },
+    "U_Q11_T70": {
+      "judge_min": 1
+    },
+    "U2_Q11_T70": {
+      "judge_min": 1
+    },
+    "U3_Q11_T03": {
+      "judge_min": 1
+    },
+    "U3_Q03_T04": {
+      "judge_max": 1
+    },
+    "U_Q01_T02": {
+      "judge_min": 2,
+      "judge_max": 3
+    },
+    "U4_Q02_T05": {
+      "judge_max": 1
+    },
+    "U4_Q06_T02": {
+      "judge_max": 1
+    },
+    "U4_Q10_T02": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U4_Q11_T03": {
+      "judge_max": 1
+    },
+    "U4_Q12_T05": {
+      "judge_min": 1,
+      "judge_max": 1
+    },
+    "U4_Q02_T01": {
+      "judge_min": 2,
+      "judge_max": 4
+    },
+    "U4_Q02_T04": {
+      "judge_min": 3,
+      "judge_max": 4
+    },
+    "U4_Q10_T01": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U4_Q11_T01": {
+      "judge_min": 1,
+      "judge_max": 2
+    },
+    "U4_Q12_T02": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U2_Q11_T02": {
+      "judge_min": 3,
+      "judge_max": 4
+    }
+  },
+  "r5_new_targets": {
+    "U4_Q02_T05": {
+      "human_score": 0,
+      "r4_judge_score": 2,
+      "target": "judge <= 1",
+      "failure_class": "Q02 interpersonal disclosure/rhetorical relationship consequence over-entailment as suspense"
+    },
+    "U4_Q06_T02": {
+      "human_score": 0,
+      "r4_judge_score": 2,
+      "target": "judge <= 1",
+      "failure_class": "Q06 trauma/war recovery over-entailment as grief-loss-driven rebuilding"
+    },
+    "U4_Q10_T02": {
+      "human_score": 2,
+      "r4_judge_score": 0,
+      "target": "judge 1-3",
+      "failure_class": "Q10 missed explicit organization-level dysfunction-to-alignment/productivity improvement"
+    },
+    "U4_Q11_T03": {
+      "human_score": 0,
+      "r4_judge_score": 2,
+      "target": "judge <= 1",
+      "failure_class": "Q11 legend-origin/provenance scholarship over-entailment as mythology/legendary-hero content"
+    },
+    "U4_Q12_T05": {
+      "original_human_score": 0,
+      "adjudicated_human_score": 1,
+      "r4_judge_score": 2,
+      "target": "judge == 1",
+      "failure_class": "Q12 class-background contrast should be incidental, not substantive inequality content"
+    }
+  },
+  "r5_new_controls": {
+    "U4_Q02_T01": {
+      "judge_min": 2,
+      "judge_max": 4
+    },
+    "U4_Q02_T04": {
+      "judge_min": 3,
+      "judge_max": 4
+    },
+    "U4_Q10_T01": {
+      "judge_min": 1,
+      "judge_max": 3
+    },
+    "U4_Q11_T01": {
+      "judge_min": 1,
+      "judge_max": 2
+    },
+    "U4_Q12_T02": {
+      "judge_min": 1,
+      "judge_max": 3
+    }
+  },
+  "diagnostic_only_cases": {
+    "U3_Q10_T01": {
+      "human_score": 2,
+      "v0_27_r7_final_judge_score": 0,
+      "reason": "facet-spec / label-policy tension for organizational effectiveness; do not tune until adjudicated"
+    },
+    "U3_Q11_T04": {
+      "human_score": 0,
+      "v0_27_r7_final_judge_score": 2,
+      "reason": "adventure-boundary ambiguity; do not tune until adjudicated"
+    }
+  },
+  "methodology_note": "r7 targeted failed only U2_Q11_T02. No human labels or thresholds changed. The independent final holdout remains locked/unseen. r8 keeps the r7 semantic boundary and corrects only the stage at which distributed evidence is composed.",
+  "r6_repair_targets": {
+    "U_Q01_T02": {
+      "human_score": 2,
+      "r5_judge_score": 1,
+      "target": "judge 2-3",
+      "failure_class": "Q01 whole-work thematic-enumeration prominence instability resurfaced"
+    },
+    "U_Q11_T02": {
+      "human_score": 3,
+      "r5_judge_score": 2,
+      "target": "judge 3-4",
+      "failure_class": "Q11 legend-provenance repair lacked explicit myths/legends + hero-content positive escape hatch"
+    }
+  },
+  "r7_new_target": {
+    "U2_Q11_T02": {
+      "human_score": 4,
+      "r6_judge_score": 2,
+      "target": "judge 3-4",
+      "title": "Sirens and Sea Monsters",
+      "failure_class": "Q11 explicit classical mythic narrative source/content was under-recognized despite Odyssey-source wording, supernatural mythic narrative content, and explicit hero framing."
+    }
+  },
+  "r8_repair": {
+    "U2_Q11_T02": {
+      "human_score": 4,
+      "r7_judge_score": 2,
+      "target": "judge 3-4",
+      "failure_class": "r7 same-span implementation gap: classical-myth source wording and explicit mythic narrative content were present in separate exact spans.",
+      "semantic_rule_changed": false,
+      "implementation_stage_changed": "isolated-span-only positive guard -> deterministic cross-span component composition"
+    }
+  }
+}

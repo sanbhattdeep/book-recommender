@@ -1,5 +1,52 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r8
+
+r8 follows the failed r7 targeted gate.
+
+## What failed in r7
+
+`U2_Q11_T02` (*Sirens and Sea Monsters*) remained human=4 / judge=2.
+The r7 semantic rule was correct, but its implementation required the classical
+myth source/retelling signal and supernatural mythic-content signal to occur in
+the same isolated evidence span.
+
+The supplied description distributes those signals across multiple exact spans.
+
+## r8 change
+
+No label, threshold, scoring, or query meaning changes.
+
+For Q11 mythology only, r8 deterministically composes exact description spans
+when:
+
+1. one span explicitly ties the narrative to classical mythic/epic source
+   material or retelling; and
+2. another supplied span explicitly depicts supernatural mythic figures,
+   creatures, or events; and
+3. the description is not analytical legend-origin/provenance prose.
+
+No case ID, title, author, ISBN, or external entity knowledge is used.
+
+Version identities:
+
+- judge config: `0.28.0-r8`
+- facet spec: `0.9.13`
+- regression manifest: `1.7.0`
+- targeted gate: 52 gated + 2 diagnostic-only cases
+- development dataset: unchanged v5.0.0 / 210 consumed cases
+
+Semantic hashes:
+
+- judge: `e4efec54d03601e3016b376741c7f14fc1259ab3d63d1fdff75925cc2bfb43c1`
+- scoring: `8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808`
+- facet spec: `0952d80ebed8fbdebfb3b625f5648be9ccc08148d87d6753adc83d010953e289`
+- judge config: `bdc4157b457e3453ff94b860cb45022a7c7c83f311432ef9841a1c1fe5a9bb8d`
+- regression manifest: `da8d7ffe0f9131dd5ab976a0af72d7c478ee592b4cf1b495e105e483d908c585`
+
+The independent final holdout remains `LOCKED_DO_NOT_RUN`.
+
+
 # Semantic Relevance v0.28.0 r7
 
 r7 follows the canonical r6 full-210 consumed-development gate.
