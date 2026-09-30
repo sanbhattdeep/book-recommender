@@ -2087,6 +2087,23 @@ _Q11_EXPLICIT_MYTH_LEGEND_HERO_CONTENT_RE = re.compile(
 )
 
 
+_Q11_CLASSICAL_MYTH_SOURCE_RE = re.compile(
+    r"\b(?:based\s+on|adapt(?:ed|ation)\s+of|episodes?\s+from|retell(?:s|ing|ing|ed)?|"
+    r"rework(?:s|ed|ing)?|inspired\s+by)\b.{0,180}"
+    r"\b(?:odyssey|iliad|homer(?:'s)?|greek|roman|norse)\b"
+    r"|\b(?:odyssey|iliad|homer(?:'s)?)\b.{0,180}"
+    r"\b(?:episodes?|adventure|journey|story|stories|tale|tales)\b",
+    flags=re.IGNORECASE | re.DOTALL,
+)
+
+_Q11_EXPLICIT_MYTHIC_NARRATIVE_CONTENT_RE = re.compile(
+    r"\b(?:enchantress|sorceress|witch|prophet|ghosts?|underworld|land\s+of\s+the\s+dead|"
+    r"monster|monsters|six[- ]headed|cyclops|sirens?|scylla|charybdis|centaur|"
+    r"demigod|demigods|gods?|goddess|goddesses|deity|deities)\b",
+    flags=re.IGNORECASE,
+)
+
+
 def _r6_whole_work_thematic_enumeration_positive_guard(
     facet: QueryFacet,
     evidence_text: str,
@@ -2173,6 +2190,57 @@ def _q11_r6_explicit_myth_hero_positive_guard(
     )
 
 
+def _q11_r7_explicit_classical_myth_content_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Recover mythology when mythic source material is explicit narrative content.
+
+    This is deliberately narrower than "a legend is mentioned". It requires:
+      * the component currently to be missing;
+      * the mythology facet's mythic-basis component;
+      * explicit source/retelling language tied to classical myth/epic material;
+      * explicit supernatural/mythic narrative content in the same supplied text;
+      * no analytical legend-origin/provenance framing.
+
+    It therefore covers descriptions such as a story "based on episodes from
+    Homer's Odyssey" that actually narrates encounters with an enchantress,
+    ghosts, monsters, gods, etc., while leaving provenance scholarship such as
+    "evidence for the origin of the legend of X" excluded.
+    """
+    if (
+        facet.text.strip().lower() != "mythology"
+        or component.component_id != "mythic_or_mythological_basis"
+        or result.grounding_relation != "missing"
+    ):
+        return result
+
+    if _Q11_CLASSICAL_MYTH_SOURCE_RE.search(evidence_text) is None:
+        return result
+
+    if _Q11_EXPLICIT_MYTHIC_NARRATIVE_CONTENT_RE.search(evidence_text) is None:
+        return result
+
+    if _Q11_LEGEND_PROVENANCE_RE.search(evidence_text):
+        return result
+
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="entailed",
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.28-r7 Q11 explicit classical-myth-content guard: the supplied "
+            "description itself states that the narrative is based on/retells "
+            "classical mythic source material and explicitly depicts supernatural "
+            "mythic figures/creatures/events, so mythology is grounded without "
+            "outside knowledge."
+        ),
+    )
+
+
 def _apply_v028_r6_isolated_component_guards(
     facet: QueryFacet,
     component: Any,
@@ -2180,6 +2248,17 @@ def _apply_v028_r6_isolated_component_guards(
     result: IsolatedComponentVerification,
 ) -> IsolatedComponentVerification:
     return _q11_r6_explicit_myth_hero_positive_guard(
+        facet, component, evidence_text, result
+    )
+
+
+def _apply_v028_r7_isolated_component_guards(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    return _q11_r7_explicit_classical_myth_content_guard(
         facet, component, evidence_text, result
     )
 
@@ -2461,6 +2540,12 @@ def verify_isolated_component(
                 result=result,
             )
             result = _apply_v028_r6_isolated_component_guards(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
+            result = _apply_v028_r7_isolated_component_guards(
                 facet=facet,
                 component=component,
                 evidence_text=evidence_text,

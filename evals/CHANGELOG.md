@@ -1,5 +1,38 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r7
+
+r7 follows the canonical r6 full-210 consumed-development gate.
+
+r6 targeted regression passed, but the full gate failed because the original
+150-case reference subset had two severe errors instead of the allowed one:
+
+- `U_Q03_T10` — historical tolerated severe error.
+- `U2_Q11_T02` — new r6 severe under-score: human 4, judge 2.
+
+The r7 change is intentionally narrow:
+
+- for Q11 mythology only, explicit classical mythic/epic source or retelling
+  language plus explicit supernatural mythic narrative content grounds the
+  mythology facet;
+- the r5 legend-origin/provenance analytical exclusion remains unchanged;
+- r6 whole-work Q01 and explicit myth/hero-content guards remain unchanged.
+
+New regression target:
+
+`U2_Q11_T02` — human 4; r7 required judge score 3-4.
+
+Version identities:
+
+- judge config: `0.28.0-r7`
+- facet spec: `0.9.12`
+- regression manifest: `1.6.0`
+- gated targeted cases: 52
+- diagnostic-only cases: 2
+- development dataset remains 210 consumed cases / v5.0.0
+
+The independent 30-case final holdout remains LOCKED_DO_NOT_RUN.
+
 # Semantic Relevance v0.28.0 r6
 
 r6 is a new semantic revision after the r5 targeted gate failed on two inherited positive controls. r5 is not modified retroactively.
