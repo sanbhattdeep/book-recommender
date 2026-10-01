@@ -1791,6 +1791,12 @@ _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE = re.compile(
     flags=re.IGNORECASE,
 )
 
+
+_Q04_R3_SHIPWRECK_DANGER_RE = re.compile(
+    r"\bshipwreck(?:s|ed|ing)?\b",
+    flags=re.IGNORECASE,
+)
+
 _Q09_R2_OPPOSITION_ACTION_RE = re.compile(
     r"\b(?:overthrow(?:s|ing|n)?|rebell(?:ion|ious|ed|ing)?|revolt(?:s|ed|ing)?|"
     r"uprising(?:s)?|resist(?:s|ed|ing|ance)?|def(?:y|ies|ied|ying)|"
@@ -2586,6 +2592,58 @@ def _q04_r2_cross_span_movement_component_check(
         reason=(
             "v0.29-r2 Q04 cross-span movement recovery: an exact supplied "
             "description span contains an explicit travel/movement anchor."
+        ),
+    )
+
+
+
+def _q04_r3_shipwreck_danger_component_check(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+) -> ComponentEvidenceCheck | None:
+    """Recover Q04 danger when the supplied travel narrative explicitly says shipwreck.
+
+    This implements the already-frozen Q04 danger contract: an explicitly
+    shipwrecked traveler is a text-grounded hazard cue. To avoid turning an
+    isolated shipwreck reference into a dangerous-journey match, an independent
+    supplied travel/movement anchor must also exist somewhere in the description.
+    """
+
+    if (
+        facet.text.strip().lower() != "dangerous journeys"
+        or component.component_id != "danger_or_threat"
+    ):
+        return None
+
+    danger_span_ids = [
+        sid for sid, text in spans.items()
+        if _Q04_R3_SHIPWRECK_DANGER_RE.search(text)
+    ]
+    travel_span_ids = [
+        sid for sid, text in spans.items()
+        if _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+    ]
+
+    if not danger_span_ids or not travel_span_ids:
+        return None
+
+    supporting: list[str] = []
+    for sid in [*danger_span_ids, *travel_span_ids]:
+        if sid not in supporting:
+            supporting.append(sid)
+
+    return ComponentEvidenceCheck(
+        component_id=component.component_id,
+        established=True,
+        grounding_relation="entailed",
+        supporting_span_ids=supporting[:4],
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r3 Q04 shipwreck danger recovery: supplied text explicitly "
+            "states a shipwreck and independently supplies a travel/movement "
+            "anchor, so the travel narrative contains a concrete hazard cue."
         ),
     )
 
@@ -3817,6 +3875,21 @@ def verify_composite_evidence(
                 checks.append(deterministic_q04_movement)
                 recovery_notes.append(
                     f"{component.component_id}=v029_r2_cross_span_movement"
+                )
+                continue
+
+            # v0.29 r3: implement the already-frozen Q04 danger contract.
+            # Explicit shipwreck + an independent supplied travel anchor is
+            # sufficient text-grounded danger; no model interpretation needed.
+            deterministic_q04_danger = _q04_r3_shipwreck_danger_component_check(
+                facet=facet,
+                component=component,
+                spans=spans,
+            )
+            if deterministic_q04_danger is not None:
+                checks.append(deterministic_q04_danger)
+                recovery_notes.append(
+                    f"{component.component_id}=v029_r3_shipwreck_danger"
                 )
                 continue
 

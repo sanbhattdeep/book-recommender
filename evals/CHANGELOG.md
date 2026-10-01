@@ -1,5 +1,43 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.29.0 r3
+
+r3 repairs the sole remaining r2 gated failure: `U2_Q04_T70`.
+
+## Diagnosis
+
+r2 successfully recovered Q04 `movement_or_travel` from the exact supplied
+`travel book` span, but the model verifier rejected `shipwrecked` as
+`danger_or_threat`.
+
+Facet spec 0.10.1 already states that an explicitly shipwrecked named traveler
+in the supplied travel narrative is a hazard/danger cue. r3 therefore changes
+no facet semantics. It deterministically implements that existing component
+contract.
+
+## r3 rule
+
+For Q04 `dangerous journeys` / `danger_or_threat` only:
+
+- an exact supplied span must explicitly contain `shipwreck` / `shipwrecked`; AND
+- the supplied description must independently contain an explicit travel/movement anchor.
+
+This preserves:
+- Banker: danger/action but no travel anchor -> no dangerous journey.
+- ordinary travel without danger -> no dangerous journey.
+- isolated/meta shipwreck mention without a travel narrative -> no deterministic recovery.
+
+## Versions
+
+- judge config: 0.29.0-r3
+- facet spec: unchanged 0.10.1
+- regression manifest: 2.2.0
+- development dataset: unchanged 6.1.0
+- rubric: unchanged 0.1.0
+- scoring logic: unchanged from r2
+
+No independent v0.29 evidence has been created or consumed.
+
 # Semantic Relevance v0.29.0 r2
 
 r2 repairs exactly the two r1 gated regressions without changing labels or thresholds.
