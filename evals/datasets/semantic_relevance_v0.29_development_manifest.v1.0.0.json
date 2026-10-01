@@ -1,0 +1,30 @@
+{
+  "schema_version": "1.0.0",
+  "dataset_version": "6.0.0",
+  "lineage": "semantic_relevance_v0.29.0",
+  "role": "consumed_development",
+  "case_count": 240,
+  "sources": [
+    {
+      "file": "evals\\datasets\\semantic_relevance_v0.28_development.v5.0.0.csv",
+      "sha256": "21e53ee575fab0f99e69ffabee705f8afcc843878a33d640d6ada795be1ea520",
+      "case_count": 210,
+      "role": "consumed_development"
+    },
+    {
+      "file": "evals\\datasets\\semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv",
+      "sha256": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+      "case_count": 30,
+      "role": "consumed_final_evidence_now_development_only"
+    }
+  ],
+  "labels_changed_during_bootstrap": false,
+  "output_file": "evals\\datasets\\semantic_relevance_v0.29_development.v6.0.0.csv",
+  "output_sha256": "c8087f1ed80fce92e2b666f61732f727e0bfe6342ad5960227cd8217b92122c6",
+  "prefix_counts": {
+    "U_": 60,
+    "U2_": 60,
+    "U3_": 60,
+    "U4_": 60
+  }
+}

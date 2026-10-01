@@ -1,0 +1,20 @@
+{
+  "schema_version": "1.0.0",
+  "lineage": "semantic_relevance_v0.29.0",
+  "source_closeout": "evals\\releases\\semantic_relevance_v0.28.0_r8_final_evaluation_closeout.json",
+  "source_closeout_sha256": "24f90865503f4572d54e168d7f2cca33647a7c9a3c294bfb1ab727fd544cb2de",
+  "development_dataset": "evals\\datasets\\semantic_relevance_v0.29_development.v6.0.0.csv",
+  "development_dataset_sha256": "c8087f1ed80fce92e2b666f61732f727e0bfe6342ad5960227cd8217b92122c6",
+  "consumed_evidence": {
+    "v0_28_development_210": "development",
+    "r4_independent_validation_30": "development",
+    "r8_final_holdout_30": "development_or_diagnostic_only"
+  },
+  "prohibited_independent_reuse": [
+    "all U4 cases consumed by v0.28",
+    "v0.28 r4 independent validation 30",
+    "v0.28 r8 independent final holdout 30"
+  ],
+  "new_independent_evidence_required": true,
+  "new_independent_evidence_timing": "Only after a v0.29 candidate is frozen following development and stability gates."
+}

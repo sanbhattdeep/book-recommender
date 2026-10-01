@@ -1,0 +1,31 @@
+{
+  "baseline": "frozen_v0.28.0_r8_reconstructed_without_judge_calls",
+  "dataset": "evals\\datasets\\semantic_relevance_v0.29_development.v6.0.0.csv",
+  "dataset_sha256": "c8087f1ed80fce92e2b666f61732f727e0bfe6342ad5960227cd8217b92122c6",
+  "cases": 240,
+  "exact_agreement": 0.6875,
+  "within_one_agreement": 0.9708333333333333,
+  "mean_absolute_difference": 0.3416666666666667,
+  "linear_weighted_kappa": 0.7539015606242497,
+  "quadratic_weighted_kappa": 0.8896900405044382,
+  "binary": {
+    "tp": 93,
+    "fp": 8,
+    "fn": 14,
+    "tn": 125,
+    "precision": 0.9207920792079208,
+    "recall": 0.8691588785046729,
+    "f1": 0.8942307692307692
+  },
+  "severe_count": 7,
+  "severe_case_ids": [
+    "U3_Q10_T01",
+    "U4_Q03_T01",
+    "U4_Q03_T02",
+    "U4_Q04_T02",
+    "U4_Q06_T01",
+    "U4_Q09_T04",
+    "U_Q03_T10"
+  ],
+  "evidence_role": "consumed_baseline_for_v0.29_development"
+}

@@ -1,0 +1,19 @@
+{
+  "schema_version": "1.0.0",
+  "lineage": "semantic_relevance_v0.29.0",
+  "purpose": "human adjudication before any v0.29 semantic tuning",
+  "case_count": 5,
+  "case_ids": [
+    "U4_Q03_T01",
+    "U4_Q03_T02",
+    "U4_Q04_T02",
+    "U4_Q06_T01",
+    "U4_Q09_T04"
+  ],
+  "labels_changed": false,
+  "judge_calls_made": false,
+  "source": "consumed v0.28 r8 independent final-holdout evidence",
+  "instruction": "Review each case against the frozen rubric/facet semantics. Classify as judge defect, label/spec tension, or ambiguity before proposing repairs.",
+  "review_file": "evals\\datasets\\semantic_relevance_v0.29_severe_review.v1.0.0.csv",
+  "review_file_sha256": "2155f3defb582b7830a7b9c04d79619725909515ab4d8e6faf1eb33f2a25eced"
+}

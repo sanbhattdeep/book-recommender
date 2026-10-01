@@ -1,5 +1,59 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.29.0 — adjudication overlay r1
+
+This overlay applies the three human-label revisions explicitly approved after
+review of the five consumed v0.28 final-holdout severe cases.
+
+Approved revisions:
+
+- `U4_Q03_T01`: `0 -> 2`
+- `U4_Q06_T01`: `2 -> 0`
+- `U4_Q09_T04`: `1 -> 2`
+
+Two reviewed labels remain unchanged:
+
+- `U4_Q03_T02`: human `2`; classified as a judge defect.
+- `U4_Q04_T02`: human `0`; classified as a judge defect.
+
+`U4_Q09_T04` remains a semantic repair target after adjudication because the
+frozen r8 score is `3` while the adjudicated human score is `2`.
+
+The source `v6.0.0` dataset is never overwritten. The overlay creates
+`semantic_relevance_v0.29_development.v6.1.0.csv`, an adjudication manifest,
+an adjudicated five-case review sheet, and a recalculated frozen-r8 baseline.
+
+No judge calls or semantic changes occur in this step.
+
+# Semantic Relevance v0.29.0 bootstrap r1
+
+This overlay starts the new lineage **without tuning**.
+
+It performs no judge calls and changes no human labels.
+
+It creates a 240-case consumed-development dataset:
+
+- 210 cases already consumed during v0.28 development;
+- 30 cases from the now-consumed v0.28 r8 final holdout.
+
+It then reconstructs the frozen r8 baseline across all 240 cases using already
+existing judge results. The former final-holdout results are not rerun.
+
+Finally, it creates a five-case severe-review CSV for:
+
+- U4_Q03_T01
+- U4_Q03_T02
+- U4_Q04_T02
+- U4_Q06_T01
+- U4_Q09_T04
+
+These are review targets only. No repair should be proposed until each is
+classified against the frozen rubric/facet semantics as judge defect,
+label/spec tension, or ambiguity.
+
+Any future v0.29 independent qualification must use a newly created unseen
+human-labelled evidence set after the v0.29 candidate is frozen.
+
 # Semantic Relevance v0.28.0 r8 — final evaluation closeout r1
 
 This overlay performs closeout only. It makes no judge calls and makes no semantic changes.
