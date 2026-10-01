@@ -1744,6 +1744,65 @@ _Q03_INTELLECTUAL_LEARNING_RE = re.compile(
     flags=re.IGNORECASE,
 )
 
+
+# v0.29 r1: narrow text-local signals derived from the adjudicated r8 final
+# evidence. These are semantic-pattern guards, never title/case-ID exceptions.
+_Q03_PURPOSE_SELF_AWAKENING_RE = re.compile(
+    r"\b(?:self[- ]awakening|self[- ]discovery|"
+    r"awaken(?:ing|ed)?\s+to\s+(?:one'?s|your|their)\s+(?:purpose|calling|direction)|"
+    r"discover(?:ing|s|ed)?\s+(?:one'?s|your|their)\s+(?:purpose|calling|life\s+path))\b",
+    flags=re.IGNORECASE,
+)
+_Q03_PURPOSE_LIFE_DIRECTION_RE = re.compile(
+    r"\b(?:live\s+(?:one'?s|your|their)\s+(?:greatest|best|truest|most\s+meaningful)\s+life|"
+    r"life\s+(?:direction|path|calling|purpose)|"
+    r"meaningful\s+life|"
+    r"what\s+(?:one|you|they)\s+truly\s+want\s+from\s+life)\b",
+    flags=re.IGNORECASE,
+)
+
+_Q04_MOVEMENT_TEXT_ANCHOR_RE = re.compile(
+    r"\b(?:"
+    r"travel(?:s|ed|ing|led|ling)?|travelogue|"
+    r"journey(?:s|ed|ing)?|voyage(?:s|d)?|expedition(?:s)?|"
+    r"quest(?:s|ed|ing)?|trip(?:s|ped|ping)?|trek(?:s|ked|king)?|"
+    r"pilgrimage(?:s)?|tour(?:s|ed|ing)?|"
+    r"sail(?:s|ed|ing)?|shipwreck(?:s|ed)?|"
+    r"wander(?:s|ed|ing)?|roam(?:s|ed|ing)?|travers(?:e|es|ed|ing)|"
+    r"moves?\s+(?:through|across|between)\b|"
+    r"cross(?:es|ed|ing)?\s+(?:the\s+)?(?:sea|ocean|desert|mountains?|"
+    r"countries|lands?|realms?|worlds?|places?)\b"
+    r")",
+    flags=re.IGNORECASE,
+)
+
+
+_Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE = re.compile(
+    r"\b(?:"
+    r"travel(?:s|ed|ing|led|ling)?|travelogue|"
+    r"journey(?:s|ed|ing)?|voyage(?:s|d)?|expedition(?:s)?|"
+    r"quest(?:s|ed|ing)?|trip(?:s|ped|ping)?|trek(?:s|ked|king)?|"
+    r"pilgrimage(?:s)?|tour(?:s|ed|ing)?|sail(?:s|ed|ing)?|"
+    r"wander(?:s|ed|ing)?|roam(?:s|ed|ing)?|travers(?:e|es|ed|ing)|"
+    r"moves?\s+(?:through|across|between)\b|"
+    r"cross(?:es|ed|ing)?\s+(?:the\s+)?(?:sea|ocean|desert|mountains?|"
+    r"countries|lands?|realms?|worlds?|places?)\b"
+    r")",
+    flags=re.IGNORECASE,
+)
+
+_Q09_R2_OPPOSITION_ACTION_RE = re.compile(
+    r"\b(?:overthrow(?:s|ing|n)?|rebell(?:ion|ious|ed|ing)?|revolt(?:s|ed|ing)?|"
+    r"uprising(?:s)?|resist(?:s|ed|ing|ance)?|def(?:y|ies|ied|ying)|"
+    r"rise\s+up\s+against|fight(?:s|ing)?\s+against|protest(?:s|ed|ing)?)\b",
+    flags=re.IGNORECASE,
+)
+_Q09_R2_AUTHORITARIAN_CONTEXT_RE = re.compile(
+    r"\b(?:totalitarian(?:ism)?|authoritarian(?:ism)?|oppress(?:ive|ion|ed|or)?|"
+    r"tyrann(?:y|ical)|dictator(?:ship|ial|s)?)\b",
+    flags=re.IGNORECASE,
+)
+
 _Q11_META_ADVENTURE_RE = re.compile(
     r"\b(?:literary\s+(?:criticism|analysis)|analysis\s+of|instruction(?:al)?|"
     r"symbolism|archetype(?:s)?|example\s+(?:in|of)|discussion\s+of\s+other\s+works)\b",
@@ -2371,6 +2430,201 @@ def _q03_r3_learning_only_guard(
     )
 
 
+
+def _q03_r1_purpose_component_check(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+) -> ComponentEvidenceCheck | None:
+    """Recover one narrow Q03 purpose pattern missed by Stage A in r8.
+
+    The adjudicated development policy accepts a paired signal:
+    (1) explicit self-awakening/self-discovery language, AND
+    (2) explicit framing about how to live one's greatest/best/truest/
+        meaningful life or otherwise clarifying life direction.
+
+    Either signal alone is insufficient. Generic happiness, prosperity, inner
+    peace, success, or spiritual realization remains outside this rule.
+    """
+
+    if (
+        facet.text.strip().lower() != "finding purpose"
+        or component.component_id != "meaning_direction_calling_or_goal_clarification"
+    ):
+        return None
+
+    awakening_ids = [
+        span_id for span_id, text in spans.items()
+        if _Q03_PURPOSE_SELF_AWAKENING_RE.search(text)
+    ]
+    life_direction_ids = [
+        span_id for span_id, text in spans.items()
+        if _Q03_PURPOSE_LIFE_DIRECTION_RE.search(text)
+    ]
+    if not awakening_ids or not life_direction_ids:
+        return None
+
+    supporting: list[str] = []
+    for span_id in [*awakening_ids, *life_direction_ids]:
+        if span_id not in supporting:
+            supporting.append(span_id)
+
+    return ComponentEvidenceCheck(
+        component_id=component.component_id,
+        established=True,
+        grounding_relation="entailed",
+        supporting_span_ids=supporting[:4],
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r1 Q03 purpose guard: supplied description pairs explicit "
+            "self-awakening/self-discovery with explicit life-direction framing "
+            "about living one's greatest/best/truest/meaningful life. Together "
+            "they establish purpose/life-direction without outside knowledge."
+        ),
+    )
+
+
+def _q04_r1_movement_text_anchor_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Reject Q04 dangerous-journey movement inferred from time/action alone.
+
+    r8 over-promoted a realistic thriller because narrative sequencing, a
+    three-year span, and violent danger were interpreted as movement. For the
+    movement_or_travel component, positive grounding must contain a supplied
+    text-local movement/travel anchor. This preserves explicit travel, journey,
+    voyage, quest, expedition, sailing, shipwreck, roaming, etc.
+    """
+
+    if (
+        facet.text.strip().lower() != "dangerous journeys"
+        or component.component_id != "movement_or_travel"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+
+    if _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text):
+        return result
+
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r1 Q04 movement guard: danger, narrative progression, temporal "
+            "progression, or events unfolding over time do not establish actual "
+            "travel/journey. The exact evidence contains no text-local movement anchor."
+        ),
+    )
+
+
+def _q04_r1_recovery_movement_text_anchor_guard(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    result: FullContextComponentRecovery,
+) -> FullContextComponentRecovery:
+    """Apply the same Q04 movement anchor to full-context component recovery."""
+
+    if (
+        facet.text.strip().lower() != "dangerous journeys"
+        or component.component_id != "movement_or_travel"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+
+    evidence_text = " ".join(
+        spans.get(span_id, "") for span_id in result.supporting_span_ids
+    )
+    if _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text):
+        return result
+
+    return FullContextComponentRecovery(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        supporting_span_ids=[],
+        negative_boundary_applied=True,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r1 Q04 recovery movement guard: combined supporting spans contain "
+            "danger/temporal progression but no text-local travel, journey, quest, "
+            "voyage, expedition, or equivalent movement anchor."
+        ),
+    )
+
+
+
+def _q04_r2_cross_span_movement_component_check(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+) -> ComponentEvidenceCheck | None:
+    """Recover Q04 movement only from an explicit supplied travel/movement anchor."""
+    if (
+        facet.text.strip().lower() != "dangerous journeys"
+        or component.component_id != "movement_or_travel"
+    ):
+        return None
+    supporting = [
+        sid for sid, text in spans.items()
+        if _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+    ]
+    if not supporting:
+        return None
+    return ComponentEvidenceCheck(
+        component_id=component.component_id,
+        established=True,
+        grounding_relation="explicit",
+        supporting_span_ids=supporting[:4],
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r2 Q04 cross-span movement recovery: an exact supplied "
+            "description span contains an explicit travel/movement anchor."
+        ),
+    )
+
+
+def _q09_r2_resistance_pair_component_check(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+) -> ComponentEvidenceCheck | None:
+    """Recover Q09 resistance only from same-span opposition + authoritarian framing."""
+    if facet.text.strip().lower() != "resistance":
+        return None
+    if component.component_id not in {
+        "active_opposition_or_defiance",
+        "target_oppressive_or_authoritarian_power",
+    }:
+        return None
+    supporting = [
+        sid for sid, text in spans.items()
+        if _Q09_R2_OPPOSITION_ACTION_RE.search(text)
+        and _Q09_R2_AUTHORITARIAN_CONTEXT_RE.search(text)
+    ]
+    if not supporting:
+        return None
+    return ComponentEvidenceCheck(
+        component_id=component.component_id,
+        established=True,
+        grounding_relation="entailed",
+        supporting_span_ids=supporting[:4],
+        negative_boundary_applied=False,
+        external_knowledge_required=False,
+        reason=(
+            "v0.29-r2 Q09 resistance recovery: the same exact supplied span "
+            "contains both an explicit opposition action and explicit "
+            "authoritarian/totalitarian/oppressive framing."
+        ),
+    )
+
+
 def _q11_r3_adventure_positive_guard(
     facet: QueryFacet,
     component: Any,
@@ -2593,6 +2847,12 @@ def verify_isolated_component(
             assert isinstance(result, IsolatedComponentVerification)
             last_result = result
             result = _q09_text_anchor_guard(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
+            result = _q04_r1_movement_text_anchor_guard(
                 facet=facet,
                 component=component,
                 evidence_text=evidence_text,
@@ -3455,6 +3715,12 @@ def recover_missing_component(
                 spans=spans,
                 result=result,
             )
+            result = _q04_r1_recovery_movement_text_anchor_guard(
+                facet=facet,
+                component=component,
+                spans=spans,
+                result=result,
+            )
             result = _apply_v028_r3_recovery_guard(
                 facet=facet,
                 component=component,
@@ -3541,10 +3807,49 @@ def verify_composite_evidence(
                 recovery_notes.append(f"{component.component_id}=kept_from_single_span")
                 continue
 
+            # v0.29 r2: explicit movement may live in another exact supplied span.
+            deterministic_q04_movement = _q04_r2_cross_span_movement_component_check(
+                facet=facet,
+                component=component,
+                spans=spans,
+            )
+            if deterministic_q04_movement is not None:
+                checks.append(deterministic_q04_movement)
+                recovery_notes.append(
+                    f"{component.component_id}=v029_r2_cross_span_movement"
+                )
+                continue
+
+            # v0.29 r2: same-span opposition + authoritarian framing can establish resistance.
+            deterministic_q09_resistance = _q09_r2_resistance_pair_component_check(
+                facet=facet,
+                component=component,
+                spans=spans,
+            )
+            if deterministic_q09_resistance is not None:
+                checks.append(deterministic_q09_resistance)
+                recovery_notes.append(
+                    f"{component.component_id}=v029_r2_resistance_pair"
+                )
+                continue
+
+            # v0.29 r1: one adjudicated Q03 purpose-positive pattern was missed
+            # entirely by Stage A. Recover it deterministically from exact
+            # description spans before model-based missing-component recovery.
+            deterministic_q03_purpose = _q03_r1_purpose_component_check(
+                facet=facet,
+                component=component,
+                spans=spans,
+            )
+            if deterministic_q03_purpose is not None:
+                checks.append(deterministic_q03_purpose)
+                recovery_notes.append(
+                    f"{component.component_id}=v029_r1_purpose_pair_deterministic"
+                )
+                continue
+
             # v0.28 r8: deterministic cross-span composition for one narrow Q11
-            # mythology boundary. This runs before model-based missing-component
-            # recovery because the source and mythic-content evidence may live in
-            # different exact spans even though neither span is sufficient alone.
+            # mythology boundary. This remains inherited unchanged.
             deterministic_cross_span = _q11_r8_cross_span_classical_myth_component_check(
                 facet=facet,
                 component=component,

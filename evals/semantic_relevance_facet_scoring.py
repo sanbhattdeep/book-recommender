@@ -738,6 +738,26 @@ def compute_facet_score(
             else:
                 score = 2
 
+    # v0.29 r1: Q09 is explicitly about BOTH authoritarian control and
+    # resistance. The generic two-thirds rule made "dystopian + authoritarian"
+    # clear (3) even when resistance was fully absent. For this query only,
+    # missing resistance means the recommendation is partial at best.
+    if spec.query_id == "Q09" and score >= 3:
+        resistance_facet = next(
+            (
+                facet
+                for facet in core_facets
+                if facet.text.strip().lower() == "resistance"
+            ),
+            None,
+        )
+        if (
+            resistance_facet is not None
+            and support_by_id[resistance_facet.facet_id] == FacetSupport.ABSENT
+        ):
+            score = 2
+            clear_rule_applied = "q09_missing_resistance_cap_to_partial"
+
     # Qualifiers cannot promote relevance.
     #
     # v0.11 distinguishes:

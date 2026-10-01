@@ -1,5 +1,17 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.29.0 r2
+
+r2 repairs exactly the two r1 gated regressions without changing labels or thresholds.
+
+- U2_Q04_T70: recover explicit movement from `travel book` in another exact span; danger remains independently grounded.
+- U2_Q09_T02: same-span `overthrow` + `totalitarianism` can establish resistance.
+
+Banker remains protected because danger/time progression without an explicit movement anchor is insufficient. U4_Q09_T04 remains protected because authoritarian/tyrannical framing without an opposition action leaves resistance absent and the Q09 cap at partial.
+
+Version pins: judge config 0.29.0-r2; facet spec 0.10.1; regression manifest 2.1.0; development dataset unchanged 6.1.0; rubric unchanged 0.1.0.
+No independent v0.29 evidence has been created or consumed.
+
 # Semantic Relevance v0.29.0 — adjudication overlay r1
 
 This overlay applies the three human-label revisions explicitly approved after
