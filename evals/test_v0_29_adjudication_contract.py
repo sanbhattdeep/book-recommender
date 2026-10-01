@@ -16,6 +16,9 @@ for token in [
     '"old_score": 1',
     "label_spec_tension_plus_judge_overpromotion",
     "only the three approved adjudication rows changed",
+    "all non-label fields remain unchanged across all 240 rows",
+    "human score/reason unchanged for all 237 non-adjudicated rows",
+    "all output rows use dataset_version 6.1.0",
     "NO JUDGE CALLS WERE MADE",
     "NO SEMANTIC CHANGES WERE MADE",
 ]:

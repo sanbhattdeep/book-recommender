@@ -219,14 +219,40 @@ def main() -> None:
     require(changed == EXPECTED_CHANGED_IDS,
             "only the three approved adjudication rows changed score/reason")
 
-    # Everything else except dataset_version must remain byte-equivalent at the
-    # cell level after string normalization.
-    source_cmp = source.copy()
-    output_cmp = output.copy()
-    source_cmp["dataset_version"] = "6.1.0"
+    # Prove that all non-label fields remain unchanged for all 240 rows.
+    # The prior r1 check incorrectly compared the approved edited label cells
+    # against their pre-adjudication values, which necessarily failed.
+    protected_columns = [
+        c for c in source.columns
+        if c not in {"human_score", "human_reason", "dataset_version"}
+    ]
     require(
-        source_cmp.fillna("").astype(str).equals(output_cmp.fillna("").astype(str)),
-        "no fields changed outside approved label/reason updates and dataset_version"
+        source[protected_columns].fillna("").astype(str).equals(
+            output[protected_columns].fillna("").astype(str)
+        ),
+        "all non-label fields remain unchanged across all 240 rows"
+    )
+
+    # For the other 237 cases, even the human label/reason must be untouched.
+    unaffected_mask = ~source["case_id"].isin(EXPECTED_CHANGED_IDS)
+    unaffected_columns = ["case_id", "human_score", "human_reason"]
+    require(
+        source.loc[unaffected_mask, unaffected_columns]
+        .reset_index(drop=True)
+        .fillna("")
+        .astype(str)
+        .equals(
+            output.loc[unaffected_mask, unaffected_columns]
+            .reset_index(drop=True)
+            .fillna("")
+            .astype(str)
+        ),
+        "human score/reason unchanged for all 237 non-adjudicated rows"
+    )
+
+    require(
+        output["dataset_version"].astype(str).eq("6.1.0").all(),
+        "all output rows use dataset_version 6.1.0"
     )
 
     # Confirm the exact approved transitions.

@@ -1,0 +1,31 @@
+{
+  "baseline": "frozen_v0.28.0_r8_on_v0.29_adjudicated_labels",
+  "cases": 240,
+  "exact_agreement": 0.6958333333333333,
+  "within_one_agreement": 0.9833333333333333,
+  "mean_absolute_difference": 0.32083333333333336,
+  "linear_weighted_kappa": 0.7690750506085523,
+  "quadratic_weighted_kappa": 0.9024427568529181,
+  "binary": {
+    "tp": 94,
+    "fp": 7,
+    "fn": 13,
+    "tn": 126,
+    "precision": 0.9306930693069307,
+    "recall": 0.8785046728971962,
+    "f1": 0.9038461538461539
+  },
+  "severe_count": 4,
+  "severe_case_ids": [
+    "U3_Q10_T01",
+    "U4_Q03_T02",
+    "U4_Q04_T02",
+    "U_Q03_T10"
+  ],
+  "semantic_repair_targets": [
+    "U4_Q03_T02",
+    "U4_Q04_T02",
+    "U4_Q09_T04"
+  ],
+  "judge_calls_made": false
+}

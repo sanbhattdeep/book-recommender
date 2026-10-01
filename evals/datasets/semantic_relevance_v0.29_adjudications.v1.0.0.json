@@ -1,0 +1,70 @@
+{
+  "schema_version": "1.0.0",
+  "lineage": "semantic_relevance_v0.29.0",
+  "source_dataset": "evals\\datasets\\semantic_relevance_v0.29_development.v6.0.0.csv",
+  "source_dataset_sha256": "c8087f1ed80fce92e2b666f61732f727e0bfe6342ad5960227cd8217b92122c6",
+  "output_dataset": "evals\\datasets\\semantic_relevance_v0.29_development.v6.1.0.csv",
+  "output_dataset_sha256": "cfcc465497079944fec6da17f14bbe5f3350d9385ea9ddc646610b7751d72da7",
+  "source_review": "evals\\datasets\\semantic_relevance_v0.29_severe_review.v1.0.0.csv",
+  "source_review_sha256": "2155f3defb582b7830a7b9c04d79619725909515ab4d8e6faf1eb33f2a25eced",
+  "adjudicated_review": "evals\\datasets\\semantic_relevance_v0.29_severe_review.adjudicated.v1.0.0.csv",
+  "adjudicated_review_sha256": "154ace30ae8c51c29ffe7a776638fd45cec7964558987d6ac28aafa41357e4f6",
+  "judge_calls_made": false,
+  "semantic_changes_made": false,
+  "approved_label_revisions": [
+    {
+      "case_id": "U4_Q03_T01",
+      "old_score": 0,
+      "new_score": 2,
+      "old_reason": "No match with personal growth and finding purpose",
+      "new_reason": "Meaningful match with personal growth through explicit self-improvement; finding purpose is not established.",
+      "classification": "label_spec_tension",
+      "semantic_repair_target": false,
+      "rationale": "The supplied description explicitly calls Bridget's year a perpetual quest for self-improvement. Under the frozen rubric, one central query component is meaningfully satisfied, so score 2 is more consistent than 0."
+    },
+    {
+      "case_id": "U4_Q06_T01",
+      "old_score": 2,
+      "new_score": 0,
+      "old_reason": "Good match with A moving story about loss, and learning to live again but grief aspect is missing",
+      "new_reason": "No match under the frozen Q06 definition: despair and renewed appreciation of life are present, but no prior significant loss or grief is established.",
+      "classification": "label_spec_tension",
+      "semantic_repair_target": false,
+      "rationale": "Frozen Q06 requires prior grief/major loss for learning-to-live-again. The description establishes despair and renewed appreciation, not a prior significant loss or grief."
+    },
+    {
+      "case_id": "U4_Q09_T04",
+      "old_score": 1,
+      "new_score": 2,
+      "old_reason": "weak match with only authoritarian control",
+      "new_reason": "Meaningful match with authoritarian control through tyrannical rule, but resistance is not established.",
+      "classification": "label_spec_tension_plus_judge_overpromotion",
+      "semantic_repair_target": true,
+      "rationale": "Authoritarian control is central, so score 1 is too low; resistance is not established, so r8 score 3 is also too high. Score 2 is the adjudicated label."
+    }
+  ],
+  "reviewed_without_label_change": [
+    {
+      "case_id": "U4_Q03_T02",
+      "score": 2,
+      "reason": "no match with personal growth but good match with finding purpose",
+      "classification": "judge_defect",
+      "semantic_repair_target": true,
+      "rationale": "Human score remains 2. The description supplies substantive self-awakening/greatest-life/inner-peace evidence; r8's complete zero is the defect."
+    },
+    {
+      "case_id": "U4_Q04_T02",
+      "score": 0,
+      "reason": "No match with A fantasy adventure involving magic and dangerous journeys",
+      "classification": "judge_defect",
+      "semantic_repair_target": true,
+      "rationale": "The description is realistic racing/banking suspense. Violent action and threat of death do not establish fantasy, magic, or a dangerous journey."
+    }
+  ],
+  "semantic_repair_targets": [
+    "U4_Q03_T02",
+    "U4_Q04_T02",
+    "U4_Q09_T04"
+  ],
+  "methodology_note": "These are consumed v0.28 final-holdout cases now used only as v0.29 development evidence. The three revisions are human adjudications, not judge tuning. No v0.29 semantic change is introduced by this step."
+}
