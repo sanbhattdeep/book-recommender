@@ -1,5 +1,25 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.28.0 r8 — final evaluation closeout r1
+
+This overlay performs closeout only. It makes no judge calls and makes no semantic changes.
+
+It verifies the completed one-time final-holdout lifecycle and writes:
+
+`evals/releases/semantic_relevance_v0.28.0_r8_final_evaluation_closeout.json`
+
+The closeout records `EVALUATED_NOT_FINAL_QUALIFIED`, final decision
+`FINAL_HOLDOUT_REVIEW`, all final metrics/gate outcomes, the five severe
+final-holdout case IDs, immutable evidence hashes, and the evidence boundary
+for v0.29.
+
+The 30 r8 final-holdout cases are permanently consumed final evidence. They
+may be used for diagnostics or regression development in v0.29+, but never
+again as independent validation/final-holdout evidence.
+
+Any v0.29 candidate must be frozen before creating/consuming a new unseen
+human-labelled independent evidence set for qualification.
+
 # Semantic Relevance v0.28.0 r8
 
 r8 follows the failed r7 targeted gate.

@@ -1,0 +1,94 @@
+{
+  "schema_version": "1.0.0",
+  "lineage": "semantic_relevance_v0.28.0",
+  "candidate": "semantic_relevance_v0.28.0-r8",
+  "closeout_status": "EVALUATED_NOT_FINAL_QUALIFIED",
+  "final_holdout_decision": "FINAL_HOLDOUT_REVIEW",
+  "closed_at_utc": "2026-10-01T05:47:13.726339+00:00",
+  "semantic_identity": {
+    "judge_config_version": "0.28.0-r8",
+    "facet_spec_version": "0.9.13",
+    "rubric_version": "0.1.0",
+    "regression_manifest_version": "1.7.0",
+    "development_dataset_version": "5.0.0"
+  },
+  "qualification_history": {
+    "targeted_regression": "PASS",
+    "full_210_consumed_development": "PASS",
+    "stability_20_cases_x3": "PASS",
+    "release_candidate_freeze": "PASS",
+    "final_holdout_preflight": "PASS",
+    "one_time_independent_final_holdout": "REVIEW"
+  },
+  "final_holdout_result": {
+    "run_directory": "evals\\runs\\semantic_relevance_v0_28_final_holdout\\20261001T044506Z_final_r8",
+    "cases": 30,
+    "exact_agreement": 0.6666666666666666,
+    "within_one_agreement": 0.8333333333333334,
+    "mean_absolute_difference": 0.5,
+    "linear_weighted_kappa": 0.5746691871455577,
+    "quadratic_weighted_kappa": 0.701670644391408,
+    "binary_relevance_0_vs_positive": {
+      "true_positive": 9,
+      "false_positive": 3,
+      "false_negative": 2,
+      "true_negative": 16,
+      "precision": 0.75,
+      "recall": 0.8181818181818182,
+      "f1": 0.7826086956521738
+    },
+    "error_counts": {
+      "absolute_difference_ge_2": 5,
+      "false_zeros": 2,
+      "false_positive_relevance": 3,
+      "over_promotions_by_2_or_more": 3,
+      "under_promotions_by_2_or_more": 2
+    },
+    "passed_checks": [
+      "binary_recall_ge_0_80",
+      "deterministic_cue_severe_false_positives_eq_0",
+      "exact_ge_0_50"
+    ],
+    "failed_checks": [
+      "absolute_difference_ge_2_le_1_case",
+      "binary_precision_ge_0_90",
+      "linear_kappa_ge_0_60",
+      "quadratic_kappa_ge_0_80",
+      "within_one_ge_0_95"
+    ],
+    "severe_case_ids": [
+      "U4_Q03_T01",
+      "U4_Q03_T02",
+      "U4_Q04_T02",
+      "U4_Q06_T01",
+      "U4_Q09_T04"
+    ]
+  },
+  "final_evidence_hashes": {
+    "final_holdout_dataset": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+    "final_holdout_lock": "57b4f15b7fcdaa42ce64bb8e88136794731bd0e2bee46f1a00ff705ab2a24c62",
+    "finality_marker": "14c3fa7ab533162dede15dc8ac0c5d58b8d1f116bf6120617c9ee65692159840",
+    "judge_results": "391f808574f013ad989a498d27a5286c8ef17ac021c4291657c84f6e83207378",
+    "run_metadata": "6d2a09217aa876588ed1e3d40b995ab23f84f614f77a76eb21835edd883e779a",
+    "summary": "a248cd13c0c6163e3705a544d0a94c9a5f520ec2e381fe13b92ed3a3cb43e1c6",
+    "human_vs_judge": "2a174cb3ef9b110ca7fe61de13106662c2ccadb25df843d1bcb90ad9d1a7c20c",
+    "confusion_matrix": "796609e1e3889d458fde4ca49a94fafe14001ace3e4e44f25b09b135552c6842",
+    "largest_disagreements": "79863eaacefba373490420af9667cb879136478a9473882bb04d977b1bb8604b",
+    "release_candidate_manifest": "c25759ccaba3a3258552a5c138170821b3a9afd48acb968859a5943b4fc91cab",
+    "final_holdout_protocol": "7aa066815dd7c084be20773daec70c09981feb6c646061b658ed4fea1fca87f8"
+  },
+  "evidence_boundary_for_next_lineage": {
+    "next_candidate_lineage": "semantic_relevance_v0.29.0",
+    "v0_28_development_210": "consumed_development_evidence",
+    "r4_independent_validation_30": "consumed_development_evidence",
+    "r8_final_holdout_30": "consumed_final_evidence_may_be_diagnostic_or_development_only",
+    "r8_final_holdout_may_be_reused_as_independent_evidence": false,
+    "r8_final_holdout_may_be_rerun_for_r8": false,
+    "r8_final_holdout_may_be_relabelled_for_r8": false,
+    "r8_may_be_retuned_after_final_result": false,
+    "v0_29_may_use_r8_final_cases_for_diagnostics": true,
+    "v0_29_may_use_r8_final_cases_for_development_regression": true,
+    "v0_29_independent_qualification_requirement": "Create a new unseen human-labelled independent evidence set after v0.29 development is frozen. No U4 case consumed by v0.28 may count as independent validation or final-holdout evidence for v0.29."
+  },
+  "methodology_note": "v0.28.0-r8 passed all consumed-development qualification gates but failed five of eight preregistered gates on the one-time 30-case independent final holdout. The holdout is permanently consumed. Any repair using these cases must occur in a new candidate lineage and be qualified on newly created unseen evidence."
+}

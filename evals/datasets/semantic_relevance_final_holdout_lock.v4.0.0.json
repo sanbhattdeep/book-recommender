@@ -10,9 +10,19 @@
   "split_manifest_sha256": "889673f565cc7c377f6f0c11b690c709c10e93b574e9ad404c852cb2f2d742df",
   "release_candidate_manifest": "evals/releases/semantic_relevance_v0.28.0_r4_release_candidate.json",
   "release_candidate_manifest_sha256": "6d1f390a21d804351ff75def5bfd74e7e5eafbd48685aa4ee50058b6af670faa",
-  "status": "LOCKED_DO_NOT_RUN",
-  "judge_run_count": 0,
+  "status": "FINAL_HOLDOUT_COMPLETED",
+  "judge_run_count": 1,
   "judge_outputs_used_for_split": false,
   "human_labels_frozen": true,
-  "finality_marker_present": false
+  "finality_marker_present": true,
+  "release_candidate_id": "semantic_relevance_v0.28.0-r8",
+  "started_at_utc": "2026-10-01T04:45:06.804691+00:00",
+  "run_directory": "C:\\projects\\book-recommender\\evals\\runs\\semantic_relevance_v0_28_final_holdout\\20261001T044506Z_final_r8",
+  "release_manifest_sha256": "c25759ccaba3a3258552a5c138170821b3a9afd48acb968859a5943b4fc91cab",
+  "final_holdout_protocol_sha256": "7aa066815dd7c084be20773daec70c09981feb6c646061b658ed4fea1fca87f8",
+  "instruction": "Final holdout consumed exactly once. Do not rerun, relabel, or retune this same candidate using the final-holdout result.",
+  "completed_at_utc": "2026-10-01T05:34:54.801858+00:00",
+  "all_final_holdout_checks_pass": false,
+  "final_holdout_decision": "FINAL_HOLDOUT_REVIEW",
+  "final_holdout_summary_sha256": "a248cd13c0c6163e3705a544d0a94c9a5f520ec2e381fe13b92ed3a3cb43e1c6"
 }
