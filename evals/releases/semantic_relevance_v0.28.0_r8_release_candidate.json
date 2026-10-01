@@ -1,0 +1,243 @@
+{
+  "schema_version": "1.0.0",
+  "release_candidate": "semantic_relevance_v0.28.0-r8",
+  "release_status": "FROZEN_BEFORE_FINAL_HOLDOUT",
+  "frozen_at_utc": "2026-10-01T04:25:06.605785+00:00",
+  "semantic_identity": {
+    "judge_config_version": "0.28.0-r8",
+    "facet_spec_version": "0.9.13",
+    "rubric_version": "0.1.0",
+    "regression_manifest_version": "1.7.0",
+    "development_dataset_version": "5.0.0"
+  },
+  "frozen_hashes": {
+    "evals/semantic_relevance_facet_judge.py": "e4efec54d03601e3016b376741c7f14fc1259ab3d63d1fdff75925cc2bfb43c1",
+    "evals/semantic_relevance_facet_scoring.py": "8447a75aee29d1ebf34147e625a7fe8c1f8ccf4b409029e917ec4c47285e8808",
+    "evals/facets/semantic_relevance/semantic_relevance_query_facets.v0.9.13.json": "0952d80ebed8fbdebfb3b625f5648be9ccc08148d87d6753adc83d010953e289",
+    "evals/judge_configs/semantic_relevance_judge.v0.28.0-r8.json": "bdc4157b457e3453ff94b860cb45022a7c7c83f311432ef9841a1c1fe5a9bb8d",
+    "evals/datasets/semantic_relevance_v0.28_regression_manifest.v1.7.0.json": "da8d7ffe0f9131dd5ab976a0af72d7c478ee592b4cf1b495e105e483d908c585",
+    "evals/datasets/semantic_relevance_v0.28_post_validation_label_adjudications.v1.0.0.json": "68f5d85fd5905034d813234b9f9df8202252ef1598e9676b5247902e55a7b893",
+    "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json": "658fe8ef49f1b73e4d6d6bdb143ab4d43a040ed7ea347fc2d4a41a3051ee7d2e",
+    "evals/datasets/semantic_relevance_v0.28_development.v5.0.0.csv": "21e53ee575fab0f99e69ffabee705f8afcc843878a33d640d6ada795be1ea520",
+    "evals/datasets/semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+    "evals/datasets/semantic_relevance_unseen_split_manifest.v4.0.0.json": "889673f565cc7c377f6f0c11b690c709c10e93b574e9ad404c852cb2f2d742df",
+    "evals/datasets/semantic_relevance_v0.28_r8_stability_manifest.v1.0.0.json": "c1f5ad5a6e4a92cc0bd4aa3121566384c81952633b293fddd7841e39b87d94a0"
+  },
+  "evidence": {
+    "targeted_regression": {
+      "run_directory": "evals\\runs\\semantic_relevance_v0_28_r8_development\\20260930T075730Z_targeted_r8",
+      "case_count": 54,
+      "judge_results_sha256": "ade632a632668e356022929ea23be0ba1ba28fb0000b349c5ff4c749c1ea2d38",
+      "run_metadata_sha256": "239c28b5b7ba80d334b3b4f9c0144731da0c5dba561397204f587ad9888d6178",
+      "gated_expectations": 52,
+      "diagnostic_only_cases": 2
+    },
+    "full_210_consumed_development": {
+      "run_directory": "evals\\runs\\semantic_relevance_v0_28_r8_development\\20260930T093216Z_full210_r8",
+      "case_count": 210,
+      "judge_results_sha256": "3f85686bff66dde403caf5efb24d7d13d5a025e8e7f2df5e8900599e33387023",
+      "run_metadata_sha256": "add507b631012ce053de252c43839ed525507e8e78b5bda5d6853a2b14661de7",
+      "development_summary_sha256": "cc5ff71ff4cd148116c14ae48bbc61c251332b791efa8bdf1b44be207bb2c435",
+      "overall_210": {
+        "cases": 210,
+        "exact_agreement": 0.6904761904761905,
+        "within_one_agreement": 0.9904761904761905,
+        "mean_absolute_difference": 0.319047619047619,
+        "linear_weighted_kappa": 0.7745698080558849,
+        "quadratic_weighted_kappa": 0.9094684687966774,
+        "binary": {
+          "tp": 84,
+          "fp": 5,
+          "fn": 12,
+          "tn": 109,
+          "precision": 0.9438202247191011,
+          "recall": 0.875,
+          "f1": 0.908108108108108
+        },
+        "errors": {
+          "false_zeros": 12,
+          "false_positive_relevance": 5,
+          "absolute_difference_ge_2": 2,
+          "over_promotions_ge_2": 0,
+          "under_promotions_ge_2": 2,
+          "deterministic_cue_severe_false_positives": 0
+        }
+      },
+      "original_development_150": {
+        "cases": 150,
+        "exact_agreement": 0.6666666666666666,
+        "within_one_agreement": 0.9933333333333333,
+        "mean_absolute_difference": 0.34,
+        "linear_weighted_kappa": 0.7692168456618801,
+        "quadratic_weighted_kappa": 0.9105354369696833,
+        "binary": {
+          "tp": 63,
+          "fp": 2,
+          "fn": 9,
+          "tn": 76,
+          "precision": 0.9692307692307692,
+          "recall": 0.875,
+          "f1": 0.9197080291970802
+        },
+        "errors": {
+          "false_zeros": 9,
+          "false_positive_relevance": 2,
+          "absolute_difference_ge_2": 1,
+          "over_promotions_ge_2": 0,
+          "under_promotions_ge_2": 1,
+          "deterministic_cue_severe_false_positives": 0
+        }
+      }
+    },
+    "stability": {
+      "state_file": "evals\\runs\\semantic_relevance_v0_28_r8_development\\semantic_relevance_v0.28_r8_stability_state.v1.0.0.json",
+      "state_sha256": "f492dfb1655484b06998bad61efb4ebb64347beefc2be49cb95a8bede228ed41",
+      "manifest_sha256": "c1f5ad5a6e4a92cc0bd4aa3121566384c81952633b293fddd7841e39b87d94a0",
+      "required_runs": 3,
+      "cases_per_run": 20,
+      "total_observations": 60,
+      "max_allowed_score_span": 1,
+      "identical_cases": 20,
+      "score_sequences": {
+        "U3_Q01_T03": [
+          0,
+          0,
+          0
+        ],
+        "U_Q01_T02": [
+          2,
+          2,
+          2
+        ],
+        "U3_Q02_T05": [
+          0,
+          0,
+          0
+        ],
+        "U_Q02_T02": [
+          3,
+          3,
+          3
+        ],
+        "U3_Q07_T01": [
+          1,
+          1,
+          1
+        ],
+        "U_Q07_T02": [
+          3,
+          3,
+          3
+        ],
+        "U3_Q05_T01": [
+          2,
+          2,
+          2
+        ],
+        "U3_Q03_T01": [
+          0,
+          0,
+          0
+        ],
+        "U3_Q11_T02": [
+          1,
+          1,
+          1
+        ],
+        "U_Q11_T70": [
+          2,
+          2,
+          2
+        ],
+        "U2_Q11_T70": [
+          2,
+          2,
+          2
+        ],
+        "U3_Q11_T03": [
+          2,
+          2,
+          2
+        ],
+        "U3_Q03_T04": [
+          0,
+          0,
+          0
+        ],
+        "U4_Q02_T05": [
+          0,
+          0,
+          0
+        ],
+        "U4_Q06_T02": [
+          0,
+          0,
+          0
+        ],
+        "U4_Q10_T02": [
+          2,
+          2,
+          2
+        ],
+        "U4_Q11_T03": [
+          0,
+          0,
+          0
+        ],
+        "U4_Q12_T05": [
+          1,
+          1,
+          1
+        ],
+        "U_Q11_T02": [
+          3,
+          3,
+          3
+        ],
+        "U2_Q11_T02": [
+          3,
+          3,
+          3
+        ]
+      },
+      "runs": [
+        {
+          "run_directory": "evals\\runs\\semantic_relevance_v0_28_r8_development\\20260930T144333Z_stability_r8_run1",
+          "case_count": 20,
+          "judge_results_sha256": "d7c69a279ae4a9b8bf2846d36a89629b7538de172c9fe9656b9aafc5df66b3bf",
+          "run_metadata_sha256": "aebce35b4391ee47df1acda3e462c2da52517ffbe76e412b5f66137bd731ec72"
+        },
+        {
+          "run_directory": "evals\\runs\\semantic_relevance_v0_28_r8_development\\20260930T151517Z_stability_r8_run2",
+          "case_count": 20,
+          "judge_results_sha256": "ee2b91d581d79d9490d9e3a11293622f4abc586e019d61675fbb7ac177873760",
+          "run_metadata_sha256": "dba9107ea7bb15c1d8e2bf6e2b39872c35e04f5ec2ddd364e1f240064970b7cd"
+        },
+        {
+          "run_directory": "evals\\runs\\semantic_relevance_v0_28_r8_development\\20260930T154616Z_stability_r8_run3",
+          "case_count": 20,
+          "judge_results_sha256": "57bf8814fe373a119e63369de0f5164d2db3e009af076472cda63125ce76c4f2",
+          "run_metadata_sha256": "4a5679a3c0063d69a9db9d7931e09212f2ceea02967c0d59962d513dfa272f77"
+        }
+      ]
+    }
+  },
+  "independent_evidence_state": {
+    "r4_validation": {
+      "status": "INDEPENDENT_VALIDATION_COMPLETED",
+      "judge_run_count": 1,
+      "validation_decision": "REVIEW_STOP_FINAL_HOLDOUT",
+      "role_from_r5_onward": "consumed_development_only"
+    },
+    "final_holdout": {
+      "dataset": "evals\\datasets\\semantic_relevance_final_holdout.v4.0.0.DO_NOT_RUN_YET.csv",
+      "dataset_sha256": "0c7b55065629b6c1fbdb3f0d530cf8bdc8e15011b0d213ab4be6259b95a43e85",
+      "status": "LOCKED_DO_NOT_RUN",
+      "judge_run_count": 0,
+      "included_in_development": false,
+      "judge_output_used_for_r8_tuning": false
+    }
+  },
+  "decision": "READY_FOR_FINAL_HOLDOUT_EXECUTION_REVIEW",
+  "methodology_note": "r8 is frozen only after targeted regression PASS, canonical full-210 consumed-development PASS, and three fresh 20-case stability runs with identical scores. The 30-case independent final holdout remains locked and has not been executed or used for r8 tuning. Any semantic/config/rubric/regression change after this freeze creates a new candidate and invalidates this release manifest for final-holdout execution."
+}
