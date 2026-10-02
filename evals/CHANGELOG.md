@@ -1,5 +1,14 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.29.0 r4
+
+r4 changes only Q04 `dangerous journeys / movement_or_travel`: explicit directional departure constructions such as `take off on a ... adventure into ...` now count as movement anchors. The pattern requires a journey/adventure noun plus a directional continuation and therefore excludes idiomatic `took off` uses.
+
+No Q07 semantic change is made. `U4_Q07_T03` was 3 in the r3 full-240 run but 1 in all three successful stability probes, matching its historical r8 score of 1; it is carried only as a `judge <= 1` consumed-development stochastic non-regression guard.
+
+Versions: judge config 0.29.0-r4; facet spec unchanged 0.10.1; regression manifest 2.3.0; development dataset unchanged 6.1.0; scoring unchanged. No independent v0.29 evidence has been created or consumed.
+
+
 # Semantic Relevance v0.29.0 r3
 
 r3 repairs the sole remaining r2 gated failure: `U2_Q04_T70`.

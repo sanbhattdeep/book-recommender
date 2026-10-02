@@ -1792,6 +1792,20 @@ _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE = re.compile(
 )
 
 
+_Q04_R4_DIRECTIONAL_DEPARTURE_RE = re.compile(
+    r"\b(?:take|takes|took|taking)\s+off\s+on\s+(?:an?|the)\s+"
+    r"(?:[\w'-]+\s+){0,6}"
+    r"(?:adventure|journey|trip|trek|voyage|expedition)\s+"
+    r"(?:into|through|across|toward(?:s)?|to)\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _q04_r4_has_directional_departure_anchor(text: str) -> bool:
+    """Recognize explicit departure + journey noun + directional continuation."""
+    return bool(_Q04_R4_DIRECTIONAL_DEPARTURE_RE.search(text))
+
+
 _Q04_R3_SHIPWRECK_DANGER_RE = re.compile(
     r"\bshipwreck(?:s|ed|ing)?\b",
     flags=re.IGNORECASE,
@@ -2513,7 +2527,10 @@ def _q04_r1_movement_text_anchor_guard(
     ):
         return result
 
-    if _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text):
+    if (
+        _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text)
+        or _q04_r4_has_directional_departure_anchor(evidence_text)
+    ):
         return result
 
     return IsolatedComponentVerification(
@@ -2547,7 +2564,10 @@ def _q04_r1_recovery_movement_text_anchor_guard(
     evidence_text = " ".join(
         spans.get(span_id, "") for span_id in result.supporting_span_ids
     )
-    if _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text):
+    if (
+        _Q04_MOVEMENT_TEXT_ANCHOR_RE.search(evidence_text)
+        or _q04_r4_has_directional_departure_anchor(evidence_text)
+    ):
         return result
 
     return FullContextComponentRecovery(
@@ -2578,7 +2598,10 @@ def _q04_r2_cross_span_movement_component_check(
         return None
     supporting = [
         sid for sid, text in spans.items()
-        if _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+        if (
+            _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+            or _q04_r4_has_directional_departure_anchor(text)
+        )
     ]
     if not supporting:
         return None
@@ -2622,7 +2645,10 @@ def _q04_r3_shipwreck_danger_component_check(
     ]
     travel_span_ids = [
         sid for sid, text in spans.items()
-        if _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+        if (
+            _Q04_R2_CROSS_SPAN_MOVEMENT_ANCHOR_RE.search(text)
+            or _q04_r4_has_directional_departure_anchor(text)
+        )
     ]
 
     if not danger_span_ids or not travel_span_ids:
