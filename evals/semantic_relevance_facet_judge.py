@@ -1628,6 +1628,89 @@ LOCAL Q09 RESISTANCE-TARGET CONTRACT
     return policies.get(key, "")
 
 
+_Q07_PARENT_CHILD_ANCHOR_RE = re.compile(
+    r"\b(?:"
+    r"parent(?:s|al)?|"
+    r"mother(?:s|'s)?|father(?:s|'s)?|"
+    r"mom(?:s|'s)?|dad(?:s|'s)?|"
+    r"son(?:s|'s)?|daughter(?:s|'s)?|"
+    r"child(?:ren|'s)?|"
+    r"stepmother|stepfather|stepson|stepdaughter|stepchild(?:ren)?"
+    r")\b",
+    flags=re.IGNORECASE,
+)
+
+
+def _q07_parent_child_text_anchor_guard(
+    facet: QueryFacet,
+    component: Any,
+    evidence_text: str,
+    result: IsolatedComponentVerification,
+) -> IsolatedComponentVerification:
+    """Reject invented Q07 parent-child identity when no kinship anchor exists.
+
+    Precision-only enforcement of the frozen Q07 negative boundary. The guard
+    never creates positive Q07 evidence; it only rejects unsupported positives.
+    """
+    if (
+        facet.text.strip().lower() != "complicated parent-child relationship"
+        or component.component_id != "parent_child_relationship"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+    if _Q07_PARENT_CHILD_ANCHOR_RE.search(evidence_text):
+        return result
+    return IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        negative_boundary_applied=True,
+        external_knowledge_required=True,
+        reason=(
+            "v0.29-r5 Q07 parent-child grounding guard: positive grounding "
+            "was rejected because the exact supplied evidence contains no "
+            "parent/child kinship anchor. Generic interpersonal conflict, "
+            "romantic conflict, blame, resentment, or relationship difficulty "
+            "cannot establish a parent-child relationship by analogy."
+        ),
+    )
+
+
+def _q07_parent_child_recovery_guard(
+    facet: QueryFacet,
+    component: Any,
+    spans: dict[str, str],
+    result: FullContextComponentRecovery,
+) -> FullContextComponentRecovery:
+    """Apply the same Q07 kinship requirement to full-context recovery."""
+    if (
+        facet.text.strip().lower() != "complicated parent-child relationship"
+        or component.component_id != "parent_child_relationship"
+        or result.grounding_relation == "missing"
+    ):
+        return result
+    evidence_text = " ".join(spans.get(sid, "") for sid in result.supporting_span_ids)
+    isolated = IsolatedComponentVerification(
+        component_id=result.component_id,
+        grounding_relation=result.grounding_relation,
+        negative_boundary_applied=result.negative_boundary_applied,
+        external_knowledge_required=result.external_knowledge_required,
+        reason=result.reason,
+    )
+    guarded = _q07_parent_child_text_anchor_guard(
+        facet=facet, component=component, evidence_text=evidence_text, result=isolated
+    )
+    if guarded.grounding_relation != "missing":
+        return result
+    return FullContextComponentRecovery(
+        component_id=result.component_id,
+        grounding_relation="missing",
+        supporting_span_ids=[],
+        negative_boundary_applied=True,
+        external_knowledge_required=True,
+        reason=guarded.reason,
+    )
+
+
 def _q09_text_anchor_guard(
     facet: QueryFacet,
     component: Any,
@@ -2936,6 +3019,12 @@ def verify_isolated_component(
                 evidence_text=evidence_text,
                 result=result,
             )
+            result = _q07_parent_child_text_anchor_guard(
+                facet=facet,
+                component=component,
+                evidence_text=evidence_text,
+                result=result,
+            )
             result = _q04_r1_movement_text_anchor_guard(
                 facet=facet,
                 component=component,
@@ -3793,6 +3882,12 @@ def recover_missing_component(
         try:
             result = unpack_generated_model(generated, FullContextComponentRecovery)
             assert isinstance(result, FullContextComponentRecovery)
+            result = _q07_parent_child_recovery_guard(
+                facet=facet,
+                component=component,
+                spans=spans,
+                result=result,
+            )
             result = _q09_recovery_text_anchor_guard(
                 facet=facet,
                 component=component,

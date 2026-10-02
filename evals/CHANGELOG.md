@@ -1,5 +1,17 @@
 # Evaluation Changelog
 
+# Semantic Relevance v0.29.0 r5
+
+r5 adds one precision-only Q07 grounding guard after repeated stochastic hallucination of a parent-child relationship from romantic/interpersonal conflict.
+
+The guard requires an explicit parent/child kinship anchor before a positive `parent_child_relationship` component can survive. It never creates positive evidence. The frozen Q07 facet spec already contains this negative boundary.
+
+The r4 Q04 directional-departure repair is preserved unchanged.
+
+Versions: judge config 0.29.0-r5; facet spec 0.10.1 unchanged; regression manifest 2.4.0; development dataset 6.1.0 unchanged; scoring unchanged.
+
+No independent v0.29 evidence has been created or consumed.
+
 # Semantic Relevance v0.29.0 r4
 
 r4 changes only Q04 `dangerous journeys / movement_or_travel`: explicit directional departure constructions such as `take off on a ... adventure into ...` now count as movement anchors. The pattern requires a journey/adventure noun plus a directional continuation and therefore excludes idiomatic `took off` uses.
