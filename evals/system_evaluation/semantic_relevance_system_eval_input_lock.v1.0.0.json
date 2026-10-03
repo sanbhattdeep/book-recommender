@@ -1,0 +1,92 @@
+{
+  "evaluation_id": "semantic-relevance-system-eval",
+  "evaluation_version": "1.0.0",
+  "status": "FROZEN_BEFORE_SYSTEM_EVAL_EXECUTION",
+  "frozen_at_utc": "2026-10-02T15:11:12.247119+00:00",
+  "git_commit_sha": "4b2b3b5aef2d569ff453e9938fe0fcaf51885852",
+  "recommender_file": "gradio-dashboard.py",
+  "recommender_sha256": "b8f7c1223a525345a7e278fd29e0cd32a5e0c644a9a0b88e5cc9ac319f749974",
+  "query_file": "evals\\datasets\\semantic_relevance_system_eval_queries.v1.0.0.csv",
+  "query_file_sha256": "857b8df06cb371f2a0f67ff1d956403d93469db560c97a48fdf93dcf0406c594",
+  "contract_file": "evals\\system_evaluation\\semantic_relevance_system_eval.v1.0.0.json",
+  "contract_file_sha256": "e559449aaeeb9d0c6dde4573a1b57bb59a0aa069c59da061d2ecc97a404f9208",
+  "judge_sha256": "41b3b6e9650e7e4a1f1ad9693c2b0a145c844c3f813852d6c53ed8896ea9384a",
+  "scoring_sha256": "8d40b3f773e3c763d9b6436ff036e63966ddc2b3877ecf4bf5f8989664d2587b",
+  "facet_spec_sha256": "083c88fe4de381e8c2e51e30af75e999c9d09cff6cfb03b134472acf881629a0",
+  "judge_config_sha256": "47c2bc8013d34939a699b590f33b521ef3aa17074b288f3bfcf09e2892572275",
+  "query_count": 12,
+  "recommendations_per_query": 10,
+  "expected_query_book_pairs": 120,
+  "human_scores_used": false,
+  "recommender_calls_performed_during_freeze": 0,
+  "judge_calls_performed_during_freeze": 0,
+  "bootstrap": {
+    "method": "query-level cluster bootstrap percentile confidence interval",
+    "confidence_level": 0.95,
+    "bootstrap_replicates": 5000,
+    "seed": 20261002,
+    "resampling_unit": "query",
+    "preserve_within_query_ranked_list": true,
+    "rationale": "Recommendations within one query are correlated. Resampling individual query-book pairs would understate uncertainty. Each bootstrap sample resamples the 12 query blocks with replacement and carries each query's complete ranked list with it.",
+    "ci_metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10"
+    ],
+    "interpretation_warning": "Only 12 independent query clusters are present, so confidence intervals may be wide. This is appropriate for an interview benchmark but should be expanded before production qualification."
+  },
+  "release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": {
+      "metric": "macro_mean_relevance_at_10",
+      "op": ">=",
+      "value": 2.5,
+      "rationale": "Average recommendation quality should lie at least halfway between partial (2) and clear (3)."
+    },
+    "macro_mean_relevance_ci_lower_ge_2_00": {
+      "metric": "macro_mean_relevance_at_10_ci_lower_95",
+      "op": ">=",
+      "value": 2.0,
+      "rationale": "Even the lower 95% confidence bound should remain at least partial relevance on average."
+    },
+    "clear_or_strong_rate_at_10_ge_0_60": {
+      "metric": "clear_or_strong_rate_at_10",
+      "op": ">=",
+      "value": 0.6,
+      "rationale": "At least 60% of displayed recommendations should be clear or strong matches."
+    },
+    "irrelevant_rate_at_10_le_0_10": {
+      "metric": "irrelevant_rate_at_10",
+      "op": "<=",
+      "value": 0.1,
+      "rationale": "No more than 10% of displayed recommendations should be complete misses."
+    },
+    "hit_rate_at_5_clear_or_strong_ge_0_90": {
+      "metric": "hit_rate_at_5_clear_or_strong",
+      "op": ">=",
+      "value": 0.9,
+      "rationale": "Almost every query should surface at least one clear/strong match in the first five."
+    },
+    "top1_clear_or_strong_rate_ge_0_75": {
+      "metric": "top1_clear_or_strong_rate",
+      "op": ">=",
+      "value": 0.75,
+      "rationale": "The first result should be clear/strong for at least 9 of 12 queries."
+    },
+    "ndcg_at_10_ge_0_85": {
+      "metric": "ndcg_at_10",
+      "op": ">=",
+      "value": 0.85,
+      "rationale": "The returned list should place higher-relevance books near the top."
+    },
+    "catastrophic_query_rate_eq_0": {
+      "metric": "catastrophic_query_rate",
+      "op": "==",
+      "value": 0.0,
+      "rationale": "No benchmark query should have mean top-10 relevance below 1.5."
+    }
+  }
+}

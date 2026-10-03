@@ -1,0 +1,147 @@
+{
+  "evaluation_id": "semantic-relevance-system-eval",
+  "version": "1.0.0",
+  "status": "DRAFT_TO_FREEZE_BEFORE_EXECUTION",
+  "purpose": "Evaluate the semantic relevance quality of the book recommender using the calibrated semantic-relevance judge as the measurement instrument. This evaluates the recommender, not judge-vs-human agreement.",
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "judge_score_scale": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "score_meaning": {
+      "0": "none",
+      "1": "weak/incidental",
+      "2": "partial",
+      "3": "good/clear",
+      "4": "strong"
+    },
+    "human_scores_used_in_system_eval": false,
+    "qualification_note": "Judge qualification is a separate lifecycle. This system evaluation consumes only judge scores.",
+    "pinned_hashes": {
+      "judge": "41b3b6e9650e7e4a1f1ad9693c2b0a145c844c3f813852d6c53ed8896ea9384a",
+      "scoring": "8d40b3f773e3c763d9b6436ff036e63966ddc2b3877ecf4bf5f8989664d2587b",
+      "facet_spec": "083c88fe4de381e8c2e51e30af75e999c9d09cff6cfb03b134472acf881629a0",
+      "judge_config": "47c2bc8013d34939a699b590f33b521ef3aa17074b288f3bfcf09e2892572275"
+    }
+  },
+  "system_under_test": {
+    "component": "semantic book recommender",
+    "entrypoint_file": "gradio-dashboard.py",
+    "retrieval_function": "retrieve_semantic_recommedations",
+    "mode": {
+      "category": "All",
+      "tone": "All",
+      "initial_top_k": 50,
+      "final_top_k": 10
+    },
+    "reason_for_isolation": "The first benchmark isolates semantic retrieval quality. Category filtering and emotional-tone ranking are separate behaviors and should receive separate evaluation dimensions."
+  },
+  "benchmark": {
+    "query_file": "evals/datasets/semantic_relevance_system_eval_queries.v1.0.0.csv",
+    "query_file_sha256": "857b8df06cb371f2a0f67ff1d956403d93469db560c97a48fdf93dcf0406c594",
+    "query_count": 12,
+    "recommendations_per_query": 10,
+    "expected_query_book_pairs": 120,
+    "query_source": "The 12 frozen semantic queries from facet spec v0.10.1.",
+    "human_labels_required": false
+  },
+  "primary_metrics": {
+    "macro_mean_relevance_at_10": "For each query, average its 10 judge scores; then average equally across the 12 queries.",
+    "clear_or_strong_rate_at_10": "Fraction of returned books with judge_score >= 3.",
+    "irrelevant_rate_at_10": "Fraction of returned books with judge_score == 0.",
+    "hit_rate_at_5_clear_or_strong": "Fraction of queries having at least one score >= 3 in ranks 1-5.",
+    "top1_clear_or_strong_rate": "Fraction of queries whose rank-1 recommendation has score >= 3.",
+    "mrr_at_10_clear_or_strong": "Mean reciprocal rank of the first score >= 3, or 0 if none.",
+    "ndcg_at_10": "Mean graded nDCG@10 using gain 2^score - 1. The ideal ranking is the same returned 10 books sorted by judge score.",
+    "catastrophic_query_rate": "Fraction of queries whose mean top-10 relevance is < 1.5."
+  },
+  "statistical_uncertainty": {
+    "method": "query-level cluster bootstrap percentile confidence interval",
+    "confidence_level": 0.95,
+    "bootstrap_replicates": 5000,
+    "seed": 20261002,
+    "resampling_unit": "query",
+    "preserve_within_query_ranked_list": true,
+    "rationale": "Recommendations within one query are correlated. Resampling individual query-book pairs would understate uncertainty. Each bootstrap sample resamples the 12 query blocks with replacement and carries each query's complete ranked list with it.",
+    "ci_metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10"
+    ],
+    "interpretation_warning": "Only 12 independent query clusters are present, so confidence intervals may be wide. This is appropriate for an interview benchmark but should be expanded before production qualification."
+  },
+  "release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": {
+      "metric": "macro_mean_relevance_at_10",
+      "op": ">=",
+      "value": 2.5,
+      "rationale": "Average recommendation quality should lie at least halfway between partial (2) and clear (3)."
+    },
+    "macro_mean_relevance_ci_lower_ge_2_00": {
+      "metric": "macro_mean_relevance_at_10_ci_lower_95",
+      "op": ">=",
+      "value": 2.0,
+      "rationale": "Even the lower 95% confidence bound should remain at least partial relevance on average."
+    },
+    "clear_or_strong_rate_at_10_ge_0_60": {
+      "metric": "clear_or_strong_rate_at_10",
+      "op": ">=",
+      "value": 0.6,
+      "rationale": "At least 60% of displayed recommendations should be clear or strong matches."
+    },
+    "irrelevant_rate_at_10_le_0_10": {
+      "metric": "irrelevant_rate_at_10",
+      "op": "<=",
+      "value": 0.1,
+      "rationale": "No more than 10% of displayed recommendations should be complete misses."
+    },
+    "hit_rate_at_5_clear_or_strong_ge_0_90": {
+      "metric": "hit_rate_at_5_clear_or_strong",
+      "op": ">=",
+      "value": 0.9,
+      "rationale": "Almost every query should surface at least one clear/strong match in the first five."
+    },
+    "top1_clear_or_strong_rate_ge_0_75": {
+      "metric": "top1_clear_or_strong_rate",
+      "op": ">=",
+      "value": 0.75,
+      "rationale": "The first result should be clear/strong for at least 9 of 12 queries."
+    },
+    "ndcg_at_10_ge_0_85": {
+      "metric": "ndcg_at_10",
+      "op": ">=",
+      "value": 0.85,
+      "rationale": "The returned list should place higher-relevance books near the top."
+    },
+    "catastrophic_query_rate_eq_0": {
+      "metric": "catastrophic_query_rate",
+      "op": "==",
+      "value": 0.0,
+      "rationale": "No benchmark query should have mean top-10 relevance below 1.5."
+    }
+  },
+  "decision_policy": {
+    "PASS": "All 8 release gates pass.",
+    "REVIEW": "One or two gates fail and catastrophic_query_rate remains 0.",
+    "FAIL": "Three or more gates fail, or catastrophic_query_rate > 0."
+  },
+  "planned_run_artifacts": [
+    "recommendations.csv",
+    "judge_scores.csv",
+    "query_metrics.csv",
+    "aggregate_metrics.json",
+    "bootstrap_confidence_intervals.json",
+    "release_gate_result.json",
+    "largest_quality_failures.csv",
+    "system_evaluation_report.md",
+    "run_metadata.json"
+  ]
+}

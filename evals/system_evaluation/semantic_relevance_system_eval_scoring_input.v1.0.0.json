@@ -1,0 +1,13 @@
+{
+  "evaluation_id": "semantic-relevance-system-eval",
+  "evaluation_version": "1.0.0",
+  "stage": "FROZEN_RECOMMENDER_OUTPUT_FOR_JUDGE_SCORING",
+  "collection_run": "evals\\runs\\semantic_relevance_system_eval_v1\\20261002T152856Z_recommendations",
+  "recommendations_sha256": "936d136c9bc7d8fd85dcf64a4b022f475b749ac603818806228f23be65891a14",
+  "judge_input_sha256": "4faa63f38015b6eef1e9bbad8bb6f868df780d05151abe90809544dfc50ff02f",
+  "expected_pairs": 120,
+  "expected_queries": 12,
+  "expected_per_query": 10,
+  "human_relevance_labels_used": false,
+  "judge_candidate": "semantic_relevance_v0.29.0-r5"
+}
