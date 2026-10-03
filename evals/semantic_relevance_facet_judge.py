@@ -4254,15 +4254,23 @@ def build_book_subject_prompt(
 
     correction = ""
     if validation_feedback:
+        valid_span_ids_json = json.dumps(
+            list(spans.keys()),
+            ensure_ascii=False,
+        )
         correction = f"""
 
 PREVIOUS VALIDATION FAILURE
 {validation_feedback}
 
+VALID SUPPLIED SPAN IDS
+{valid_span_ids_json}
+
 CORRECTION REQUIRED
-Return a corrected BookSubjectAnalysis only. Use individual exact supplied span IDs.
-For example, use ["S6", "S7", "S8", "S9"], never "S6-S9", "S6–S9",
-or "S6 through S9". Do not change the semantic task; only repair the invalid output.
+Return a corrected BookSubjectAnalysis only.
+Use only individual exact span IDs from VALID SUPPLIED SPAN IDS above.
+Do not invent, infer, renumber, expand, or range-compress span IDs.
+Do not change the semantic task; only repair the invalid output.
 """
 
     return f"""

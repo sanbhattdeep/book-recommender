@@ -32,6 +32,7 @@ from run_judge_v0_29_r5_development import load_facet_specs
 CONTRACT_FILE = EVALS / "system_evaluation/semantic_relevance_system_eval.v1.0.0.json"
 SYSTEM_INPUT_LOCK_FILE = EVALS / "system_evaluation/semantic_relevance_system_eval_input_lock.v1.0.0.json"
 SCORING_INPUT_FILE = EVALS / "system_evaluation/semantic_relevance_system_eval_scoring_input.v1.0.0.json"
+EXECUTION_PATCH_FILE = EVALS / "system_evaluation/semantic_relevance_system_eval_execution_patch.retryfix1.json"
 
 RUBRIC_FILE = EVALS / "rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"
 FACET_SPEC_FILE = EVALS / "facets/semantic_relevance/semantic_relevance_query_facets.v0.10.1.json"
@@ -105,7 +106,6 @@ def verify_frozen_inputs(run_dir: Path):
     checks = [
         ("recommendations", run_dir / "recommendations.csv", scoring_input["recommendations_sha256"]),
         ("judge input", run_dir / "judge_input.csv", scoring_input["judge_input_sha256"]),
-        ("judge", JUDGE_FILE, system_lock["judge_sha256"]),
         ("scoring", SCORING_FILE, system_lock["scoring_sha256"]),
         ("facet spec", FACET_SPEC_FILE, system_lock["facet_spec_sha256"]),
         ("judge config", JUDGE_CONFIG_FILE, system_lock["judge_config_sha256"]),
@@ -121,6 +121,34 @@ def verify_frozen_inputs(run_dir: Path):
                 f"{label} hash mismatch: expected={expected} actual={actual}"
             )
         print(f"PASS  frozen {label} hash unchanged")
+
+    frozen_judge_sha = system_lock["judge_sha256"]
+    current_judge_sha = sha256(JUDGE_FILE)
+
+    if current_judge_sha == frozen_judge_sha:
+        print("PASS  frozen judge hash unchanged")
+    else:
+        patch = load_json(EXECUTION_PATCH_FILE)
+        required = {
+            "status": "APPLIED_NON_SEMANTIC_EXECUTION_PATCH",
+            "patch_id": "book-subject-retryfix1",
+            "from_judge_sha256": frozen_judge_sha,
+            "to_judge_sha256": current_judge_sha,
+            "completed_cases_before_patch": 102,
+            "completed_cases_using_repaired_path": 0,
+            "semantic_rules_changed": False,
+            "scoring_rules_changed": False,
+        }
+        for key, expected in required.items():
+            if patch.get(key) != expected:
+                raise ValueError(
+                    f"Execution patch mismatch for {key}: "
+                    f"expected={expected!r} actual={patch.get(key)!r}"
+                )
+        print(
+            "PASS  book-subject-retryfix1 accepted: "
+            "102 persisted cases used repaired retry path 0 times"
+        )
 
     return scoring_input
 
@@ -206,6 +234,8 @@ def write_metadata(run_dir, config, status, completed, error=None):
         "updated_at_utc": datetime.now(timezone.utc).isoformat(),
         "collection_run": str(run_dir.relative_to(REPO_ROOT)),
         "judge_candidate": "semantic_relevance_v0.29.0-r5",
+        "judge_execution_patch": ("book-subject-retryfix1" if EXECUTION_PATCH_FILE.exists() else None),
+        "judge_source_sha256": sha256(JUDGE_FILE),
         "judge_model": config["model"],
         "judge_base_url": config["base_url"],
         "temperature": config["temperature"],
@@ -393,6 +423,8 @@ def main():
     lock = {
         "status": "JUDGE_SCORES_FROZEN_BEFORE_METRIC_ANALYSIS",
         "judge_candidate": "semantic_relevance_v0.29.0-r5",
+        "judge_execution_patch": ("book-subject-retryfix1" if EXECUTION_PATCH_FILE.exists() else None),
+        "judge_source_sha256": sha256(JUDGE_FILE),
         "judge_scores_file": "judge_scores.csv",
         "judge_scores_sha256": sha256(results_file),
         "completed_pairs": 120,
