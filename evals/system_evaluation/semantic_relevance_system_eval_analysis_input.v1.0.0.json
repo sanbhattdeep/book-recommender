@@ -1,0 +1,18 @@
+{
+  "evaluation_id": "semantic-relevance-system-eval",
+  "evaluation_version": "1.0.0",
+  "stage": "FROZEN_JUDGE_SCORES_FOR_METRIC_ANALYSIS",
+  "collection_run": "evals\\runs\\semantic_relevance_system_eval_v1\\20261002T152856Z_recommendations",
+  "judge_scores_sha256": "d079a74c7f0473e46d28f19e37e4241a780804e972f3fa5f25b3a67e62a7bd11",
+  "expected_pairs": 120,
+  "expected_queries": 12,
+  "expected_per_query": 10,
+  "human_relevance_labels_used": false,
+  "bootstrap": {
+    "method": "query-level cluster bootstrap percentile CI",
+    "replicates": 5000,
+    "confidence_level": 0.95,
+    "seed": 20261002,
+    "resampling_unit": "query"
+  }
+}

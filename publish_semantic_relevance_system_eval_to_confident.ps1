@@ -17,10 +17,7 @@ uv run python `
   .\evals\system_evaluation\publish_semantic_relevance_system_eval_to_confident.py
 
 if ($LASTEXITCODE -ne 0) {
-    throw (
-        "Confident AI publication failed. Local frozen evaluation results "
-        + "remain valid and unchanged."
-    )
+    throw "Confident AI publication failed. Local frozen evaluation results remain valid and unchanged."
 }
 
 Write-Host ""
