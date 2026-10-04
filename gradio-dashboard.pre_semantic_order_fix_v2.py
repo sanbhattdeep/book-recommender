@@ -57,23 +57,7 @@ def retrieve_semantic_recommedations(
     recs = db_books.similarity_search(query, k=initial_top_k)
     #get the isbns from the description column
     books_list = [ int(rec.page_content.strip('"').split()[0]) for rec in recs]
-    # Preserve the vector store's semantic-similarity order when joining
-    # candidate ISBNs back to the metadata DataFrame. Pandas isin() filters
-    # membership but otherwise retains the source DataFrame row order.
-    semantic_rank = {}
-    for rank, isbn in enumerate(books_list):
-        semantic_rank.setdefault(isbn, rank)
-
-    book_recs = books[books["isbn13"].isin(books_list)].copy()
-    book_recs["_semantic_rank"] = book_recs["isbn13"].map(semantic_rank)
-    book_recs.sort_values(
-        by="_semantic_rank",
-        ascending=True,
-        kind="stable",
-        inplace=True,
-    )
-    book_recs.drop(columns=["_semantic_rank"], inplace=True)
-    book_recs = book_recs.head(initial_top_k)
+    book_recs = books[books["isbn13"].isin(books_list)].head(initial_top_k)
 
     if category != "All":
         book_recs = book_recs[book_recs["simple_categories"] == category]
