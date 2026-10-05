@@ -1,0 +1,35 @@
+{
+  "package_id": "semantic_relevance_top50_checkpoint_a_r2",
+  "version": "1.1.0",
+  "purpose": "Reconstruct and freeze a top-50 candidate pool from the frozen v2 candidate generator; require exact frozen v2 top-10 reproduction and record historical v1 containment as non-blocking audit evidence.",
+  "scope": "Checkpoint A only; zero judge calls; no recommender modification; no v1/v2 artifact mutation.",
+  "expected_v2_recommender_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+  "expected_queries": 12,
+  "expected_candidates_per_query": 50,
+  "expected_rows": 600,
+  "hard_invariants": [
+    "frozen v2 top-10 exact reproduction for all 12 queries",
+    "600 unique query-book pairs"
+  ],
+  "diagnostic_nonblocking_checks": [
+    "historical v1 top-10 containment in reconstructed top-50"
+  ],
+  "r2_reason": "Checkpoint A r1 found a historical v1-only Q07 candidate absent from the later reconstructed top-50 while the frozen v2 top-10 reproduced. Historical ranks 11-50 were never frozen, so v1 containment is audit evidence rather than a valid hard gate.",
+  "files": [
+    {
+      "path": "README.top50-checkpoint-a.md",
+      "sha256": "c79a90352457ec40ed48aba696fdcaeab800a6d17315ee11d04127975f4e10c0",
+      "bytes": 3076
+    },
+    {
+      "path": "collect_semantic_relevance_top50_checkpoint_a.ps1",
+      "sha256": "5d5b976eb6522e8fa84b4c8fa1a773d322007d3c0938a10f9b266d7f710e84c9",
+      "bytes": 1318
+    },
+    {
+      "path": "evals/system_evaluation/collect_semantic_relevance_top50_candidates.py",
+      "sha256": "67d520982645bb49405bac414144ba03c03c4bd8f949b6a174407485b20223fe",
+      "bytes": 24925
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "status": "FROZEN_BEFORE_SYSTEM_EVAL_ANALYSIS",
+  "system_eval_variant": "v2-orderfix",
+  "run_directory": "evals/runs/semantic_relevance_system_eval_v2/20261004T140218Z_recommendations",
+  "judge_scores_sha256": "4770986e868b26821131d2b36f6cc648f0cab68ae50acda0d1ba4df6d0bd0da1",
+  "baseline_v1_run": "evals/runs/semantic_relevance_system_eval_v1/20261002T152856Z_recommendations",
+  "baseline_v1_judge_scores_sha256": "d079a74c7f0473e46d28f19e37e4241a780804e972f3fa5f25b3a67e62a7bd11",
+  "judge_calls_performed_during_analysis": 0,
+  "human_relevance_labels_used": false,
+  "comparison_policy": {
+    "authoritative_release_decision": "Original frozen benchmark metrics, query-cluster bootstrap, eight release gates, and PASS/REVIEW/FAIL policy.",
+    "paired_comparison": "Effect-size deltas + paired bootstrap CIs are secondary comparison evidence and do not alter release gates.",
+    "win_tie_loss": "Per-metric matched-query win/tie/loss counts summarize direction consistency with metric orientation applied.",
+    "gate_transitions": "v1-to-v2 pass/fail transitions use the same frozen release-gate definitions and do not redefine the v2 release decision."
+  }
+}
