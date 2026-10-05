@@ -338,7 +338,7 @@ def main():
     print("Human relevance labels: NOT USED")
 
     run_dir = resolve_collection_run(args.collection_run)
-    verify_frozen_inputs(run_dir)
+    scoring_input = verify_frozen_inputs(run_dir)
 
     rubric = load_json(RUBRIC_FILE)
     config = load_json(JUDGE_CONFIG_FILE)
