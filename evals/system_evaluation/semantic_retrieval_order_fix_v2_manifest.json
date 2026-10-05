@@ -1,0 +1,18 @@
+{
+  "status": "APPLIED",
+  "fix_id": "semantic-retrieval-order-v2",
+  "applied_at_utc": "2026-10-04T12:46:47.995058+00:00",
+  "source_file": "gradio-dashboard.py",
+  "before_sha256": "b8f7c1223a525345a7e278fd29e0cd32a5e0c644a9a0b88e5cc9ac319f749974",
+  "after_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+  "baseline_system_evaluation": "semantic_relevance_system_eval_v1/20261002T152856Z_recommendations",
+  "root_cause": "Pandas isin() retained metadata DataFrame order and discarded vector-store semantic similarity order before head(final_top_k).",
+  "change_scope": "Preserve vector-store candidate rank through the metadata join.",
+  "category_behavior_changed": false,
+  "tone_behavior_changed": false,
+  "judge_changed": false,
+  "evaluation_gates_changed": false,
+  "evaluation_queries_changed": false,
+  "regression_test_policy": "Rerun the unchanged pre-fix semantic retrieval order regression.",
+  "backup_file": "gradio-dashboard.pre_semantic_order_fix_v2.py"
+}
