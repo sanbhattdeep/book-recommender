@@ -2,7 +2,6 @@ from __future__ import annotations
 
 import hashlib
 import json
-import math
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
@@ -22,11 +21,14 @@ V2_RUN = REPO_ROOT / "evals/runs/semantic_relevance_system_eval_v2/20261004T1402
 
 V1_SCORES = V1_RUN / "judge_scores.csv"
 V2_SCORES = V2_RUN / "judge_scores.csv"
+V1_GATES = V1_RUN / "release_gate_result.json"
+V2_GATES = V2_RUN / "release_gate_result.json"
 
 EXPECTED_V1_SHA = "d079a74c7f0473e46d28f19e37e4241a780804e972f3fa5f25b3a67e62a7bd11"
 EXPECTED_V2_SHA = "4770986e868b26821131d2b36f6cc648f0cab68ae50acda0d1ba4df6d0bd0da1"
 
 OUTPUT_QUERY_DELTAS = V2_RUN / "v1_vs_v2_query_deltas.csv"
+OUTPUT_GATE_TRANSITIONS = V2_RUN / "v1_vs_v2_gate_transitions.csv"
 OUTPUT_JSON = V2_RUN / "v1_vs_v2_paired_comparison.json"
 OUTPUT_REPORT = V2_RUN / "v1_vs_v2_paired_report.md"
 OUTPUT_METADATA = V2_RUN / "v1_vs_v2_paired_analysis_metadata.json"
@@ -39,48 +41,46 @@ METRICS = {
     "macro_mean_relevance_at_10": {
         "query_column": "mean_relevance_at_10",
         "higher_is_better": True,
-        "binary_query_metric": False,
     },
     "clear_or_strong_rate_at_10": {
         "query_column": "clear_or_strong_rate_at_10",
         "higher_is_better": True,
-        "binary_query_metric": False,
     },
     "irrelevant_rate_at_10": {
         "query_column": "irrelevant_rate_at_10",
         "higher_is_better": False,
-        "binary_query_metric": False,
     },
     "hit_rate_at_5_clear_or_strong": {
         "query_column": "hit_at_5_clear_or_strong",
         "higher_is_better": True,
-        "binary_query_metric": True,
     },
     "top1_clear_or_strong_rate": {
         "query_column": "top1_clear_or_strong",
         "higher_is_better": True,
-        "binary_query_metric": True,
     },
     "mrr_at_10_clear_or_strong": {
         "query_column": "mrr_at_10_clear_or_strong",
         "higher_is_better": True,
-        "binary_query_metric": False,
     },
     "ndcg_at_10": {
         "query_column": "ndcg_at_10",
         "higher_is_better": True,
-        "binary_query_metric": False,
     },
     "catastrophic_query_rate": {
         "query_column": "catastrophic_query",
         "higher_is_better": False,
-        "binary_query_metric": True,
     },
 }
 
 
 def sha256(path: Path) -> str:
     return hashlib.sha256(path.read_bytes()).hexdigest()
+
+
+def load_json(path: Path) -> dict[str, Any]:
+    if not path.exists():
+        raise FileNotFoundError(path)
+    return json.loads(path.read_text(encoding="utf-8-sig"))
 
 
 def load_scores(path: Path, expected_sha: str) -> pd.DataFrame:
@@ -116,30 +116,6 @@ def make_query_metrics(scores: pd.DataFrame) -> pd.DataFrame:
     ])
 
 
-def exact_mcnemar_pvalue(
-    v1: np.ndarray,
-    v2: np.ndarray,
-) -> tuple[float, int, int]:
-    """Two-sided exact McNemar test using discordant matched queries only."""
-    a = np.asarray(v1, dtype=int)
-    b = np.asarray(v2, dtype=int)
-
-    n_01 = int(np.sum((a == 0) & (b == 1)))
-    n_10 = int(np.sum((a == 1) & (b == 0)))
-    discordant = n_01 + n_10
-
-    if discordant == 0:
-        return 1.0, n_01, n_10
-
-    smaller = min(n_01, n_10)
-    tail = sum(
-        math.comb(discordant, k)
-        for k in range(0, smaller + 1)
-    ) / (2 ** discordant)
-
-    return min(1.0, 2.0 * tail), n_01, n_10
-
-
 def paired_bootstrap(
     differences_by_metric: dict[str, np.ndarray],
     replicates: int,
@@ -168,6 +144,63 @@ def paired_bootstrap(
             "method": "paired percentile query bootstrap",
         }
     return result
+
+
+def build_gate_transitions(
+    v1_gates: dict[str, Any],
+    v2_gates: dict[str, Any],
+) -> tuple[list[dict[str, Any]], dict[str, int]]:
+    v1_checks = v1_gates.get("checks", {})
+    v2_checks = v2_gates.get("checks", {})
+    if list(v1_checks.keys()) != list(v2_checks.keys()):
+        raise ValueError("v1 and v2 release gate names/order do not match.")
+
+    transitions: list[dict[str, Any]] = []
+    counts = {
+        "fail_to_pass": 0,
+        "pass_to_pass": 0,
+        "fail_to_fail": 0,
+        "pass_to_fail": 0,
+    }
+
+    for gate_name in v1_checks:
+        v1 = v1_checks[gate_name]
+        v2 = v2_checks[gate_name]
+        if (
+            v1.get("metric") != v2.get("metric")
+            or v1.get("operator") != v2.get("operator")
+            or float(v1.get("threshold")) != float(v2.get("threshold"))
+        ):
+            raise ValueError(f"Gate definition changed between v1 and v2: {gate_name}")
+
+        v1_passed = bool(v1["passed"])
+        v2_passed = bool(v2["passed"])
+        if not v1_passed and v2_passed:
+            transition = "FAIL->PASS"
+            counts["fail_to_pass"] += 1
+        elif v1_passed and v2_passed:
+            transition = "PASS->PASS"
+            counts["pass_to_pass"] += 1
+        elif not v1_passed and not v2_passed:
+            transition = "FAIL->FAIL"
+            counts["fail_to_fail"] += 1
+        else:
+            transition = "PASS->FAIL"
+            counts["pass_to_fail"] += 1
+
+        transitions.append({
+            "gate": gate_name,
+            "metric": v1["metric"],
+            "operator": v1["operator"],
+            "threshold": float(v1["threshold"]),
+            "v1_actual": float(v1["actual"]),
+            "v1_passed": v1_passed,
+            "v2_actual": float(v2["actual"]),
+            "v2_passed": v2_passed,
+            "transition": transition,
+        })
+
+    return transitions, counts
 
 
 def fmt_metric(name: str, value: float) -> str:
@@ -200,8 +233,8 @@ def main() -> None:
     print("Inference unit: matched query")
     print("Matched queries: 12")
     print("Paired bootstrap: 5000 query-level replicates")
-    print("McNemar: exact, binary query outcomes only")
-    print("Other p-value tests: NOT USED")
+    print("Win/tie/loss: query-level, improvement-oriented")
+    print("Gate transitions: v1 -> v2, frozen gate definitions")
     print("Judge calls: 0")
     print("Human relevance labels: NOT USED")
 
@@ -221,16 +254,14 @@ def main() -> None:
 
     query_delta_rows = []
     metric_results: dict[str, Any] = {}
-    differences_by_metric = {}
+    differences_by_metric: dict[str, np.ndarray] = {}
 
     for metric, spec in METRICS.items():
         column = spec["query_column"]
         a = v1_qm[column].astype(float).to_numpy()
         b = v2_qm[column].astype(float).to_numpy()
         raw_diff = b - a
-        improvement = (
-            raw_diff if spec["higher_is_better"] else -raw_diff
-        )
+        improvement = raw_diff if spec["higher_is_better"] else -raw_diff
         differences_by_metric[metric] = raw_diff
 
         for i, qid in enumerate(v1_qm["query_id"]):
@@ -250,44 +281,18 @@ def main() -> None:
             })
 
         raw_aggregate_delta = float(v2_agg[metric] - v1_agg[metric])
-        result = {
+        metric_results[metric] = {
             "v1": float(v1_agg[metric]),
             "v2": float(v2_agg[metric]),
             "raw_delta_v2_minus_v1": raw_aggregate_delta,
             "improvement_oriented_delta": (
-                raw_aggregate_delta
-                if spec["higher_is_better"]
-                else -raw_aggregate_delta
+                raw_aggregate_delta if spec["higher_is_better"] else -raw_aggregate_delta
             ),
             "higher_is_better": bool(spec["higher_is_better"]),
             "wins": int(np.sum(improvement > 1e-15)),
             "ties": int(np.sum(np.abs(improvement) <= 1e-15)),
             "losses": int(np.sum(improvement < -1e-15)),
-            "binary_query_metric": bool(spec["binary_query_metric"]),
         }
-
-        if spec["binary_query_metric"]:
-            p, n_01, n_10 = exact_mcnemar_pvalue(a, b)
-
-            if spec["higher_is_better"]:
-                improved = n_01
-                regressed = n_10
-            else:
-                improved = n_10
-                regressed = n_01
-
-            result["mcnemar"] = {
-                "method": "two-sided exact McNemar",
-                "v1_0_v2_1": n_01,
-                "v1_1_v2_0": n_10,
-                "discordant_pairs": n_01 + n_10,
-                "improved_queries": improved,
-                "regressed_queries": regressed,
-                "exact_two_sided_p_value": float(p),
-                "role": "secondary exploratory diagnostic; not a release gate",
-            }
-
-        metric_results[metric] = result
 
     bootstrap = paired_bootstrap(
         differences_by_metric,
@@ -304,8 +309,17 @@ def main() -> None:
             "bootstrap_standard_error"
         ]
 
+    v1_gates = load_json(V1_GATES)
+    v2_gates = load_json(V2_GATES)
+    gate_transitions, gate_transition_counts = build_gate_transitions(v1_gates, v2_gates)
+
     pd.DataFrame(query_delta_rows).to_csv(
         OUTPUT_QUERY_DELTAS,
+        index=False,
+        encoding="utf-8",
+    )
+    pd.DataFrame(gate_transitions).to_csv(
+        OUTPUT_GATE_TRANSITIONS,
         index=False,
         encoding="utf-8",
     )
@@ -326,21 +340,13 @@ def main() -> None:
             "resampling_unit": "matched query",
             "versions_kept_paired": True,
         },
-        "hypothesis_testing": {
-            "mcnemar_only": True,
-            "scope": [
-                "hit_rate_at_5_clear_or_strong",
-                "top1_clear_or_strong_rate",
-                "catastrophic_query_rate",
-            ],
-            "other_p_value_tests_used": False,
-            "interpretation": (
-                "McNemar is retained only as a compact secondary diagnostic "
-                "for matched binary query outcomes. No significance result "
-                "changes the release decision."
-            ),
-        },
         "metrics": metric_results,
+        "gate_transitions": {
+            "v1_decision": v1_gates.get("decision"),
+            "v2_decision": v2_gates.get("decision"),
+            "counts": gate_transition_counts,
+            "gates": gate_transitions,
+        },
         "limitations": [
             "Only 12 matched benchmark queries are available.",
             (
@@ -352,8 +358,8 @@ def main() -> None:
                 "stochasticity."
             ),
             (
-                "McNemar results are exploratory secondary diagnostics, not "
-                "preregistered release criteria."
+                "The paired comparison is secondary evidence and does not "
+                "change the preregistered v2 release decision."
             ),
         ],
     }
@@ -375,15 +381,11 @@ def main() -> None:
             + f"{result['wins']}/{result['ties']}/{result['losses']} |"
         )
 
-    mcnemar_rows = []
-    for metric, result in metric_results.items():
-        if "mcnemar" not in result:
-            continue
-        m = result["mcnemar"]
-        mcnemar_rows.append(
-            f"| {metric} | {m['improved_queries']} | "
-            f"{m['regressed_queries']} | {m['discordant_pairs']} | "
-            f"{m['exact_two_sided_p_value']:.4f} |"
+    gate_rows = []
+    for row in gate_transitions:
+        gate_rows.append(
+            f"| {row['gate']} | {'PASS' if row['v1_passed'] else 'FAIL'} | "
+            f"{'PASS' if row['v2_passed'] else 'FAIL'} | {row['transition']} |"
         )
 
     report = """# Semantic Relevance System Evaluation — v1 vs v2 Comparison
@@ -403,7 +405,8 @@ v1-to-v2 change. It cannot override the v2 release decision.
 - Paired bootstrap: 5,000 query-level resamples, seed `20261002`.
 - Both versions of each selected query remain paired.
 - No recommendation-rank rows are treated as matched observations.
-- No general p-value testing is performed.
+- Win/tie/loss is calculated per matched query after orienting each metric so
+  that WIN always means better for v2.
 
 ## Metric deltas
 
@@ -414,21 +417,28 @@ delta means improvement.
 |---|---:|---:|---:|---:|---:|
 __ROWS__
 
-## Exact McNemar diagnostics
+## Release-gate transitions
 
-McNemar is retained only for binary query-level outcomes. The most useful
-numbers are the discordant directions: queries that improved versus queries
-that regressed. Exact p-values are shown only as a compact secondary
-diagnostic and are **not release gates**.
+Gate definitions and thresholds are unchanged. These transitions show whether
+v2 moved each frozen gate from pass/fail to a different state; they do not
+redefine the v2 release decision.
 
-| Binary metric | Improved queries | Regressed queries | Discordant | Exact two-sided p |
-|---|---:|---:|---:|---:|
-__MCNEMAR__
+| Gate | v1 | v2 | Transition |
+|---|---:|---:|---:|
+__GATES__
+
+Transition counts:
+
+- FAIL→PASS: __FAIL_TO_PASS__
+- PASS→PASS: __PASS_TO_PASS__
+- FAIL→FAIL: __FAIL_TO_FAIL__
+- PASS→FAIL: __PASS_TO_FAIL__
 
 ## Interpretation
 
-Effect size and paired confidence intervals are the primary comparison
-evidence. With only 12 query clusters, uncertainty can remain substantial.
+Effect size, paired confidence intervals, win/tie/loss counts, and gate
+transitions are the comparison evidence. With only 12 query clusters,
+uncertainty can remain substantial.
 
 The paired bootstrap represents variability across benchmark queries. It does
 not measure judge run-to-run stochasticity.
@@ -436,7 +446,11 @@ not measure judge run-to-run stochasticity.
 No judge calls and no human relevance labels are used in this comparison.
 """
     report = report.replace("__ROWS__", "\n".join(rows))
-    report = report.replace("__MCNEMAR__", "\n".join(mcnemar_rows))
+    report = report.replace("__GATES__", "\n".join(gate_rows))
+    report = report.replace("__FAIL_TO_PASS__", str(gate_transition_counts["fail_to_pass"]))
+    report = report.replace("__PASS_TO_PASS__", str(gate_transition_counts["pass_to_pass"]))
+    report = report.replace("__FAIL_TO_FAIL__", str(gate_transition_counts["fail_to_fail"]))
+    report = report.replace("__PASS_TO_FAIL__", str(gate_transition_counts["pass_to_fail"]))
     OUTPUT_REPORT.write_text(report, encoding="utf-8")
 
     OUTPUT_METADATA.write_text(
@@ -448,8 +462,8 @@ No judge calls and no human relevance labels are used in this comparison.
             "judge_calls_performed": 0,
             "human_relevance_labels_used": False,
             "paired_bootstrap_replicates": BOOTSTRAP_REPLICATES,
-            "mcnemar_binary_metrics": 3,
-            "other_p_value_tests_used": False,
+            "matched_query_count": 12,
+            "gate_transition_count": len(gate_transitions),
         }, indent=2) + "\n",
         encoding="utf-8",
     )
@@ -458,8 +472,13 @@ No judge calls and no human relevance labels are used in this comparison.
     print("PAIRED V1 VS V2 COMPARISON: PASS")
     print("Matched queries: 12")
     print("Paired bootstrap replicates: 5000")
-    print("Exact McNemar binary diagnostics: COMPLETE (3 metrics)")
-    print("Other p-value tests: NOT USED")
+    print(
+        "Gate transitions: "
+        f"FAIL->PASS={gate_transition_counts['fail_to_pass']}, "
+        f"PASS->PASS={gate_transition_counts['pass_to_pass']}, "
+        f"FAIL->FAIL={gate_transition_counts['fail_to_fail']}, "
+        f"PASS->FAIL={gate_transition_counts['pass_to_fail']}"
+    )
     print("Judge calls during comparison: 0")
     print("Human relevance labels used: NO")
     print(f"Report: {OUTPUT_REPORT}")

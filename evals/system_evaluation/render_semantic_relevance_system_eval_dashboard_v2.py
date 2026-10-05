@@ -267,20 +267,24 @@ def main() -> None:
             "</tr>"
         )
 
-    mcnemar_rows = []
-    for metric, row in paired["metrics"].items():
-        m = row.get("mcnemar")
-        if not m:
-            continue
-        mcnemar_rows.append(
+    transition_rows = []
+    for row in paired["gate_transitions"]["gates"]:
+        transition_rows.append(
             "<tr>"
-            f"<td><code>{esc(metric)}</code></td>"
-            f"<td>{m['improved_queries']}</td>"
-            f"<td>{m['regressed_queries']}</td>"
-            f"<td>{m['discordant_pairs']}</td>"
-            f"<td>{m['exact_two_sided_p_value']:.4f}</td>"
+            f"<td><code>{esc(row['gate'])}</code></td>"
+            f"<td>{'PASS' if row['v1_passed'] else 'FAIL'}</td>"
+            f"<td>{'PASS' if row['v2_passed'] else 'FAIL'}</td>"
+            f"<td><strong>{esc(row['transition'])}</strong></td>"
             "</tr>"
         )
+
+    transition_counts = paired["gate_transitions"]["counts"]
+    transition_summary = (
+        f"FAIL→PASS {transition_counts['fail_to_pass']} · "
+        f"PASS→PASS {transition_counts['pass_to_pass']} · "
+        f"FAIL→FAIL {transition_counts['fail_to_fail']} · "
+        f"PASS→FAIL {transition_counts['pass_to_fail']}"
+    )
 
     worst = query_metrics.sort_values(
         ["mean_relevance_at_10", "ndcg_at_10"],
@@ -413,19 +417,17 @@ consistency of the change.
 </section>
 
 <section class="panel">
-<h2>Exact McNemar diagnostics — binary query outcomes</h2>
+<h2>v1 → v2 release-gate transitions</h2>
 <p class="subtle">
-McNemar is retained only for HitRate@5, Top-1 clear/strong, and catastrophic
-query status. Exact p-values are exploratory diagnostics, not release gates.
+Frozen gate definitions are unchanged. {esc(transition_summary)}.
 </p>
 <table>
 <thead>
 <tr>
-<th>Metric</th><th>Improved queries</th><th>Regressed queries</th>
-<th>Discordant</th><th>Exact two-sided p</th>
+<th>Gate</th><th>v1</th><th>v2</th><th>Transition</th>
 </tr>
 </thead>
-<tbody>{''.join(mcnemar_rows)}</tbody>
+<tbody>{''.join(transition_rows)}</tbody>
 </table>
 </section>
 
@@ -484,7 +486,7 @@ queries, not judge run-to-run stochasticity.
 </p>
 <p>
 Release thresholds were frozen before seeing the evaluation results. The
-paired comparison and McNemar diagnostics do not change the release decision.
+paired comparison and gate-transition summary do not change the release decision.
 </p>
 </section>
 
