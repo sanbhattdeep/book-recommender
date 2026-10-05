@@ -1,0 +1,26 @@
+{
+  "status": "FROZEN_BEFORE_JUDGE_SCORING",
+  "system_eval_variant": "v2-orderfix",
+  "collection_run": "evals/runs/semantic_relevance_system_eval_v2/20261004T140218Z_recommendations",
+  "recommendations_sha256": "da7afafac02d760cd83bdf62d7d9acbf556f9804a10490ae6c5de69b85eb8ad9",
+  "judge_input_sha256": "8c5a9b58f8da0ba2adbb02ee75231cec8cbc3e30769b69e589db15ff88224134",
+  "recommender_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+  "execution_git_commit": "91fd9d2a0ebde9f66e7eb6b826631db70b63a165",
+  "baseline_v1_run": "evals/runs/semantic_relevance_system_eval_v1/20261002T152856Z_recommendations",
+  "expected_pairs": 120,
+  "judge_candidate": "semantic_relevance_v0.29.0-r5",
+  "human_relevance_labels_used": false,
+  "aggregate_metrics_calculated_at_scoring_stage": false,
+  "bootstrap_confidence_intervals_calculated_at_scoring_stage": false,
+  "controlled_comparison": {
+    "same_queries": true,
+    "same_judge": true,
+    "same_rubric": true,
+    "same_scoring_logic": true,
+    "same_initial_top_k": 50,
+    "same_final_top_k": 10,
+    "same_bootstrap_method": true,
+    "same_release_gates": true,
+    "only_intended_system_change": "preserve vector-store semantic rank through metadata join"
+  }
+}
