@@ -711,6 +711,21 @@ def assess_hard_exclusion_precheck(
             )
             result = unpack_generated_model(generated, HardExclusionPrecheck)
             assert isinstance(result, HardExclusionPrecheck)
+
+            # Execution-only normalization for malformed structured output.
+            #
+            # Some local-model responses serialize an empty optional span as
+            # supporting_span_ids=[\"\"] instead of supporting_span_ids=[].
+            # A blank string can never identify a real numbered source span,
+            # so removing blank/whitespace-only entries is a mechanical
+            # serialization repair. Valid IDs are preserved unchanged and
+            # still pass through the normal unknown-span and trigger checks.
+            result.supporting_span_ids = [
+                span_id
+                for span_id in result.supporting_span_ids
+                if span_id.strip()
+            ]
+
             unknown = set(result.supporting_span_ids) - set(spans)
             if unknown:
                 raise JudgeOutputValidationError(
