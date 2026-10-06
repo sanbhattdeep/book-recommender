@@ -24,3 +24,9 @@ Thumbs.db
 .deepeval
 
 evals/runs/
+
+# Local evaluation package/staging directories
+/_top50_checkpoint_*/
+/_system_eval_v2_core_analysis*/
+/_semantic_top50_repo_cleanup_patch*/
+/semantic_top50_repo_cleanup_patch*/
