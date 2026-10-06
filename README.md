@@ -243,6 +243,9 @@ book-recommender/
 ├── gradio-dashboard.py
 │   └── Gradio recommendation application
 │
+
+|-- evals/
+|   -- AI evaluation framework, judge calibration, system evaluation and diagnostics
 ├── cover-not-found.jpg
 │   └── Fallback image for books without covers
 │
@@ -277,6 +280,19 @@ These generated files are consumed by later stages of the pipeline.
 
 ---
 
+## Evaluation Framework
+
+Recommendation quality is evaluated separately from the application pipeline.
+
+The evals/ directory contains the versioned semantic-relevance judge,
+human-labelled calibration and holdout workflows, frozen system-evaluation
+contracts, bootstrap confidence intervals, release gates, regression tests,
+v1/v2 failure analysis, and the top-50 retrieval-headroom diagnostic.
+
+See **[evals/README.md](evals/README.md)** for the evaluation architecture,
+evidence lifecycle, statistical design, and reproducibility conventions.
+
+---
 ## 🛠️ Tech Stack
 
 | Technology | Purpose |
@@ -546,7 +562,7 @@ Potential next steps include:
 - add author, rating, year, and page-count filters;
 - combine semantic similarity with book ratings;
 - store ISBNs directly as Chroma metadata;
-- add automated evaluation for recommendation quality;
+- extend automated evaluation beyond semantic relevance to category, tone, latency, and robustness;
 - cache embedding generation;
 - add tests for preprocessing and retrieval;
 - package preprocessing as Python modules instead of notebook-only workflows;

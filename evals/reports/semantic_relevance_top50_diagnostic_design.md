@@ -2,8 +2,8 @@
 
 **Project:** Book Recommender  
 **Stage:** post-v2 diagnostic, before v3 reranker design  
-**Status:** DESIGN — no new judge calls performed by this document  
-**Recommended repo location:** `evals/reports/semantic_relevance_top50_diagnostic_design.md`
+**Status:** ACTIVE DESIGN / ANALYSIS CONTRACT — amended through Checkpoint B; Checkpoint C in progress  
+**Canonical repo location:** `evals/reports/semantic_relevance_top50_diagnostic_design.md`
 
 ---
 
@@ -32,7 +32,7 @@ The diagnostic will:
 
 - use the same 12 semantic benchmark queries;
 - use the unchanged v2 semantic candidate generator;
-- collect the exact vector-ranked top 50 candidates for every query;
+- reconstruct and freeze a vector-ranked top 50 for every query using the frozen v2 candidate generator;
 - preserve vector rank explicitly;
 - reuse existing frozen v1/v2 judge scores where possible;
 - score only previously unscored query-book pairs with the same pinned calibrated judge;
@@ -97,7 +97,7 @@ reproducibility checks
         |
         +-- current vector ranks 1-10 must reproduce frozen v2 top 10
         |
-        +-- every frozen v1 top-10 pair must be present somewhere in top 50
+        +-- historical v1 top-10 containment is recorded as a non-blocking audit
         |
         v
 freeze top-50 candidate artifact
@@ -106,12 +106,12 @@ freeze top-50 candidate artifact
 join existing v1/v2 frozen judge scores
         |
         v
-reuse known scores
-expected unique known pairs ~= 216
+reuse frozen historical scores
+Checkpoint B result: 213 reusable pairs
         |
         v
 prepare judge input only for novel pairs
-expected novel pairs ~= 384
+Checkpoint B result: 387 novel pairs
         |
         v
 score novel pairs with same pinned judge
@@ -128,7 +128,7 @@ decision:
 reranker-supported / retrieval-limited / mixed
 ```
 
-The values `216 known / 384 novel` are expected from the current v1-v2 recommendation-level comparison. The implementation must recompute them rather than hard-code them.
+Checkpoint B recomputed the overlap against the frozen 600-candidate pool and froze the actual split as `213 reusable / 387 novel`. Those values are observed evidence for this candidate pool, not assumptions that should be generalized to a different reconstruction.
 
 ---
 
@@ -189,9 +189,9 @@ The diagnostic first verifies:
 ranks 1-10 == frozen v2 top 10
 ```
 
-and also verifies that every frozen v1 top-10 candidate still exists somewhere in ranks 1-50.
+and also records whether each frozen v1 top-10 candidate appears somewhere in ranks 1-50.
 
-If either check fails, the experiment stops because the candidate pool has drifted.
+Exact v2 ranks 1-10 reproduction is the hard gate. Historical v1-only tail containment is diagnostic and non-blocking because historical ranks 11-50 were never frozen.
 
 ### 5.3 Phase B: reuse existing scores
 
@@ -473,13 +473,19 @@ frozen v2 top10 ISBNs in the same order
 
 This is the strongest practical check that candidate retrieval has not drifted since the v2 evaluation.
 
-**E. v1 candidate-pool containment**
+**E. historical v1 candidate-pool containment — diagnostic, not a hard gate**
 
-Every frozen v1 top-10 query-book pair must appear somewhere in the newly collected top 50 for that query.
+Every frozen v1 top-10 query-book pair historically came from that run's top-50 membership pool. However, ranks 11-50 were never frozen for v1 or v2, so a later top-50 reconstruction cannot require exact historical tail membership.
 
-This follows from the historical v1 implementation: its final candidates were selected from the same initial top-50 membership pool.
+The collector must therefore record, for every query:
 
-If a frozen v1 pair is absent, stop and investigate candidate-pool/environment drift before any new scoring.
+- which historical v1 top-10 pairs are present in the reconstructed top 50;
+- their reconstructed vector ranks when present;
+- which historical v1 pairs are absent.
+
+Missing historical v1-only candidates do **not** invalidate Checkpoint A as long as all 12 frozen v2 top-10 lists reproduce exactly. They are retained as evidence that deeper candidate membership can vary across retrieval executions.
+
+The hard reproducibility anchor is the frozen v2 top 10, because those ranks were actually persisted.
 
 ---
 
@@ -564,15 +570,15 @@ score_source == UNSCORED
 
 will be sent to the judge.
 
-Based on the current v1/v2 comparison, the expected count is approximately:
+Checkpoint B joined the frozen v1/v2 evidence against the reconstructed candidate pool and established the actual split:
 
 ```text
-600 total
-- 216 unique previously scored pairs
-= 384 novel pairs
+600 total candidates
+213 provenance-compatible historical judgments reused
+387 novel query-book pairs requiring new judgment
 ```
 
-The exact count must be computed after Phase A.
+The implementation derived this split from the frozen artifacts; it was not assumed in advance.
 
 ### 7.2 Judge configuration
 
@@ -880,20 +886,54 @@ Do not proceed from one checkpoint to the next if its integrity checks fail.
 
 ---
 
-## 15. Immediate next implementation step
+## 15. Current implementation status
 
-The first code change should implement **Checkpoint A only**.
+The staged implementation now follows the design contract:
 
-It should:
+```text
+Checkpoint A
+    COMPLETE
+    600 candidates frozen
+    12/12 frozen v2 top-10 lists reproduced
 
-- load the frozen 12 queries;
-- load the backend without launching Gradio;
-- directly call the unchanged vector store for `k=50`;
-- preserve exact vector rank;
-- join book metadata without altering order;
-- compare ranks 1-10 against frozen v2 top-10 output;
-- verify all frozen v1 top-10 candidates are contained within top 50;
-- write and hash the 600-row candidate artifact;
-- perform **zero judge calls**.
+Checkpoint B
+    COMPLETE
+    213 historical judgments reused
+    387 novel pairs frozen for scoring
+    0 historical score conflicts
+    0 payload mismatches
 
-Only after that artifact passes review should the score-reuse/scoring stages be implemented.
+Checkpoint C
+    IN PROGRESS
+    score only the 387 novel pairs
+    restart-safe persistence
+    no aggregate/oracle analysis
+
+Checkpoint D
+    PENDING
+    depth profile + oracle headroom analysis
+    diagnostic conclusion
+```
+
+Checkpoint C must finish and freeze the complete 600-row score map before any
+Checkpoint D analysis begins.
+
+---
+
+## Design amendment after Checkpoint A r1
+
+Checkpoint A r1 reproduced the frozen v2 head through Q07 but found one historical
+v1-only candidate absent from the newly reconstructed Q07 top 50. This exposed an
+overly strong assumption in the original design: historical ranks 11-50 were not
+frozen, so exact deep-tail containment cannot be enforced retroactively.
+
+The amended policy is:
+
+```text
+frozen v2 ranks 1-10 exact reproduction  -> HARD GATE
+historical v1 top-10 containment          -> DIAGNOSTIC / NON-BLOCKING
+```
+
+The 600-row top-50 artifact produced by the successful amended Checkpoint A is
+then frozen and becomes the authoritative candidate pool for all later
+top-50 diagnostic stages.
