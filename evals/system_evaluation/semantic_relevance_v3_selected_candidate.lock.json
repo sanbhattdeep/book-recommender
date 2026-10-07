@@ -1,0 +1,34 @@
+{
+  "status": "V3_SELECTED_CANDIDATE_FROZEN_BEFORE_UNSEEN_HOLDOUT_AUTHORING",
+  "frozen_at_utc": "2026-10-07T12:19:35.565764+00:00",
+  "experiment_id": "semantic-relevance-reranker-v3",
+  "spec_sha256": "5bb1f07f68db828b8db1a8d6d1c62831a5309651b7c62c91d04184bf41bb9261",
+  "selected_variant": "v3b_rrf_hybrid",
+  "selection_source_sha256": "7e3fe39b04a3b4986a7945e1bdd120fb4e02f243b6e0c2347b27d9cc9574030c",
+  "development_comparison_sha256": "9d3d6a2aa5c7e6d51ad5a874c0680a3e80b004e5716608c859199523dc49bce9",
+  "development_run_metadata_sha256": "1e0ba0f2879b384c126ea592ff265a2d92cdf2ea57f23cbb1ccd76506ba41823",
+  "model_id": "BAAI/bge-reranker-base",
+  "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+  "ranking_policy": {
+    "method": "reciprocal_rank_fusion",
+    "candidate_depth": 50,
+    "display_depth": 10,
+    "rrf_k": 60,
+    "vector_weight": 1.0,
+    "reranker_weight": 1.0
+  },
+  "source_hashes": {
+    "semantic_relevance_v3_reranker.py": "5e7a7d6b35c0674f32644e758218830d8a340a61588e2ff0b3f20582fdbb0f60",
+    "run_semantic_relevance_v3_dev.py": "acce4f5f1595c4d3dbf818f13db3902c7437d2e827ca6f978a120288fe261180",
+    "analyze_semantic_relevance_v3_dev.py": "c037ad94dd4854b997894a47c6a3af9cdfd0baf749707b14d218ada67ce65a9c"
+  },
+  "development_output_hashes": {
+    "v3a_recommendations_sha256": "da79795f088c8c5c339e03a0e819accb42e6eeabc4b05de2a1354036df361eb9",
+    "v3b_recommendations_sha256": "0dbaf85e557586368bb9d929fdc7d6f56909b64b53c064f02e08dac7db21bc60"
+  },
+  "development_release_decision_produced": false,
+  "unseen_holdout_required": true,
+  "holdout_must_be_authored_and_frozen_before_retrieval": true,
+  "judge_calls_performed_during_freeze": 0,
+  "reranker_inference_performed_during_freeze": false
+}
