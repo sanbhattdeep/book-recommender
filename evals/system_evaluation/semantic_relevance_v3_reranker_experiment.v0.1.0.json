@@ -1,0 +1,272 @@
+{
+  "experiment_id": "semantic-relevance-reranker-v3",
+  "version": "0.1.0",
+  "status": "DRAFT_TO_FREEZE_BEFORE_V3_DEV_EXECUTION",
+  "purpose": "Test whether a second-stage reranker can convert the existing frozen top-50 semantic candidate pool into a materially better top-10 list without changing candidate generation.",
+  "decision_context": {
+    "checkpoint_d_classification": "RERANKER_SUPPORTED",
+    "development_benchmark_role": "development/diagnostic_only",
+    "final_system_claim_requires_unseen_holdout": true
+  },
+  "frozen_provenance": {
+    "v2_recommender_source_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+    "v2_judge_scores_sha256": "4770986e868b26821131d2b36f6cc648f0cab68ae50acda0d1ba4df6d0bd0da1",
+    "top50_complete_score_map_sha256": "876761c8293615e50072c935b400d8ee31dda08ef12bdb75e7a6d8ecd87cbd35",
+    "top50_new_judge_scores_sha256": "87b016fcd16415e996f9ba1cd57cbd92573d0374f499be936f5b9691401cb87b",
+    "facet_spec_sha256": "083c88fe4de381e8c2e51e30af75e999c9d09cff6cfb03b134472acf881629a0",
+    "judge_source_sha256": "848777f1a7935040d36b8d196751477baa6a573951f2f11679c10f6f4128923d",
+    "scoring_source_sha256": "8d40b3f773e3c763d9b6436ff036e63966ddc2b3877ecf4bf5f8989664d2587b",
+    "accepted_judge_execution_amendments": [
+      "book-subject-retryfix1",
+      "top50-hard-exclusion-blank-span-normalization1"
+    ]
+  },
+  "experimental_invariants": {
+    "candidate_generator_changed": false,
+    "embedding_model_changed": false,
+    "vector_index_changed": false,
+    "query_text_changed_for_dev": false,
+    "candidate_depth": 50,
+    "display_depth": 10,
+    "category_filter": "All",
+    "tone_filter": "All",
+    "human_relevance_labels_used": false,
+    "dev_judge_calls_required": 0
+  },
+  "reranker_model": {
+    "model_id": "BAAI/bge-reranker-base",
+    "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "model_role": "pretrained_cross_encoder_reranker",
+    "training_on_project_data": false,
+    "fine_tuning": false,
+    "trust_remote_code": false,
+    "use_safetensors": true,
+    "runtime_api": "transformers.AutoTokenizer + transformers.AutoModelForSequenceClassification",
+    "score": "single raw sequence-classification logit; higher is better",
+    "score_normalization": "none",
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "empty_description_fallback": "Title: {title}",
+    "authors_in_reranker_input": false,
+    "evaluation_mode": true,
+    "gradient_tracking": false,
+    "reranker_score_tie_break": [
+      "lower original vector_rank",
+      "lexicographically lower isbn13"
+    ],
+    "reproducibility_check": "Run inference twice on the frozen 600 development pairs and require identical per-query reranker rank order before metric analysis."
+  },
+  "variants": {
+    "v2_baseline": {
+      "ranking": "original vector_rank ascending",
+      "top_k": 10
+    },
+    "v3a_cross_encoder": {
+      "ranking": [
+        "reranker_score descending",
+        "vector_rank ascending",
+        "isbn13 ascending"
+      ],
+      "top_k": 10,
+      "tunable_parameters": "none"
+    },
+    "v3b_rrf_hybrid": {
+      "fusion": {
+        "method": "reciprocal_rank_fusion",
+        "k": 60,
+        "vector_weight": 1.0,
+        "reranker_weight": 1.0,
+        "formula": "1/(60 + vector_rank) + 1/(60 + reranker_rank)",
+        "parameter_tuning_on_dev": false
+      },
+      "ranking": [
+        "rrf_score descending",
+        "reranker_rank ascending",
+        "vector_rank ascending",
+        "isbn13 ascending"
+      ],
+      "top_k": 10
+    }
+  },
+  "development_evaluation": {
+    "query_count": 12,
+    "query_ids": [
+      "Q01",
+      "Q02",
+      "Q03",
+      "Q04",
+      "Q05",
+      "Q06",
+      "Q07",
+      "Q08",
+      "Q09",
+      "Q10",
+      "Q11",
+      "Q12"
+    ],
+    "candidate_pairs": 600,
+    "label_source": "frozen Checkpoint C complete score map",
+    "judge_calls": 0,
+    "human_labels": false,
+    "release_decision_allowed": false,
+    "metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10",
+      "catastrophic_query_rate"
+    ],
+    "additional_diagnostics": [
+      "deep_pool_promotions_into_top10",
+      "clear_or_strong_promotions_from_vector_ranks_11_50",
+      "clear_or_strong_candidates_from_original_top10_dropped",
+      "per-query win_tie_loss_vs_v2"
+    ],
+    "uncertainty": {
+      "bootstrap_replicates": 5000,
+      "seed": 20261002,
+      "confidence_level": 0.95,
+      "resampling_unit": "query",
+      "role": "development uncertainty only; not a release claim"
+    }
+  },
+  "variant_selection_rule": {
+    "selection_type": "pre_registered_lexicographic",
+    "ordered_criteria": [
+      "lower catastrophic_query_rate",
+      "lower irrelevant_rate_at_10",
+      "higher clear_or_strong_rate_at_10",
+      "higher macro_mean_relevance_at_10",
+      "higher ndcg_at_10"
+    ],
+    "final_tie_break": "select v3b_rrf_hybrid",
+    "no_parameter_search_after_dev": true
+  },
+  "unseen_holdout_protocol": {
+    "holdout_query_count": 24,
+    "query_ids": "H01-H24",
+    "creation_timing": "Freeze after the development variant is selected and its implementation/configuration are frozen, but before any holdout retrieval output is generated or viewed.",
+    "strata": [
+      {
+        "name": "two_core_theme",
+        "count": 4
+      },
+      {
+        "name": "three_core_conjunctive",
+        "count": 4
+      },
+      {
+        "name": "core_plus_qualifier",
+        "count": 4
+      },
+      {
+        "name": "relationship_or_role_constraint",
+        "count": 4
+      },
+      {
+        "name": "hard_exclusion_or_contrast",
+        "count": 4
+      },
+      {
+        "name": "abstract_nonfiction_multi_facet",
+        "count": 4
+      }
+    ],
+    "dev_query_theme_exclusion": [
+      "forgiveness/redemption",
+      "crime/investigation",
+      "personal growth/finding purpose",
+      "fantasy/magic/dangerous journeys",
+      "historical war/political conflict",
+      "grief/loss/learning to live again",
+      "parent-child relationship",
+      "beginner astronomy/universe",
+      "dystopian authoritarian control/resistance",
+      "leadership/teamwork/effective organizations",
+      "mythology/gods/legendary heroes",
+      "inequality/poverty/wealth distribution"
+    ],
+    "anti_paraphrase_rule": "No holdout query may be a paraphrase, concept-preserving rewrite, or trivial qualifier variation of any Q01-Q12 development query.",
+    "facet_spec_must_be_frozen_before_retrieval": true,
+    "semantic_rubric_changes_after_holdout_freeze": false,
+    "scoring_rule_changes_after_holdout_freeze": false
+  },
+  "final_holdout_measurement": {
+    "baseline": "v2 original vector-rank top10 from the same top50 retrieval",
+    "candidate": "single selected and frozen v3 variant",
+    "judge_unique_union_of_displayed_pairs": true,
+    "standalone_v3_analysis_is_primary": true,
+    "paired_v2_vs_v3_analysis_is_secondary": true,
+    "paired_analysis_cannot_override_standalone_decision": true,
+    "p_values": false,
+    "mcnemar": false,
+    "bootstrap_replicates": 5000,
+    "bootstrap_seed": 20261002
+  },
+  "final_holdout_release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": {
+      "metric": "macro_mean_relevance_at_10",
+      "op": ">=",
+      "value": 2.5
+    },
+    "macro_mean_relevance_ci_lower_ge_2_00": {
+      "metric": "macro_mean_relevance_at_10_ci_lower_95",
+      "op": ">=",
+      "value": 2.0
+    },
+    "clear_or_strong_rate_at_10_ge_0_60": {
+      "metric": "clear_or_strong_rate_at_10",
+      "op": ">=",
+      "value": 0.6
+    },
+    "irrelevant_rate_at_10_le_0_10": {
+      "metric": "irrelevant_rate_at_10",
+      "op": "<=",
+      "value": 0.1
+    },
+    "hit_rate_at_5_clear_or_strong_ge_0_90": {
+      "metric": "hit_rate_at_5_clear_or_strong",
+      "op": ">=",
+      "value": 0.9
+    },
+    "top1_clear_or_strong_rate_ge_0_75": {
+      "metric": "top1_clear_or_strong_rate",
+      "op": ">=",
+      "value": 0.75
+    },
+    "ndcg_at_10_ge_0_85": {
+      "metric": "ndcg_at_10",
+      "op": ">=",
+      "value": 0.85
+    },
+    "catastrophic_query_rate_eq_0": {
+      "metric": "catastrophic_query_rate",
+      "op": "==",
+      "value": 0.0
+    }
+  },
+  "final_holdout_decision_policy": {
+    "PASS": "all 8 frozen release gates pass",
+    "REVIEW": "one or two frozen gates fail and catastrophic_query_rate remains 0",
+    "FAIL": "three or more frozen gates fail, or catastrophic_query_rate > 0",
+    "paired_improvement_cannot_override_standalone_fail": true
+  },
+  "freeze_sequence": [
+    "review and approve this experiment spec",
+    "freeze spec hash",
+    "implement v3a and v3b without modifying candidate generation",
+    "verify deterministic reranker order on repeated inference",
+    "run development comparison using only frozen 600-row labels",
+    "select exactly one variant by the pre-registered lexicographic rule",
+    "freeze selected v3 source/config/model revision",
+    "author and freeze 24-query unseen holdout plus facet spec before retrieval",
+    "run v2 and selected v3 on the same holdout top50 candidate pools",
+    "judge unique union of displayed pairs with frozen measurement instrument",
+    "run standalone v3 and secondary paired v2-v3 analyses",
+    "apply unchanged 8-gate release policy to unseen v3 standalone result"
+  ]
+}
