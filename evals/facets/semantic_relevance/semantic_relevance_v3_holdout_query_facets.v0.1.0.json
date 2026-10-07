@@ -1,0 +1,986 @@
+{
+  "facet_spec_id": "semantic-relevance-v3-holdout-query-facets",
+  "version": "0.1.0",
+  "status": "frozen_before_holdout_retrieval",
+  "evaluation_dimension": "semantic-recommendation-relevance",
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_id": "semantic-relevance-v3-holdout-queries",
+  "dataset_version": "0.1.0",
+  "scoring_module": "evals/semantic_relevance_facet_scoring.py",
+  "authoring_role": "candidate_blind_unseen_system_holdout",
+  "candidate_outputs_inspected_during_authoring": false,
+  "judge_outputs_inspected_during_authoring": false,
+  "human_relevance_labels_used": false,
+  "authoring_guidelines": [
+    "Facets are derived from the frozen holdout query text before retrieval.",
+    "Do not add candidate-specific facts, titles, authors, retrieval ranks, judge outputs, or observed failures.",
+    "Use core facets for central semantic requirements and qualifier facets for important modifiers.",
+    "Keep relational requirements together when splitting them could allow unrelated evidence to satisfy separate pieces.",
+    "Hard exclusions encode explicit query contrasts only.",
+    "Every facet has at least one canonical required component.",
+    "Do not edit this facet file after holdout retrieval begins; version and restart the holdout if a semantic-spec defect is discovered."
+  ],
+  "queries": [
+    {
+      "query_id": "H01",
+      "query": "A story about exile and belonging",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "exile",
+          "facet_type": "core",
+          "semantic_definition": "Being forced, compelled, or meaningfully separated from a homeland, community, familiar place, or social world, with displacement or banishment materially shaping the story.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "displacement_or_banishment",
+              "definition": "The story establishes meaningful displacement, banishment, forced departure, or separation from a homeland/community/familiar social world.",
+              "negative_boundaries": [
+                "Ordinary travel, tourism, relocation by preference, or temporary absence alone does not establish exile."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "belonging",
+          "facet_type": "core",
+          "semantic_definition": "A central concern with finding, losing, negotiating, or being denied a sense of acceptance, home, membership, or place within a community or social world.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "membership_or_home_concern",
+              "definition": "Acceptance, home, membership, social place, or the struggle to belong is substantively established.",
+              "negative_boundaries": [
+                "Merely being present in a group or place does not establish a belonging theme."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H02",
+      "query": "A story about ambition and moral compromise",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "ambition",
+          "facet_type": "core",
+          "semantic_definition": "A sustained drive for achievement, status, power, success, recognition, or advancement that materially motivates a character.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "goal_directed_ambition",
+              "definition": "A character is materially driven by achievement, status, power, recognition, advancement, or comparable success.",
+              "negative_boundaries": [
+                "A one-off goal or ordinary wish without sustained striving does not establish ambition."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "moral compromise",
+          "facet_type": "core",
+          "semantic_definition": "A character compromises ethical principles, accepts wrongdoing, or crosses a moral boundary in pursuit of another aim.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "ethical_boundary_compromised",
+              "definition": "The story establishes that a character sacrifices, bends, violates, or knowingly trades away an ethical principle or moral boundary.",
+              "negative_boundaries": [
+                "A difficult choice is not a moral compromise unless an ethical principle or boundary is actually sacrificed or violated."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H03",
+      "query": "A story about memory and identity",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "memory",
+          "facet_type": "core",
+          "semantic_definition": "Remembering, forgetting, recovering, altering, or confronting memory materially shapes the narrative or a character's understanding of the past.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "memory_as_narrative_driver",
+              "definition": "Memory, forgetting, recovered recollection, or contested recollection materially shapes the story.",
+              "negative_boundaries": [
+                "A story merely set in the past or containing flashbacks does not by itself establish memory as a theme."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "identity",
+          "facet_type": "core",
+          "semantic_definition": "A substantive concern with who a person is, how they understand themselves, or how identity is formed, lost, hidden, recovered, or contested.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "self_conception_or_identity",
+              "definition": "The story substantively examines self-conception, personal identity, or the formation/loss/recovery/contestation of identity.",
+              "negative_boundaries": [
+                "A character simply having a name, role, occupation, or demographic description does not establish an identity theme."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H04",
+      "query": "A story about friendship and loyalty under pressure",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "friendship",
+          "facet_type": "core",
+          "semantic_definition": "A friendship is a substantive relationship in the story rather than incidental social contact.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "substantive_friendship",
+              "definition": "A meaningful friendship between characters is established as important to the narrative.",
+              "negative_boundaries": [
+                "Acquaintances, coworkers, allies, or companions are not automatically friends."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "loyalty under pressure",
+          "facet_type": "core",
+          "semantic_definition": "The friendship is tested by pressure, conflict, danger, competing obligations, or temptation in a way that makes loyalty or betrayal consequential.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "loyalty_test",
+              "definition": "Pressure or competing demands materially test whether one friend remains loyal to another.",
+              "negative_boundaries": [
+                "General hardship affecting both friends does not establish a loyalty test unless loyalty itself is at stake."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H05",
+      "query": "A story about isolation, scarce resources, and survival",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "isolation",
+          "facet_type": "core",
+          "semantic_definition": "Physical or social isolation materially constrains the characters' situation.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "meaningful_isolation",
+              "definition": "Characters are meaningfully cut off from ordinary support, society, rescue, or community.",
+              "negative_boundaries": [
+                "Solitude by preference or a brief period alone does not establish material isolation."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "scarce resources",
+          "facet_type": "core",
+          "semantic_definition": "Limited access to necessities such as food, water, shelter, fuel, medicine, or comparable resources materially affects events.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "resource_scarcity",
+              "definition": "A shortage of necessary resources is explicit and consequential.",
+              "negative_boundaries": [
+                "Ordinary budgeting or inconvenience without consequential scarcity does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "survival",
+          "facet_type": "core",
+          "semantic_definition": "Staying alive or enduring a life-threatening environment or circumstance is a central objective.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "life_preservation_struggle",
+              "definition": "Characters face a substantive struggle to remain alive or endure conditions that threaten survival.",
+              "negative_boundaries": [
+                "General difficulty, discomfort, or adventure without a life-preservation struggle does not establish survival."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H06",
+      "query": "A novel about espionage, deception, and divided loyalties",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "espionage",
+          "facet_type": "core",
+          "semantic_definition": "Spying, intelligence work, covert information gathering, secret agents, or comparable clandestine state/organizational intelligence activity is substantively present.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "covert_intelligence_activity",
+              "definition": "The narrative establishes spying, intelligence operations, secret agents, or covert information gathering.",
+              "negative_boundaries": [
+                "Ordinary secrecy or private investigation does not automatically establish espionage."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "deception",
+          "facet_type": "core",
+          "semantic_definition": "Deliberate concealment, false identity, misinformation, manipulation, or lying materially drives events.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "material_deception",
+              "definition": "A consequential act or system of deliberate deception materially shapes the plot.",
+              "negative_boundaries": [
+                "A minor lie or surprise reveal alone does not establish deception as a central theme."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "divided loyalties",
+          "facet_type": "core",
+          "semantic_definition": "A character faces competing allegiances to people, nations, institutions, causes, or identities.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "competing_allegiances",
+              "definition": "The narrative establishes meaningful conflict between two or more loyalties or allegiances.",
+              "negative_boundaries": [
+                "Merely changing sides without an internal or relational loyalty conflict does not establish divided loyalties."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H07",
+      "query": "A family saga about inheritance, rivalry, and generational change",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "inheritance",
+          "facet_type": "core",
+          "semantic_definition": "Property, wealth, title, legacy, family responsibility, or another inherited asset/burden materially shapes family events.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "material_inheritance_or_legacy",
+              "definition": "An inheritance or intergenerational legacy is explicit and consequential.",
+              "negative_boundaries": [
+                "General family history without something inherited or passed down does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "family rivalry",
+          "facet_type": "core",
+          "semantic_definition": "Competition, resentment, struggle, or conflict among relatives materially affects the family.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "intrafamily_rivalry",
+              "definition": "Relatives compete or remain in consequential rivalry/conflict.",
+              "negative_boundaries": [
+                "A single disagreement without sustained rivalry or competition does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "generational change",
+          "facet_type": "core",
+          "semantic_definition": "Differences, transitions, or change across generations are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "cross_generational_transition",
+              "definition": "The narrative substantively contrasts or traces change across generations.",
+              "negative_boundaries": [
+                "Simply including characters of different ages does not establish generational change."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H08",
+      "query": "A science-fiction story about artificial intelligence, autonomy, and human dependence",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "artificial intelligence",
+          "facet_type": "core",
+          "semantic_definition": "Artificially created intelligence, machine cognition, or an AI system is a substantive element of the story.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "ai_system_present",
+              "definition": "A machine or artificial system with intelligence/cognition is substantively present.",
+              "negative_boundaries": [
+                "Ordinary software, automation, or robots without intelligent agency do not automatically establish AI."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "autonomy",
+          "facet_type": "core",
+          "semantic_definition": "The ability or right of the AI or affected humans to make independent decisions, act freely, or resist control is materially examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "independent_agency_question",
+              "definition": "Independent agency, self-direction, or control over decisions is substantively at issue.",
+              "negative_boundaries": [
+                "Routine operation of a machine without an agency/control question does not establish autonomy."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "human dependence",
+          "facet_type": "core",
+          "semantic_definition": "Humans materially rely on AI or technology in a way that shapes risk, society, relationships, or decision-making.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "meaningful_human_reliance",
+              "definition": "Human reliance on the AI/technology is explicit and consequential.",
+              "negative_boundaries": [
+                "Casual technology use does not establish dependence."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H09",
+      "query": "A humorous book about adapting to a new culture",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "adapting to a new culture",
+          "facet_type": "core",
+          "semantic_definition": "Adjusting to unfamiliar cultural norms, customs, language, social expectations, or everyday life in a new cultural environment is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "cross_cultural_adaptation",
+              "definition": "The work substantively depicts or explains adjustment to a new cultural environment.",
+              "negative_boundaries": [
+                "Travel observations without adaptation or adjustment do not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "humorous",
+          "facet_type": "qualifier",
+          "semantic_definition": "Humor, comedy, wit, or a deliberately funny treatment is an important characteristic of the work.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "humorous_treatment",
+              "definition": "The description establishes a humorous, comic, witty, or funny tone/treatment.",
+              "negative_boundaries": [
+                "A light tone or isolated amusing incident is insufficient unless humor is a meaningful characteristic."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H10",
+      "query": "A practical book about managing personal finances on a limited income",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "personal finance on a limited income",
+          "facet_type": "core",
+          "semantic_definition": "Managing money, expenses, savings, debt, or household finances specifically under constrained or limited income is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "limited_income_finance_management",
+              "definition": "The work substantively addresses managing personal/household finances while income or available money is constrained.",
+              "negative_boundaries": [
+                "General investing, wealth building, or corporate finance without limited-income personal finance does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "practical",
+          "facet_type": "qualifier",
+          "semantic_definition": "The work provides actionable guidance, concrete steps, tools, examples, or directly usable advice rather than only theory or commentary.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "actionable_guidance",
+              "definition": "The description establishes concrete, usable guidance, methods, steps, tools, or examples.",
+              "negative_boundaries": [
+                "Purely descriptive, historical, or theoretical discussion does not establish a practical guide."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H11",
+      "query": "A reflective book about the history of cities and urban life",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "history of cities and urban life",
+          "facet_type": "core",
+          "semantic_definition": "The historical development of cities, urban communities, or everyday urban life is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "urban_history",
+              "definition": "The work substantively examines cities or urban life across historical development or change.",
+              "negative_boundaries": [
+                "A contemporary city setting alone does not establish urban history."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "reflective",
+          "facet_type": "qualifier",
+          "semantic_definition": "The treatment is contemplative, interpretive, essayistic, or explicitly concerned with drawing broader meaning from the historical subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "reflective_treatment",
+              "definition": "The description establishes a contemplative or interpretive treatment rather than only factual chronology.",
+              "negative_boundaries": [
+                "Detailed factual history alone does not establish a reflective qualifier."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H12",
+      "query": "A fast-paced story about surviving at sea",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "survival at sea",
+          "facet_type": "core",
+          "semantic_definition": "Surviving dangerous maritime conditions, shipwreck, being stranded at sea, or another sea-based life-preservation struggle is central.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "maritime_survival",
+              "definition": "The story establishes a substantive life-preservation struggle at sea.",
+              "negative_boundaries": [
+                "Ordinary sailing, naval travel, or maritime adventure without a survival struggle does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "fast-paced",
+          "facet_type": "qualifier",
+          "semantic_definition": "The work is explicitly characterized by rapid momentum, brisk pacing, relentless action, or a comparably fast-moving narrative.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "rapid_narrative_pace",
+              "definition": "Fast, brisk, relentless, or rapid narrative pacing is explicitly established.",
+              "negative_boundaries": [
+                "The presence of danger or action alone does not necessarily establish fast pacing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H13",
+      "query": "A story about rivalry between siblings",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "sibling rivalry",
+          "facet_type": "core",
+          "semantic_definition": "Competition, resentment, jealousy, or sustained conflict specifically between siblings is a substantive relationship in the story.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "sibling_relationship_and_rivalry",
+              "definition": "The same characters are established as siblings and as rivals or sustained competitors/conflicted parties.",
+              "negative_boundaries": [
+                "Siblinghood without rivalry, or rivalry between non-siblings, does not satisfy the relational facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H14",
+      "query": "A story about a mentor whose guidance changes a student",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "transformative mentor-student relationship",
+          "facet_type": "core",
+          "semantic_definition": "A mentor guides a student or learner, and that guidance materially changes the student's outlook, ability, choices, or development.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "mentor_guidance_changes_student",
+              "definition": "A mentor-student/learner relationship, substantive guidance, and a material change in the student attributable to that guidance are all established.",
+              "negative_boundaries": [
+                "A teacher merely instructing a class, or a student changing without mentor guidance, does not satisfy the full relational concept."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H15",
+      "query": "A story about loyalty and conflict between longtime friends",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "loyalty-conflict among longtime friends",
+          "facet_type": "core",
+          "semantic_definition": "Longstanding friends face substantive conflict while loyalty to the friendship remains materially at stake.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "longtime_friendship_with_loyalty_conflict",
+              "definition": "The same characters are established as longtime friends, in meaningful conflict, with loyalty to one another or the friendship substantively implicated.",
+              "negative_boundaries": [
+                "Conflict between recent acquaintances, or loyalty without conflict, does not satisfy the full relationship constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H16",
+      "query": "A story about trust between a doctor and a difficult patient",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "doctor-patient trust under strain",
+          "facet_type": "core",
+          "semantic_definition": "Trust, mistrust, or the building/repair of trust specifically within a doctor-patient relationship is central, with the patient's difficulty, resistance, or challenging circumstances materially affecting that relationship.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "doctor_patient_trust_dynamic",
+              "definition": "A doctor-patient relationship and a substantive trust/mistrust dynamic under strain are both established.",
+              "negative_boundaries": [
+                "A medical story without a doctor-patient trust dynamic does not satisfy this relationship constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H17",
+      "query": "A book about meditation as a secular practice, not religion or theology",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "secular meditation practice",
+          "facet_type": "core",
+          "semantic_definition": "Meditation is substantively presented as a nonreligious practice, method, or discipline for attention, awareness, wellbeing, or comparable secular purposes.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "H17_F1_HX_RELIGION_THEOLOGY",
+              "rule": "Reject works whose relevant meditation content is primarily framed as religion, theology, worship, or devotional doctrine rather than a secular practice."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "secular_meditation",
+              "definition": "Meditation practice is central and is framed in secular/nonreligious terms.",
+              "negative_boundaries": [
+                "A work centered on religious doctrine, theology, worship, or devotional practice does not establish the requested secular framing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H18",
+      "query": "A story about competition in sports, not war or military conflict",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "sports competition",
+          "facet_type": "core",
+          "semantic_definition": "Athletic or sporting competition is a central narrative conflict, goal, or setting.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "H18_F1_HX_WAR_MILITARY",
+              "rule": "Reject works where the apparent competition is actually war, battle, military training, or armed conflict rather than sport."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "athletic_competition",
+              "definition": "The story centrally involves competitors, teams, matches, races, tournaments, or comparable sports competition.",
+              "negative_boundaries": [
+                "Metaphorical competition, business competition, or military conflict does not establish sports competition."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H19",
+      "query": "A book explaining climate change science, not partisan political debate",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "climate change science",
+          "facet_type": "core",
+          "semantic_definition": "The scientific mechanisms, evidence, observations, modeling, causes, or physical consequences of climate change are substantively explained.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "H19_F1_HX_PARTISAN_DEBATE",
+              "rule": "Reject works whose relevant treatment is primarily partisan political argument or campaign debate without substantive explanation of climate science."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "scientific_climate_explanation",
+              "definition": "The work substantively explains scientific evidence, mechanisms, causes, models, or physical consequences of climate change.",
+              "negative_boundaries": [
+                "Policy advocacy or partisan argument without substantive scientific explanation does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H20",
+      "query": "A book about the history of food, not a recipe collection or cooking manual",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "food history",
+          "facet_type": "core",
+          "semantic_definition": "The historical development, cultural history, trade, production, consumption, or social meaning of food is a substantive subject.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "H20_F1_HX_RECIPE_COLLECTION",
+              "rule": "Reject works that are primarily recipe collections without substantive historical treatment of food."
+            },
+            {
+              "exclusion_id": "H20_F1_HX_COOKING_MANUAL",
+              "rule": "Reject works that are primarily cooking-technique manuals or instructional cookbooks without substantive food history."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "historical_food_subject",
+              "definition": "Food is examined historically through change over time, cultural history, trade, production, consumption, or social meaning.",
+              "negative_boundaries": [
+                "Recipes or cooking instructions alone do not establish food history."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H21",
+      "query": "A book about how language shapes thought, culture, and social interaction",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "language and thought",
+          "facet_type": "core",
+          "semantic_definition": "The work substantively examines how language influences, structures, reflects, or interacts with cognition, perception, concepts, or thought.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "language_thought_relation",
+              "definition": "A substantive relationship between language and cognition/thought/perception is established.",
+              "negative_boundaries": [
+                "A book merely teaching vocabulary or grammar does not establish this relationship."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "language and culture",
+          "facet_type": "core",
+          "semantic_definition": "The work substantively examines how language relates to cultural norms, meanings, practices, identities, or worldviews.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "language_culture_relation",
+              "definition": "A substantive relationship between language and culture is established.",
+              "negative_boundaries": [
+                "The presence of multiple languages in a setting does not by itself establish analysis of language and culture."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "language and social interaction",
+          "facet_type": "core",
+          "semantic_definition": "The work examines how language functions in communication, relationships, social roles, power, cooperation, or everyday interaction.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "language_social_interaction",
+              "definition": "Language is substantively connected to interpersonal or social interaction.",
+              "negative_boundaries": [
+                "General communication technology without analysis of language in social interaction does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H22",
+      "query": "A book about the ethics of medical decisions, patient autonomy, and public responsibility",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "ethics of medical decisions",
+          "facet_type": "core",
+          "semantic_definition": "Ethical questions about diagnosis, treatment, care, allocation, consent, end-of-life choices, research, or comparable medical decisions are substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "medical_ethics_decision",
+              "definition": "The work substantively addresses ethical reasoning or conflict around medical/healthcare decisions.",
+              "negative_boundaries": [
+                "Clinical technique alone does not establish medical ethics."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "patient autonomy",
+          "facet_type": "core",
+          "semantic_definition": "Patients' rights or ability to make informed, voluntary decisions about their own care is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "patient_self_determination",
+              "definition": "Patient choice, consent, refusal, informed decision-making, or comparable healthcare self-determination is substantive.",
+              "negative_boundaries": [
+                "Patient satisfaction or bedside manner alone does not establish autonomy."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "public responsibility",
+          "facet_type": "core",
+          "semantic_definition": "Responsibilities to communities, populations, institutions, or the public good in healthcare are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "collective_health_responsibility",
+              "definition": "The work substantively addresses duties or responsibilities beyond an individual patient, such as public health, allocation, institutional responsibility, or population welfare.",
+              "negative_boundaries": [
+                "A purely private doctor-patient decision without broader responsibility does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H23",
+      "query": "A book about migration, national identity, and cultural integration",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "migration",
+          "facet_type": "core",
+          "semantic_definition": "Movement of people across regions or national borders, including immigration, emigration, diaspora, or population movement, is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "population_movement",
+              "definition": "Migration, immigration, emigration, diaspora, or comparable movement of people is substantive.",
+              "negative_boundaries": [
+                "Tourism or ordinary travel does not establish migration."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "national identity",
+          "facet_type": "core",
+          "semantic_definition": "How people or societies define membership, belonging, citizenship, nationhood, or collective national identity is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "nationhood_or_membership_identity",
+              "definition": "National identity, citizenship, nationhood, or membership in a national community is substantive.",
+              "negative_boundaries": [
+                "A book merely set in a country does not establish national identity as a subject."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "cultural integration",
+          "facet_type": "core",
+          "semantic_definition": "Processes of integration, assimilation, accommodation, coexistence, or participation across cultural groups are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "integration_across_cultures",
+              "definition": "The work substantively examines how migrants or cultural groups integrate, assimilate, coexist, or participate in a shared society.",
+              "negative_boundaries": [
+                "Simple cultural difference without an integration process does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "H24",
+      "query": "A book about environmental conservation, economic incentives, and community decision-making",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "environmental conservation",
+          "facet_type": "core",
+          "semantic_definition": "Protecting ecosystems, biodiversity, habitats, natural resources, or ecological systems is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "conservation_goal",
+              "definition": "Conservation or protection of ecosystems, biodiversity, habitats, or natural resources is substantive.",
+              "negative_boundaries": [
+                "General appreciation of nature without conservation action or policy does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "economic incentives",
+          "facet_type": "core",
+          "semantic_definition": "Prices, markets, subsidies, taxes, rewards, penalties, property rights, or other economic incentives are examined as influences on environmental behavior or outcomes.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "economic_incentive_mechanism",
+              "definition": "An economic incentive or market mechanism is substantively connected to behavior or environmental outcomes.",
+              "negative_boundaries": [
+                "General discussion of cost without an incentive mechanism does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "community decision-making",
+          "facet_type": "core",
+          "semantic_definition": "Collective local participation, governance, negotiation, or community-level decisions materially shape conservation choices or outcomes.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "community_governance_or_choice",
+              "definition": "Local/community collective decision-making, governance, participation, or negotiation is substantively examined.",
+              "negative_boundaries": [
+                "A top-down decision with no community role does not establish community decision-making."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}
