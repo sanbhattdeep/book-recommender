@@ -1,0 +1,16 @@
+$ErrorActionPreference = "Stop"
+Write-Host "============================================================"
+Write-Host "SEMANTIC RELEVANCE V3 - FREEZE SELECTED CANDIDATE"
+Write-Host "============================================================"
+Write-Host "Selected: v3b_rrf_hybrid"
+Write-Host "Reranker inference: DISABLED"
+Write-Host "Judge execution: DISABLED"
+Write-Host "Holdout retrieval: DISABLED"
+Write-Host "============================================================"
+uv run python .\evals\system_evaluation\freeze_semantic_relevance_v3_selected_candidate.py
+if ($LASTEXITCODE -ne 0) { throw "V3 selected-candidate freeze failed." }
+Write-Host ""
+Write-Host "============================================================"
+Write-Host "V3 SELECTED-CANDIDATE FREEZE: VERIFIED"
+Write-Host "Next: unseen holdout authoring/freeze only."
+Write-Host "============================================================"

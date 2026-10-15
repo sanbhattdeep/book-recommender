@@ -1,0 +1,25 @@
+query_id,query,stratum
+H01,A story about exile and belonging,two_core_theme
+H02,A story about ambition and moral compromise,two_core_theme
+H03,A story about memory and identity,two_core_theme
+H04,A story about friendship and loyalty under pressure,two_core_theme
+H05,"A story about isolation, scarce resources, and survival",three_core_conjunctive
+H06,"A novel about espionage, deception, and divided loyalties",three_core_conjunctive
+H07,"A family saga about inheritance, rivalry, and generational change",three_core_conjunctive
+H08,"A science-fiction story about artificial intelligence, autonomy, and human dependence",three_core_conjunctive
+H09,A humorous book about adapting to a new culture,core_plus_qualifier
+H10,A practical book about managing personal finances on a limited income,core_plus_qualifier
+H11,A reflective book about the history of cities and urban life,core_plus_qualifier
+H12,A fast-paced story about surviving at sea,core_plus_qualifier
+H13,A story about rivalry between siblings,relationship_or_role_constraint
+H14,A story about a mentor whose guidance changes a student,relationship_or_role_constraint
+H15,A story about loyalty and conflict between longtime friends,relationship_or_role_constraint
+H16,A story about trust between a doctor and a difficult patient,relationship_or_role_constraint
+H17,"A book about meditation as a secular practice, not religion or theology",hard_exclusion_or_contrast
+H18,"A story about competition in sports, not war or military conflict",hard_exclusion_or_contrast
+H19,"A book explaining climate change science, not partisan political debate",hard_exclusion_or_contrast
+H20,"A book about the history of food, not a recipe collection or cooking manual",hard_exclusion_or_contrast
+H21,"A book about how language shapes thought, culture, and social interaction",abstract_nonfiction_multi_facet
+H22,"A book about the ethics of medical decisions, patient autonomy, and public responsibility",abstract_nonfiction_multi_facet
+H23,"A book about migration, national identity, and cultural integration",abstract_nonfiction_multi_facet
+H24,"A book about environmental conservation, economic incentives, and community decision-making",abstract_nonfiction_multi_facet

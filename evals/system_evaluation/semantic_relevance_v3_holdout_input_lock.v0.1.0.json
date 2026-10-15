@@ -1,0 +1,27 @@
+{
+  "status": "V3_UNSEEN_HOLDOUT_INPUTS_FROZEN_BEFORE_RETRIEVAL",
+  "frozen_at_utc": "2026-10-07T12:30:01.774207+00:00",
+  "selected_candidate_lock_sha256": "87484c845fe332882a8ee97eba3824cdc69121f1e10b6614d4532d58fb82e053",
+  "selected_variant": "v3b_rrf_hybrid",
+  "v3_experiment_spec_sha256": "5bb1f07f68db828b8db1a8d6d1c62831a5309651b7c62c91d04184bf41bb9261",
+  "holdout_query_file": "evals/datasets/semantic_relevance_v3_holdout_queries.v0.1.0.csv",
+  "holdout_query_file_sha256": "75c06bb2c41155cee216339ab7c0421e214f7b3324fac5ec7414f3e2c5bb7b45",
+  "holdout_facet_file": "evals/facets/semantic_relevance/semantic_relevance_v3_holdout_query_facets.v0.1.0.json",
+  "holdout_facet_file_sha256": "09b25e41f5d7358a45f9910af0c36efcd69eae68894c7f0c83766d111b15fced",
+  "holdout_authoring_protocol_sha256": "07d3f4f9e4abbe7b522df2b9d2107ad529283e15d5bea0a2068318b1a77e3f40",
+  "query_count": 24,
+  "strata": {
+    "two_core_theme": 4,
+    "three_core_conjunctive": 4,
+    "core_plus_qualifier": 4,
+    "relationship_or_role_constraint": 4,
+    "hard_exclusion_or_contrast": 4,
+    "abstract_nonfiction_multi_facet": 4
+  },
+  "candidate_blind_authoring": true,
+  "retrieval_outputs_viewed_before_freeze": false,
+  "judge_outputs_viewed_before_freeze": false,
+  "human_relevance_labels_used": false,
+  "holdout_retrieval_performed_before_freeze": false,
+  "post_retrieval_semantic_patch_policy": "invalidate affected holdout version; create a new version; do not patch individual results"
+}
