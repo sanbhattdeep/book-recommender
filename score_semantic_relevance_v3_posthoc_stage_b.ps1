@@ -14,6 +14,7 @@ Write-Host "Judge: semantic_relevance_v0.29.0-r5"
 Write-Host "Human relevance labels: NOT USED"
 Write-Host "Classification: NOT CALCULATED"
 Write-Host "Frozen v3 release decision modification: DISABLED"
+Write-Host "Execution patch: prominence span-echo normalization1"
 if ($Resume) {
     Write-Host "Mode: RESUME persisted cases after execution failure"
 }

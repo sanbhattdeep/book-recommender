@@ -19,6 +19,8 @@ EVALS = REPO_ROOT / "evals"
 if str(EVALS) not in sys.path:
     sys.path.insert(0, str(EVALS))
 
+import semantic_relevance_facet_judge as judge_module
+
 from semantic_relevance_facet_judge import (
     generate_validated_semantic_verdict,
     serialize_facet_assessments,
@@ -55,6 +57,11 @@ EOL_PATCH_FILE = (
     / "system_evaluation"
     / "semantic_relevance_v3_holdout_execution_patch.eolnorm1.json"
 )
+SPAN_ECHO_PATCH_FILE = (
+    EVALS
+    / "system_evaluation"
+    / "semantic_relevance_v3_posthoc_execution_patch.span-echo-normalization1.json"
+)
 
 JUDGE_FILE = EVALS / "semantic_relevance_facet_judge.py"
 SCORING_FILE = EVALS / "semantic_relevance_facet_scoring.py"
@@ -84,6 +91,10 @@ EXPECTED_CONTRACT_SHA256 = (
 EXPECTED_HOLDOUT_SCORING_LOCK_SHA256 = (
     "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777"
 )
+EXPECTED_SPAN_ECHO_PATCH_SHA256 = (
+    "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266"
+)
+SPAN_ECHO_PATCH_ID = "v3-posthoc-prominence-span-echo-normalization1"
 
 EXPECTED_TARGET_QUERIES = 17
 EXPECTED_TOTAL_PAIRS = 850
@@ -107,6 +118,7 @@ AUDIT_COLUMNS = [
     "judge_reason",
     "semantic_generation_mode",
     "semantic_stage_retry_count",
+    "prominence_span_echo_normalization_count",
     "book_subject_summary",
     "book_subject_span_ids_json",
     "book_subject_reason",
@@ -202,6 +214,132 @@ def canonical_optional_text(value: Any) -> str:
     return text
 
 
+
+PATCH_STATS = {
+    "normalized_entries": 0,
+    "validator_calls_with_normalization": 0,
+}
+_ORIGINAL_PROMINENCE_VALIDATOR = judge_module._validate_prominence_result
+
+
+def _normalize_exact_prominence_span_echoes(
+    result: Any,
+    spans: dict[str, str],
+) -> int:
+    """Repair only exact echoes of the frozen renderer's ``S#: text`` line.
+
+    This is deliberately narrower than parsing an arbitrary ``S#: ...`` prefix:
+    the complete returned item must exactly equal one source line that the
+    frozen prompt rendered from the supplied ``spans`` mapping. Therefore the
+    repair changes serialization only, not which source evidence was cited.
+    """
+
+    normalized: list[str] = []
+    repaired = 0
+
+    for value in result.supporting_span_ids:
+        token = str(value).strip()
+
+        if token in spans:
+            normalized.append(token)
+            continue
+
+        matches = [
+            span_id
+            for span_id, span_text in spans.items()
+            if token == f"{span_id}: {span_text}".strip()
+        ]
+
+        if len(matches) == 1:
+            normalized.append(matches[0])
+            repaired += 1
+        else:
+            # Preserve every other value exactly enough for the original
+            # frozen validator to reject it normally.
+            normalized.append(str(value))
+
+    if repaired:
+        result.supporting_span_ids = normalized
+
+    return repaired
+
+
+def _patched_validate_prominence_result(
+    result: Any,
+    spans: dict[str, str],
+    config: dict[str, Any],
+) -> None:
+    repaired = _normalize_exact_prominence_span_echoes(result, spans)
+    if repaired:
+        PATCH_STATS["normalized_entries"] += repaired
+        PATCH_STATS["validator_calls_with_normalization"] += 1
+
+    # The frozen validator still makes the acceptance/rejection decision.
+    _ORIGINAL_PROMINENCE_VALIDATOR(
+        result=result,
+        spans=spans,
+        config=config,
+    )
+
+
+def apply_span_echo_execution_patch() -> None:
+    require(
+        sha256(SPAN_ECHO_PATCH_FILE) == EXPECTED_SPAN_ECHO_PATCH_SHA256,
+        "Prominence span-echo execution patch record changed.",
+    )
+    patch = load_json(SPAN_ECHO_PATCH_FILE)
+    required = {
+        "status": "APPLIED_NON_SEMANTIC_EXECUTION_PATCH",
+        "patch_id": SPAN_ECHO_PATCH_ID,
+        "judge_source_modified": False,
+        "judge_prompt_modified": False,
+        "semantic_rules_changed": False,
+        "deterministic_scoring_rules_changed": False,
+        "facet_spec_changed": False,
+        "judge_config_changed": False,
+        "rubric_changed": False,
+        "release_metrics_or_gates_changed": False,
+        "frozen_v3_release_decision_modified": False,
+    }
+    for key, expected in required.items():
+        require(
+            patch.get(key) == expected,
+            f"Span-echo execution patch contract changed: {key}.",
+        )
+
+    # Self-test the exact normalization boundary before any model call.
+    class _Probe:
+        def __init__(self, ids):
+            self.supporting_span_ids = ids
+
+    spans = {"S3": "alpha", "S4": "beta"}
+
+    probe = _Probe(["S3", "S4"])
+    require(
+        _normalize_exact_prominence_span_echoes(probe, spans) == 0
+        and probe.supporting_span_ids == ["S3", "S4"],
+        "Span-echo patch changed already-valid IDs.",
+    )
+
+    probe = _Probe(["S3: alpha", "S4: beta"])
+    require(
+        _normalize_exact_prominence_span_echoes(probe, spans) == 2
+        and probe.supporting_span_ids == ["S3", "S4"],
+        "Span-echo patch failed exact rendered-line normalization.",
+    )
+
+    probe = _Probe(["S3: ALPHA", "S99: alpha", "not-an-id"])
+    require(
+        _normalize_exact_prominence_span_echoes(probe, spans) == 0
+        and probe.supporting_span_ids == ["S3: ALPHA", "S99: alpha", "not-an-id"],
+        "Span-echo patch normalized a non-exact/unknown value.",
+    )
+
+    # Reset self-test counters/side effects and install the wrapper.
+    PATCH_STATS["normalized_entries"] = 0
+    PATCH_STATS["validator_calls_with_normalization"] = 0
+    judge_module._validate_prominence_result = _patched_validate_prominence_result
+
 def matched_core_concepts(spec, verdict) -> str | None:
     matched = supported_core_facet_texts(spec=spec, verdict=verdict)
     return "; ".join(matched) if matched else None
@@ -241,7 +379,17 @@ def load_existing(novel: pd.DataFrame) -> list[dict[str, Any]]:
         encoding="utf-8",
     )
     missing = set(AUDIT_COLUMNS) - set(frame.columns)
-    require(not missing, f"Existing partial score file missing columns: {sorted(missing)}")
+    patch_audit_column = "prominence_span_echo_normalization_count"
+    unexpected_missing = missing - {patch_audit_column}
+    require(
+        not unexpected_missing,
+        f"Existing partial score file missing columns: {sorted(unexpected_missing)}",
+    )
+    if patch_audit_column in missing:
+        # Every pre-patch persisted row passed the original strict validator,
+        # therefore none could have used the new repair path.
+        frame[patch_audit_column] = "0"
+
     require(not frame["case_id"].duplicated().any(), "Duplicate persisted diagnostic case IDs.")
 
     valid = novel.set_index("case_id", drop=False)
@@ -399,6 +547,14 @@ def write_metadata(
         "judge_base_url": config["base_url"],
         "temperature": config["temperature"],
         "runtime_provenance": runtime_provenance,
+        "execution_patch_id": SPAN_ECHO_PATCH_ID,
+        "execution_patch_sha256": EXPECTED_SPAN_ECHO_PATCH_SHA256,
+        "prominence_span_echo_normalized_entries_this_process": int(
+            PATCH_STATS["normalized_entries"]
+        ),
+        "prominence_validator_calls_with_normalization_this_process": int(
+            PATCH_STATS["validator_calls_with_normalization"]
+        ),
         "target_query_count": EXPECTED_TARGET_QUERIES,
         "target_top50_pairs": EXPECTED_TOTAL_PAIRS,
         "reused_frozen_scores": EXPECTED_REUSED,
@@ -582,6 +738,11 @@ def main() -> None:
     print()
 
     novel, inventory, config, runtime_provenance = verify_inputs()
+    apply_span_echo_execution_patch()
+    print(
+        "PASS  non-semantic prominence span-echo normalization patch enabled "
+        "(original frozen validator remains authoritative)"
+    )
     facet_specs = load_facet_specs(load_json(HOLDOUT_FACET_FILE))
     rubric = load_json(RUBRIC_FILE)
 
@@ -621,6 +782,8 @@ def main() -> None:
         for _, row in remaining.iterrows():
             case_id = str(row["case_id"])
             spec = facet_specs[str(row["query_id"])]
+
+            patch_count_before_case = int(PATCH_STATS["normalized_entries"])
 
             semantic_result = generate_validated_semantic_verdict(
                 judge_model=judge_model,
@@ -663,6 +826,10 @@ def main() -> None:
                     "judge_reason": verdict.overall_reason,
                     "semantic_generation_mode": semantic_result.generation_mode,
                     "semantic_stage_retry_count": semantic_result.stage_retry_count,
+                    "prominence_span_echo_normalization_count": (
+                        int(PATCH_STATS["normalized_entries"])
+                        - patch_count_before_case
+                    ),
                     "book_subject_summary": (
                         semantic_result.book_subject_analysis.primary_subject_summary
                     ),
@@ -753,6 +920,12 @@ def main() -> None:
     complete = create_complete_map(inventory, new_scores)
     complete.to_csv(COMPLETE_MAP_FILE, index=False, encoding="utf-8")
 
+    patch_counts = pd.to_numeric(
+        new_scores["prominence_span_echo_normalization_count"],
+        errors="raise",
+    ).astype(int)
+    require((patch_counts >= 0).all(), "Negative span-echo normalization count.")
+
     lock = {
         "status": "V3_POSTHOC_DEEP_JUDGE_SCORES_FROZEN_BEFORE_CLASSIFICATION",
         "frozen_at_utc": datetime.now(timezone.utc).isoformat(),
@@ -760,6 +933,10 @@ def main() -> None:
         "stage_b_input_lock_sha256": EXPECTED_INPUT_LOCK_SHA256,
         "holdout_judge_scoring_lock_sha256": EXPECTED_HOLDOUT_SCORING_LOCK_SHA256,
         "judge_candidate": "semantic_relevance_v0.29.0-r5",
+        "execution_patch_id": SPAN_ECHO_PATCH_ID,
+        "execution_patch_sha256": EXPECTED_SPAN_ECHO_PATCH_SHA256,
+        "prominence_span_echo_normalized_cases": int((patch_counts > 0).sum()),
+        "prominence_span_echo_normalized_entries": int(patch_counts.sum()),
         "holdout_facet_spec_sha256": sha256(HOLDOUT_FACET_FILE),
         "judge_source_sha256": load_json(HOLDOUT_SCORING_LOCK)["judge_source_sha256"],
         "scoring_source_sha256": load_json(HOLDOUT_SCORING_LOCK)["scoring_source_sha256"],
@@ -805,6 +982,14 @@ def main() -> None:
     print(f"Novel score SHA-256: {sha256(NEW_SCORES_FILE)}")
     print(f"Complete map SHA-256: {sha256(COMPLETE_MAP_FILE)}")
     print(f"Scoring lock SHA-256: {sha256(SCORING_LOCK_FILE)}")
+    print(
+        "Prominence span-echo normalized cases: "
+        f"{int((patch_counts > 0).sum())}"
+    )
+    print(
+        "Prominence span-echo normalized entries: "
+        f"{int(patch_counts.sum())}"
+    )
     print("Human relevance labels used: NO")
     print("Classification calculated: NO")
     print("Frozen v3 release decision modified: NO")
