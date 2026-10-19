@@ -1,0 +1,21 @@
+{
+  "patch_id": "v4a-dev-reranker-windows-crlf-source-hash-normalization1",
+  "scope": "source-integrity verification only",
+  "trigger": {
+    "file": "evals/system_evaluation/semantic_relevance_v3_reranker.py",
+    "windows_raw_sha256_observed": "0dc2f367df753f56d9fdefc968e69623d00d80b7a6effd6721eea9fbb7d58e0a",
+    "canonical_lf_sha256_observed": "5e7a7d6b35c0674f32644e758218830d8a340a61588e2ff0b3f20582fdbb0f60",
+    "git_eol_observed": "i/lf w/crlf",
+    "frozen_expected_sha256": "5e7a7d6b35c0674f32644e758218830d8a340a61588e2ff0b3f20582fdbb0f60"
+  },
+  "change": "For the frozen v3 reranker Python source only, normalize CRLF/CR line endings to LF before SHA-256 verification. All spec, lock, CSV, retrieval, implementation, and other artifact hashes remain byte-exact.",
+  "runner_semantics_changed": false,
+  "reranker_model_or_revision_changed": false,
+  "reranker_scoring_changed": false,
+  "hybrid_ranking_changed": false,
+  "retrieval_artifacts_changed": false,
+  "judge_or_release_logic_changed": false,
+  "experiment_execution_performed_by_patch": false,
+  "runner_sha256_after_patch": "fae1d2b519713667d47714b90ec4eaff483655166fb2d97cba679f988f5559da",
+  "preflight_sha256_after_patch": "797a190584932f062800cb8abff58500d4c2d67444f9ae6ba77a767fbaf70d8b"
+}
