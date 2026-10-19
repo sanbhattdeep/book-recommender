@@ -1,0 +1,317 @@
+{
+  "experiment_id": "semantic-relevance-hybrid-retrieval-v4a",
+  "version": "0.1.0",
+  "status": "FROZEN_BEFORE_V4A_IMPLEMENTATION",
+  "purpose": "Test whether adding a deterministic BM25 lexical branch to the frozen dense retriever improves candidate discovery and final top-10 relevance while keeping the selected v3 cross-encoder reranker model unchanged.",
+  "decision_context": {
+    "frozen_v3_final_decision": "FAIL_0_OF_8_GATES",
+    "stage_c_posthoc_classification": {
+      "RETRIEVAL_LIMITED": 7,
+      "RERANKER_LIMITED": 4,
+      "MIXED": 6,
+      "target_queries": 17
+    },
+    "development_benchmark_role": "H01-H24 are development-only for v4; they are no longer unseen.",
+    "final_system_claim_requires_new_unseen_holdout": true
+  },
+  "frozen_provenance": {
+    "v3_reranker_spec_sha256": "5bb1f07f68db828b8db1a8d6d1c62831a5309651b7c62c91d04184bf41bb9261",
+    "v3_final_analysis_lock_sha256": "09b77bc0bd46b6ac88c79240657bb67f746c09959011f9bdea650d2d3bbd3a20",
+    "v3_holdout_dense_top50_sha256": "5587b0400b1fcabb86bbbfcbc6deee741e418cc277e2b9a18ab0efa29e8d4acf",
+    "v3_holdout_v3b_recommendations_sha256": "e5e136a6d611a527635d202ec5edb928e9de77a8a0db46fa0fcab295c69a4ba2",
+    "v3_holdout_judge_scores_sha256": "d1c9ba1848fb4875c1e925b6c5bdafc3483db37a613bad49286a634d96803fa3",
+    "v3_posthoc_stage_b_complete_map_sha256": "723fa27ecb8947334d25b3b7423a6597da39d594eb7ec2f979056b1c3cc516e5",
+    "v3_posthoc_stage_b_scoring_lock_sha256": "af67cc8090d0613973da4c927b573d29bb956be34d4c44255594cb12bde6fd1f",
+    "v3_posthoc_stage_c_classification_lock_sha256": "cbaaaa1795773e46867ee5c135822b4b559c7805eee8e4264609dd4c9a913385",
+    "frozen_dense_recommender_source_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+    "judge_candidate": "semantic_relevance_v0.29.0-r5"
+  },
+  "experimental_invariants": {
+    "embedding_model_changed": false,
+    "dense_vector_index_changed": false,
+    "dense_candidate_depth": 50,
+    "reranker_model_changed": false,
+    "reranker_fine_tuning": false,
+    "reranker_input_template_changed": false,
+    "display_depth": 10,
+    "judge_semantics_changed": false,
+    "rubric_changed": false,
+    "release_gates_changed": false,
+    "query_rewriting": false,
+    "query_decomposition": false,
+    "parameter_sweeps": false
+  },
+  "bm25_corpus": {
+    "runtime_catalog": "books_with_emotions.csv",
+    "runtime_sha256": "CAPTURE_AND_FREEZE_AT_IMPLEMENTATION_PREFLIGHT",
+    "document_key": "isbn13 as canonical string",
+    "duplicate_isbn13_policy": "hard_fail",
+    "search_fields": [
+      "title",
+      "description"
+    ],
+    "excluded_fields": [
+      "authors",
+      "categories",
+      "simple_categories",
+      "emotion columns"
+    ],
+    "text_template": "{title}\\n{description}",
+    "field_weighting": "none",
+    "bm25f": false
+  },
+  "bm25_analyzer": {
+    "unicode_normalization": "NFKC",
+    "case_normalization": "casefold",
+    "apostrophe_normalization": "remove straight and curly apostrophes before tokenization",
+    "token_pattern": "(?u)\\b[^\\W_]{2,}\\b",
+    "minimum_token_length": 2,
+    "stop_words": "none",
+    "stemming": "none",
+    "lemmatization": "none",
+    "synonym_expansion": "none",
+    "query_analyzer": "same as corpus"
+  },
+  "bm25_scoring": {
+    "variant": "deterministic BM25 Okapi with Lucene-style non-negative IDF",
+    "k1": 1.5,
+    "b": 0.75,
+    "idf_formula": "ln(1 + (N - df(t) + 0.5) / (df(t) + 0.5))",
+    "term_score_formula": "idf(t) * (tf(t,D)*(k1+1)) / (tf(t,D)+k1*(1-b+b*|D|/avgdl))",
+    "query_term_frequency": "repeated query tokens contribute repeatedly",
+    "external_bm25_library_required": false,
+    "positive_score_only": true,
+    "candidate_depth": 50,
+    "ranking": [
+      "bm25_score descending",
+      "isbn13 ascending"
+    ]
+  },
+  "candidate_generation": {
+    "dense_branch": {
+      "implementation": "frozen v3/v2 dense semantic retriever",
+      "candidate_depth": 50,
+      "development_behavior": "reuse frozen H01-H24 dense top50 artifact"
+    },
+    "lexical_branch": {
+      "implementation": "BM25 contract in this spec",
+      "candidate_depth": 50
+    },
+    "union": {
+      "deduplicate_key": "isbn13",
+      "truncate_before_reranker": false
+    }
+  },
+  "hybrid_retrieval_rank": {
+    "method": "reciprocal_rank_fusion",
+    "k": 60,
+    "dense_weight": 1.0,
+    "bm25_weight": 1.0,
+    "missing_branch_contribution": 0.0,
+    "formula": "dense:1/(60+dense_rank) if present else 0; bm25:1/(60+bm25_rank) if present else 0; sum",
+    "ranking": [
+      "hybrid_rrf_score descending",
+      "dense_rank ascending missing last",
+      "bm25_rank ascending missing last",
+      "isbn13 ascending"
+    ],
+    "parameter_tuning_on_development": false
+  },
+  "reranker": {
+    "model_id": "BAAI/bge-reranker-base",
+    "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "runtime_api": "transformers.AutoTokenizer + transformers.AutoModelForSequenceClassification",
+    "score": "single raw sequence-classification logit",
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "authors_in_input": false,
+    "rerank_scope": "entire deduplicated dense50+BM25-50 union",
+    "tie_break": [
+      "hybrid_retrieval_rank ascending",
+      "isbn13 ascending"
+    ],
+    "repeat_inference_check": "identical per-query reranker rank order required"
+  },
+  "final_v4a_ranking": {
+    "method": "reciprocal_rank_fusion",
+    "k": 60,
+    "hybrid_retrieval_weight": 1.0,
+    "reranker_weight": 1.0,
+    "formula": "1/(60+hybrid_retrieval_rank) + 1/(60+reranker_rank)",
+    "ranking": [
+      "final_rrf_score descending",
+      "reranker_rank ascending",
+      "hybrid_retrieval_rank ascending",
+      "isbn13 ascending"
+    ],
+    "top_k": 10,
+    "parameter_tuning_on_development": false
+  },
+  "development_protocol": {
+    "query_set": "H01-H24",
+    "query_count": 24,
+    "role": "development only; no release decision",
+    "baseline": "frozen v3b",
+    "candidate": "v4a",
+    "retrieval_diagnostic_queries": "17 Stage-B target queries",
+    "retrieval_diagnostic_scoring": "reuse judged dense top50; judge only previously-unjudged BM25-only candidates needed to complete the hybrid union",
+    "retrieval_diagnostics": [
+      "BM25-only clear/strong count",
+      "queries gaining a BM25-only clear/strong candidate",
+      "best BM25-only score",
+      "hybrid-union clear/strong count",
+      "hybrid-union oracle mean@10",
+      "hybrid-union oracle clear/strong@10",
+      "hybrid-union oracle irrelevant@10",
+      "Stage-C limitation-class transition"
+    ],
+    "end_to_end_scoring": "all 24; reuse frozen scores and judge only previously-unjudged pairs required by v4a top10",
+    "metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10",
+      "catastrophic_query_rate"
+    ],
+    "bootstrap": {
+      "replicates": 5000,
+      "seed": 20261002,
+      "confidence_level": 0.95,
+      "resampling_unit": "query"
+    },
+    "judge": "semantic_relevance_v0.29.0-r5",
+    "human_labels": false,
+    "no_parameter_change_after_judging_begins": true
+  },
+  "development_selection_rule": {
+    "selection_type": "pre_registered_lexicographic_v3b_vs_v4a",
+    "ordered_criteria": [
+      "lower catastrophic_query_rate",
+      "lower irrelevant_rate_at_10",
+      "higher clear_or_strong_rate_at_10",
+      "higher macro_mean_relevance_at_10",
+      "higher ndcg_at_10"
+    ],
+    "final_tie_break": "retain v3b",
+    "retrieval_diagnostics_can_explain_but_not_override_selection": true,
+    "no_parameter_search_after_results_seen": true
+  },
+  "new_unseen_holdout_protocol": {
+    "required_only_if_v4a_selected": true,
+    "query_count": 24,
+    "query_ids": "V4H01-V4H24",
+    "strata": [
+      {
+        "name": "two_core_theme",
+        "count": 4
+      },
+      {
+        "name": "three_core_conjunctive",
+        "count": 4
+      },
+      {
+        "name": "core_plus_qualifier",
+        "count": 4
+      },
+      {
+        "name": "relationship_or_role_constraint",
+        "count": 4
+      },
+      {
+        "name": "hard_exclusion_or_contrast",
+        "count": 4
+      },
+      {
+        "name": "abstract_nonfiction_multi_facet",
+        "count": 4
+      }
+    ],
+    "anti_leakage": [
+      "no paraphrase/trivial variation of Q01-Q12",
+      "no paraphrase/trivial variation of H01-H24",
+      "authoring blind to catalog/retrieval outputs for V4H queries",
+      "query file and facet spec frozen before retrieval",
+      "no BM25/RRF/reranker parameter change after holdout retrieval begins"
+    ],
+    "statistical_claim": "disciplined project benchmark, not statistically powered production qualification"
+  },
+  "final_holdout_measurement": {
+    "baseline": "frozen v3b",
+    "candidate": "frozen v4a",
+    "judge_unique_union_of_displayed_top10_pairs": true,
+    "standalone_v4a_primary": true,
+    "paired_v3b_vs_v4a_secondary": true,
+    "paired_cannot_override_standalone": true,
+    "bootstrap_replicates": 5000,
+    "bootstrap_seed": 20261002,
+    "p_values": false,
+    "mcnemar": false
+  },
+  "final_release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": [
+      "macro_mean_relevance_at_10",
+      ">=",
+      2.5
+    ],
+    "macro_mean_relevance_ci_lower_ge_2_00": [
+      "macro_mean_relevance_at_10_ci_lower_95",
+      ">=",
+      2.0
+    ],
+    "clear_or_strong_rate_at_10_ge_0_60": [
+      "clear_or_strong_rate_at_10",
+      ">=",
+      0.6
+    ],
+    "irrelevant_rate_at_10_le_0_10": [
+      "irrelevant_rate_at_10",
+      "<=",
+      0.1
+    ],
+    "hit_rate_at_5_ge_0_90": [
+      "hit_rate_at_5_clear_or_strong",
+      ">=",
+      0.9
+    ],
+    "top1_ge_0_75": [
+      "top1_clear_or_strong_rate",
+      ">=",
+      0.75
+    ],
+    "ndcg_at_10_ge_0_85": [
+      "ndcg_at_10",
+      ">=",
+      0.85
+    ],
+    "catastrophic_eq_0": [
+      "catastrophic_query_rate",
+      "==",
+      0.0
+    ]
+  },
+  "final_decision_policy": {
+    "PASS": "all 8 gates pass",
+    "REVIEW": "one or two fail and catastrophic rate is zero",
+    "FAIL": "three or more fail, or catastrophic rate > 0"
+  },
+  "explicit_non_goals": [
+    "BM25F/field weighting",
+    "stemming/lemmatization",
+    "stop-word tuning",
+    "phrase or Boolean exclusion logic",
+    "query rewriting/decomposition",
+    "synonym expansion",
+    "embedding/index changes",
+    "reranker model changes or fine-tuning",
+    "candidate-depth sweep",
+    "BM25 k1/b sweep",
+    "RRF k/weight sweep",
+    "judge-as-reranker",
+    "training on judge labels",
+    "release-gate changes"
+  ]
+}
