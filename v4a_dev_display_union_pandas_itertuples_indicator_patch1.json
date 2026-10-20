@@ -1,0 +1,18 @@
+{
+  "patch_id": "v4a-dev-display-union-pandas-itertuples-indicator1",
+  "classification": "execution_only_non_semantic",
+  "reason": "pandas.DataFrame.itertuples() sanitizes the merge indicator column name _merge because it is not a valid namedtuple field, so row._merge is unavailable.",
+  "failure": "AttributeError: 'Pandas' object has no attribute '_merge'",
+  "change": {
+    "before": "merge(..., indicator=True) followed by row._merge",
+    "after": "merge(..., indicator='merge_source') followed by row.merge_source"
+  },
+  "semantic_effect": "none",
+  "recommendation_inputs_changed": false,
+  "recommendation_outputs_changed": false,
+  "judge_contract_changed": false,
+  "release_contract_changed": false,
+  "frozen_v3b_recommendations_changed": false,
+  "frozen_v4a_recommendations_changed": false,
+  "builder_sha256_after_patch": "ae762213bc6cf5535452df5c86fec2ff5f173c0401c45a9f29390a52f5f53194"
+}

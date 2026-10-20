@@ -1,0 +1,22 @@
+{
+  "status": "APPLIED_NON_SEMANTIC_VERIFICATION_PATCH",
+  "patch_id": "v4a-dev-judge-holdout-facet-eol-normalization1",
+  "reason": "Windows checkout converted the frozen H01-H24 facet JSON from LF to CRLF. Raw working-tree bytes differ, while canonical-LF SHA-256 exactly matches the frozen v3 holdout scoring lock.",
+  "scope": [
+    "evals/system_evaluation/verify_semantic_relevance_v4a_dev_judge_package.py",
+    "evals/system_evaluation/score_semantic_relevance_v4a_dev_novel_pairs.py"
+  ],
+  "frozen_holdout_facet_sha256": "09b25e41f5d7358a45f9910af0c36efcd69eae68894c7f0c83766d111b15fced",
+  "observed_windows_raw_sha256": "1fa5f22f8baa447d0914e8e226a8d2b3365bdd08eca0e5339d3ffeff98172b4e",
+  "observed_canonical_lf_sha256": "09b25e41f5d7358a45f9910af0c36efcd69eae68894c7f0c83766d111b15fced",
+  "git_eol_observation": "i/lf w/crlf",
+  "verification_rule": "Accept the frozen facet JSON only when raw SHA-256 or CRLF/CR-to-LF canonicalized SHA-256 equals the hash already frozen in the v3 holdout scoring lock.",
+  "semantic_rules_changed": false,
+  "facet_content_changed": false,
+  "judge_prompt_modified": false,
+  "deterministic_scoring_rules_changed": false,
+  "judge_config_changed": false,
+  "rubric_changed": false,
+  "release_metrics_or_gates_changed": false,
+  "judge_calls_performed_by_patch": 0
+}
