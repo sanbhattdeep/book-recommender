@@ -1,0 +1,17 @@
+{
+  "patch_id": "v4a-implementation-preflight-test-import-path1",
+  "scope": "preflight execution only",
+  "reason": "r1 launched unittest from the repository root while the synthetic test imports semantic_relevance_v4a_hybrid as a sibling module, so evals/system_evaluation was not on sys.path.",
+  "change": "Run unittest from evals/system_evaluation and address the test by its local module name.",
+  "semantic_implementation_changed": false,
+  "bm25_contract_changed": false,
+  "hybrid_ranking_contract_changed": false,
+  "reranker_contract_changed": false,
+  "frozen_spec_changed": false,
+  "implementation_sha256_unchanged": "6f31504e29078fffbab86ddb86ef26b02aaa22082d3bfdb6944792bf689f6db7",
+  "synthetic_test_sha256_unchanged": "0376710871da371e5bbeb5089efccfdad79beb4f8599176b9a48a19587ab06bd",
+  "experiment_execution_performed": false,
+  "catalog_indexed": false,
+  "reranker_inference_performed": false,
+  "judge_calls_performed": 0
+}

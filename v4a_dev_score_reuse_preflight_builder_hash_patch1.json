@@ -1,0 +1,16 @@
+{
+  "status": "APPLIED_NON_SEMANTIC_EXECUTION_PATCH",
+  "patch_id": "v4a-dev-score-reuse-preflight-builder-hash1",
+  "stage": "V4A_DEVELOPMENT_SCORE_REUSE_PREFLIGHT",
+  "reason": "The r2 score-reuse builder changed only to correct the expected frozen v3 holdout scoring-lock status, but the r2 preflight verifier still pinned the r1 builder SHA-256. The verifier therefore rejected the intended r2 builder before executing any score inventory logic.",
+  "change": "Update the preflight verifier's expected score-reuse builder SHA-256 from the r1 builder hash to the r2 builder hash.",
+  "old_builder_sha256": "b984dedb47826637ca6923df96283d0130c4fa7576c75a6c17da285caa716e06",
+  "new_builder_sha256": "2f3a569a57a0dd09de9e5eae7321cb68d66d59a4c4a1fad56a7e9a3e3f70c0de",
+  "semantic_rules_changed": false,
+  "judge_rules_changed": false,
+  "score_reuse_rules_changed": false,
+  "frozen_score_artifacts_changed": false,
+  "release_analysis_changed": false,
+  "judge_calls_performed": 0,
+  "human_relevance_labels_used": false
+}

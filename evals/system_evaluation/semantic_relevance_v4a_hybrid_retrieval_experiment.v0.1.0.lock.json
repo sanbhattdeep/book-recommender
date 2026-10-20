@@ -1,0 +1,53 @@
+{
+  "status": "V4A_EXPERIMENT_SPEC_FROZEN_BEFORE_IMPLEMENTATION",
+  "frozen_at_utc": "2026-10-19T09:39:34.605045+00:00",
+  "experiment_id": "semantic-relevance-hybrid-retrieval-v4a",
+  "version": "0.1.0",
+  "approved_draft_lineage": {
+    "package": "semantic_relevance_v4a_spec_draft_r1",
+    "package_sha256": "fe8b4732aa832079361243f496b8e94404038f46fdffe7ddb9db9e8d343247fe",
+    "json_sha256": "dd33a6ff149de64c81376e2c723074636bf34647d3255e721f0c3f821e7f9ffe",
+    "md_sha256": "337b234f588b2a80bc0e211c4778d859fbc7e796b98425642d827d45ba293e47",
+    "freeze_change": "status marker only; experimental design content unchanged"
+  },
+  "frozen_spec_hashes": {
+    "semantic_relevance_v4a_hybrid_retrieval_experiment.v0.1.0.json": "6aba9c8354f201ad41044dd82d4476612f81ebd27a5ce4f8bf4f327a8b3281b9",
+    "semantic_relevance_v4a_hybrid_retrieval_experiment.v0.1.0.md": "5af31f1b986187b668b0d486d4209da198e88eb6ea03e3b12818ea8c04e33b90"
+  },
+  "critical_contract": {
+    "dense_candidate_depth": 50,
+    "bm25_candidate_depth": 50,
+    "bm25_fields": [
+      "title",
+      "description"
+    ],
+    "bm25_field_weighting": "none",
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "stop_words": "none",
+    "stemming": "none",
+    "lemmatization": "none",
+    "query_rewriting": false,
+    "query_decomposition": false,
+    "hybrid_rrf_k": 60,
+    "hybrid_dense_weight": 1.0,
+    "hybrid_bm25_weight": 1.0,
+    "reranker_model_id": "BAAI/bge-reranker-base",
+    "reranker_model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "final_rrf_k": 60,
+    "final_hybrid_retrieval_weight": 1.0,
+    "final_reranker_weight": 1.0,
+    "display_depth": 10,
+    "development_query_set": "H01-H24",
+    "new_unseen_holdout_query_ids": "V4H01-V4H24"
+  },
+  "execution_boundary": {
+    "implementation_code_included": false,
+    "retrieval_executed": false,
+    "reranker_inference_executed": false,
+    "judge_calls_performed": 0,
+    "human_relevance_labels_used": false,
+    "release_decision_produced": false
+  },
+  "next_stage": "V4A_IMPLEMENTATION_PACKAGE_PREP_WITH_ZERO_RETRIEVAL_RERANKER_OR_JUDGE_EXECUTION"
+}

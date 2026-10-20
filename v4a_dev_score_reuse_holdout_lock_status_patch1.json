@@ -1,0 +1,15 @@
+{
+  "patch_id": "v4a-dev-score-reuse-holdout-lock-status1",
+  "status": "APPLIED_NON_SEMANTIC_PROVENANCE_VERIFICATION_PATCH",
+  "reason": "The v3 holdout scoring lock's frozen status is V3_HOLDOUT_JUDGE_SCORES_FROZEN_BEFORE_ANALYSIS, as enforced by the frozen v3 final-holdout analysis harness. The r1 v4a score-reuse package expected the nonexistent BEFORE_FINAL_ANALYSIS spelling.",
+  "scope": [
+    "evals/system_evaluation/verify_semantic_relevance_v4a_dev_score_reuse_package.py",
+    "evals/system_evaluation/prepare_semantic_relevance_v4a_dev_score_reuse.py"
+  ],
+  "semantic_rules_changed": false,
+  "judge_rules_changed": false,
+  "score_reuse_rules_changed": false,
+  "judge_calls": 0,
+  "human_labels_used": false,
+  "release_analysis_changed": false
+}

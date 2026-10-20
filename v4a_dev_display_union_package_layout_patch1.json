@@ -1,0 +1,12 @@
+{
+  "patch_id": "v4a-dev-display-union-package-layout1",
+  "scope": "transport/package-layout-only",
+  "reason": "The r2 ZIP stored files beneath an enclosing semantic_relevance_v4a_dev_display_union_r2/ directory. Expanding it to the repository root therefore did not overwrite the r1 root-level scripts, so the old builder continued to execute.",
+  "change": "Repackage the already-fixed r2 files with repository-relative paths at the ZIP root so Expand-Archive -DestinationPath . -Force updates the intended files.",
+  "semantic_changes": false,
+  "ranking_changes": false,
+  "recommendation_changes": false,
+  "judge_changes": false,
+  "human_label_changes": false,
+  "release_contract_changes": false
+}

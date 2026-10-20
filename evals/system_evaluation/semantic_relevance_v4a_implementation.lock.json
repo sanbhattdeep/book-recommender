@@ -1,0 +1,57 @@
+{
+  "status": "V4A_IMPLEMENTATION_FROZEN_BEFORE_DEVELOPMENT_RETRIEVAL",
+  "frozen_at_utc": "2026-10-19T10:18:12.158041+00:00",
+  "experiment_id": "semantic-relevance-hybrid-retrieval-v4a",
+  "version": "0.1.0",
+  "frozen_spec_hashes": {
+    "semantic_relevance_v4a_hybrid_retrieval_experiment.v0.1.0.json": "6aba9c8354f201ad41044dd82d4476612f81ebd27a5ce4f8bf4f327a8b3281b9",
+    "semantic_relevance_v4a_hybrid_retrieval_experiment.v0.1.0.md": "5af31f1b986187b668b0d486d4209da198e88eb6ea03e3b12818ea8c04e33b90",
+    "semantic_relevance_v4a_hybrid_retrieval_experiment.v0.1.0.lock.json": "c9fee869cda6ccfd26c1ad0b2624cbcf693b9c896366b6baaa5c0b7b98371db2"
+  },
+  "implementation_candidate_lineage": {
+    "package": "semantic_relevance_v4a_implementation_candidate_r2",
+    "package_sha256": "ec7b17528edf603fd58c7c441d17528e7d87be1173c03ac4b2dcb00bc95071ab",
+    "successful_preflight_output_sha256": "c8ffd85a400500fb58e968ad0eb245234fcdfe9b273fcaac567a06b89077e7e6",
+    "preflight_result": "PASS",
+    "preflight_patch_id": "v4a-implementation-preflight-test-import-path1",
+    "preflight_patch_sha256": "7d1ff49812ed1268fdf15c69c96ff1e1f5531d1e97be348c5836faf3369b1ede",
+    "semantic_implementation_changed_by_patch": false
+  },
+  "frozen_source_hashes": {
+    "semantic_relevance_v4a_hybrid.py": "6f31504e29078fffbab86ddb86ef26b02aaa22082d3bfdb6944792bf689f6db7",
+    "test_semantic_relevance_v4a_hybrid.py": "0376710871da371e5bbeb5089efccfdad79beb4f8599176b9a48a19587ab06bd",
+    "verify_semantic_relevance_v4a_implementation_preflight.py": "3f149941e25f60a17069833cbd6ab1de79ed67380fe76350066779f196a84a37",
+    "verify_semantic_relevance_v4a_implementation_preflight.ps1": "82fccc13bccc5cdd2292ea4b54dc32a053e6b9b271dc6d4b1e14c86a60ee1c04"
+  },
+  "critical_contract": {
+    "bm25_variant": "deterministic BM25 Okapi with Lucene-style non-negative IDF",
+    "bm25_fields": [
+      "title",
+      "description"
+    ],
+    "bm25_k1": 1.5,
+    "bm25_b": 0.75,
+    "bm25_candidate_depth": 50,
+    "dense_candidate_depth": 50,
+    "hybrid_rrf_k": 60,
+    "hybrid_dense_weight": 1.0,
+    "hybrid_bm25_weight": 1.0,
+    "union_truncated_before_reranker": false,
+    "reranker_model_id": "BAAI/bge-reranker-base",
+    "reranker_model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "final_rrf_k": 60,
+    "final_hybrid_retrieval_weight": 1.0,
+    "final_reranker_weight": 1.0,
+    "display_depth": 10
+  },
+  "execution_boundary": {
+    "runtime_catalog_read_during_freeze": false,
+    "bm25_catalog_index_built_during_freeze": false,
+    "development_retrieval_executed_during_freeze": false,
+    "reranker_inference_executed_during_freeze": false,
+    "judge_calls_performed_during_freeze": 0,
+    "human_relevance_labels_used_during_freeze": false,
+    "release_decision_produced": false
+  },
+  "next_stage": "PREPARE_V4A_DEVELOPMENT_RETRIEVAL_EXECUTION_PACKAGE"
+}
