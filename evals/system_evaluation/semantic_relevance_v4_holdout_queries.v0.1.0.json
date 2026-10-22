@@ -1,0 +1,138 @@
+{
+  "dataset_id": "semantic-relevance-v4-unseen-holdout-queries",
+  "version": "0.1.0",
+  "status": "frozen_before_holdout_retrieval",
+  "authoring_role": "candidate_blind_unseen_system_holdout",
+  "source_selection_lock_sha256": "98ab3a62b978b922dc4b6e1bb031bdc6578a007a93de7ae84b20d36a80c9c9b4",
+  "selected_development_candidate": "v4b",
+  "query_count": 24,
+  "anti_leakage": {
+    "catalog_or_v4h_retrieval_outputs_inspected_during_authoring": false,
+    "v4h_judge_outputs_inspected_during_authoring": false,
+    "prior_Q01_Q12_and_H01_H24_query_texts_inspected_only_to_avoid_overlap": true,
+    "development_aggregate_result_known_before_authoring": true,
+    "development_candidate_outputs_for_v4h_do_not_exist_yet": true
+  },
+  "queries": [
+    {
+      "query_id": "V4H01",
+      "query": "A story about fame and loneliness",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V4H02",
+      "query": "A story about justice and revenge",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V4H03",
+      "query": "A story about jealousy and obsession",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V4H04",
+      "query": "A story about tradition and personal freedom",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V4H05",
+      "query": "A historical novel about scientific discovery, professional rivalry, and ethical responsibility",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V4H06",
+      "query": "A mystery about a missing person, family secrets, and unreliable testimony",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V4H07",
+      "query": "A story about rebuilding after a natural disaster, community cooperation, and scarce housing",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V4H08",
+      "query": "A political thriller about journalism, censorship, and whistleblowing",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V4H09",
+      "query": "A humorous memoir about working in restaurants",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V4H10",
+      "query": "A beginner-friendly guide to birdwatching in cities",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V4H11",
+      "query": "A practical book about improving sleep for shift workers",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V4H12",
+      "query": "A visually oriented introduction to architecture for non-specialists",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V4H13",
+      "query": "A story about trust between a lawyer and a reluctant client",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V4H14",
+      "query": "A story about a coach helping an injured athlete rebuild confidence",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V4H15",
+      "query": "A story about tension between a landlord and a long-term tenant",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V4H16",
+      "query": "A story about collaboration between a scientist and a skeptical research assistant",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V4H17",
+      "query": "A book about cryptography for protecting information, not cryptocurrency investing",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V4H18",
+      "query": "A book about evolutionary biology, not motivational uses of the word evolution",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V4H19",
+      "query": "A book about game design as a creative discipline, not gambling or casino strategy",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V4H20",
+      "query": "A book about constitutional law, not election campaigning or partisan strategy",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V4H21",
+      "query": "A book about housing affordability, zoning, and neighborhood change",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V4H22",
+      "query": "A book about cybersecurity, privacy, and government surveillance",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V4H23",
+      "query": "A book about museums, cultural heritage, and artifact repatriation",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V4H24",
+      "query": "A book about aging populations, caregiving systems, and public policy",
+      "stratum": "abstract_nonfiction_multi_facet"
+    }
+  ]
+}

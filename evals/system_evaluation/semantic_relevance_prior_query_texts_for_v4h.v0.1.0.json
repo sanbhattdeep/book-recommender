@@ -1,0 +1,153 @@
+{
+  "manifest_id": "semantic-relevance-prior-query-texts-for-v4h-anti-leakage",
+  "version": "0.1.0",
+  "status": "frozen_with_v4h_authoring_package",
+  "purpose": "Branch-independent anti-leakage reference for V4H authoring.",
+  "query_count": 36,
+  "queries": [
+    {
+      "query_id": "Q01",
+      "query": "A story about forgiveness and redemption"
+    },
+    {
+      "query_id": "Q02",
+      "query": "A suspenseful story involving crime and investigation"
+    },
+    {
+      "query_id": "Q03",
+      "query": "A book about personal growth and finding purpose"
+    },
+    {
+      "query_id": "Q04",
+      "query": "A fantasy adventure involving magic and dangerous journeys"
+    },
+    {
+      "query_id": "Q05",
+      "query": "A historical book about war and political conflict"
+    },
+    {
+      "query_id": "Q06",
+      "query": "A moving story about grief, loss, and learning to live again"
+    },
+    {
+      "query_id": "Q07",
+      "query": "A story about a complicated relationship between a parent and child"
+    },
+    {
+      "query_id": "Q08",
+      "query": "A beginner-friendly book explaining astronomy and the universe"
+    },
+    {
+      "query_id": "Q09",
+      "query": "A dystopian story about authoritarian control and resistance"
+    },
+    {
+      "query_id": "Q10",
+      "query": "A book about leadership, teamwork, and building effective organizations"
+    },
+    {
+      "query_id": "Q11",
+      "query": "An adventure inspired by mythology, gods, and legendary heroes"
+    },
+    {
+      "query_id": "Q12",
+      "query": "A thoughtful book about inequality, poverty, and how society distributes wealth"
+    },
+    {
+      "query_id": "H01",
+      "query": "A story about exile and belonging"
+    },
+    {
+      "query_id": "H02",
+      "query": "A story about ambition and moral compromise"
+    },
+    {
+      "query_id": "H03",
+      "query": "A story about memory and identity"
+    },
+    {
+      "query_id": "H04",
+      "query": "A story about friendship and loyalty under pressure"
+    },
+    {
+      "query_id": "H05",
+      "query": "A story about isolation, scarce resources, and survival"
+    },
+    {
+      "query_id": "H06",
+      "query": "A novel about espionage, deception, and divided loyalties"
+    },
+    {
+      "query_id": "H07",
+      "query": "A family saga about inheritance, rivalry, and generational change"
+    },
+    {
+      "query_id": "H08",
+      "query": "A science-fiction story about artificial intelligence, autonomy, and human dependence"
+    },
+    {
+      "query_id": "H09",
+      "query": "A humorous book about adapting to a new culture"
+    },
+    {
+      "query_id": "H10",
+      "query": "A practical book about managing personal finances on a limited income"
+    },
+    {
+      "query_id": "H11",
+      "query": "A reflective book about the history of cities and urban life"
+    },
+    {
+      "query_id": "H12",
+      "query": "A fast-paced story about surviving at sea"
+    },
+    {
+      "query_id": "H13",
+      "query": "A story about rivalry between siblings"
+    },
+    {
+      "query_id": "H14",
+      "query": "A story about a mentor whose guidance changes a student"
+    },
+    {
+      "query_id": "H15",
+      "query": "A story about loyalty and conflict between longtime friends"
+    },
+    {
+      "query_id": "H16",
+      "query": "A story about trust between a doctor and a difficult patient"
+    },
+    {
+      "query_id": "H17",
+      "query": "A book about meditation as a secular practice, not religion or theology"
+    },
+    {
+      "query_id": "H18",
+      "query": "A story about competition in sports, not war or military conflict"
+    },
+    {
+      "query_id": "H19",
+      "query": "A book explaining climate change science, not partisan political debate"
+    },
+    {
+      "query_id": "H20",
+      "query": "A book about the history of food, not a recipe collection or cooking manual"
+    },
+    {
+      "query_id": "H21",
+      "query": "A book about how language shapes thought, culture, and social interaction"
+    },
+    {
+      "query_id": "H22",
+      "query": "A book about the ethics of medical decisions, patient autonomy, and public responsibility"
+    },
+    {
+      "query_id": "H23",
+      "query": "A book about migration, national identity, and cultural integration"
+    },
+    {
+      "query_id": "H24",
+      "query": "A book about environmental conservation, economic incentives, and community decision-making"
+    }
+  ]
+}

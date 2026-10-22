@@ -1,0 +1,982 @@
+{
+  "facet_spec_id": "semantic-relevance-v4-unseen-holdout-query-facets",
+  "version": "0.1.0",
+  "status": "frozen_before_holdout_retrieval",
+  "evaluation_dimension": "semantic-recommendation-relevance",
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_id": "semantic-relevance-v4-unseen-holdout-queries",
+  "dataset_version": "0.1.0",
+  "scoring_module": "evals/semantic_relevance_facet_scoring.py",
+  "authoring_role": "candidate_blind_unseen_system_holdout",
+  "candidate_outputs_inspected_during_authoring": false,
+  "judge_outputs_inspected_during_authoring": false,
+  "human_relevance_labels_used": false,
+  "authoring_guidelines": [
+    "Facets are derived from the frozen V4H query text before retrieval.",
+    "Do not add candidate-specific facts, titles, authors, retrieval ranks, judge outputs, or observed V4H failures.",
+    "Use core facets for central semantic requirements and qualifier facets for important modifiers.",
+    "Keep relational requirements together when splitting them could allow unrelated evidence to satisfy separate pieces.",
+    "Hard exclusions encode explicit query contrasts only.",
+    "Every facet has at least one canonical required component.",
+    "Do not edit this facet file after V4H retrieval begins; version and restart the holdout if a semantic-spec defect is discovered."
+  ],
+  "queries": [
+    {
+      "query_id": "V4H01",
+      "query": "A story about fame and loneliness",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "fame",
+          "facet_type": "core",
+          "semantic_definition": "Public recognition, celebrity, notoriety, or widespread attention materially shapes a character's life or choices.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "public_recognition",
+              "definition": "A character's public recognition or celebrity is explicit and consequential.",
+              "negative_boundaries": [
+                "Ordinary professional success or private admiration without meaningful public recognition does not establish fame."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "loneliness",
+          "facet_type": "core",
+          "semantic_definition": "Emotional or social isolation, disconnection, or lack of meaningful companionship is a substantive concern.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "meaningful_loneliness",
+              "definition": "A character substantively experiences loneliness, alienation, or lack of meaningful connection.",
+              "negative_boundaries": [
+                "Being physically alone briefly or choosing solitude without emotional isolation does not establish loneliness."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H02",
+      "query": "A story about justice and revenge",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "justice",
+          "facet_type": "core",
+          "semantic_definition": "Questions of fairness, accountability, lawful or moral redress, or what consequences are deserved materially shape the story.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "justice_or_accountability",
+              "definition": "The narrative substantively engages with fairness, accountability, redress, or deserved consequences.",
+              "negative_boundaries": [
+                "A simple conflict or punishment without a fairness/accountability dimension does not establish justice."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "revenge",
+          "facet_type": "core",
+          "semantic_definition": "A character intentionally seeks retaliation for a perceived wrong, injury, betrayal, or loss.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "retaliatory_intent",
+              "definition": "A character pursues retaliation because of an earlier wrong or injury.",
+              "negative_boundaries": [
+                "Ordinary self-defense, punishment by an institution, or anger without retaliatory action does not establish revenge."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H03",
+      "query": "A story about jealousy and obsession",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "jealousy",
+          "facet_type": "core",
+          "semantic_definition": "Fear of losing affection, status, attention, possession, or advantage to another person materially motivates a character.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "jealous_motivation",
+              "definition": "Jealousy, envy, or possessive insecurity is explicit and consequential to the character's behavior.",
+              "negative_boundaries": [
+                "General rivalry or dislike without jealous or possessive motivation does not establish jealousy."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "obsession",
+          "facet_type": "core",
+          "semantic_definition": "An intense, persistent preoccupation with a person, goal, idea, object, or grievance dominates attention or behavior.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "persistent_preoccupation",
+              "definition": "A sustained preoccupation materially drives choices, relationships, or events.",
+              "negative_boundaries": [
+                "Strong interest or temporary focus without consuming persistence does not establish obsession."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H04",
+      "query": "A story about tradition and personal freedom",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "tradition",
+          "facet_type": "core",
+          "semantic_definition": "Inherited customs, expectations, practices, or social norms materially shape what characters are expected to do.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "inherited_expectation",
+              "definition": "A customary or inherited norm meaningfully constrains or guides behavior.",
+              "negative_boundaries": [
+                "A mere historical setting or cultural detail without normative force does not establish tradition as a theme."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "personal freedom",
+          "facet_type": "core",
+          "semantic_definition": "A character's ability to choose their own life, values, relationships, work, or identity is substantively at stake.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "self_directed_choice",
+              "definition": "The narrative materially concerns a person's freedom to make self-directed choices.",
+              "negative_boundaries": [
+                "Routine choices without meaningful constraint or autonomy conflict do not establish personal freedom."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H05",
+      "query": "A historical novel about scientific discovery, professional rivalry, and ethical responsibility",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "scientific discovery",
+          "facet_type": "core",
+          "semantic_definition": "A scientific finding, experiment, theory, or breakthrough is a substantive driver of the narrative.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "scientific_breakthrough",
+              "definition": "Scientific inquiry produces or pursues a consequential discovery or breakthrough.",
+              "negative_boundaries": [
+                "A scientist character without substantive scientific discovery does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "professional rivalry",
+          "facet_type": "core",
+          "semantic_definition": "Competition for recognition, priority, status, resources, or influence between professionals materially shapes events.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "professional_competition",
+              "definition": "Professionals compete in a sustained and consequential way.",
+              "negative_boundaries": [
+                "Ordinary disagreement or collaboration without meaningful competition does not establish professional rivalry."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "ethical responsibility",
+          "facet_type": "core",
+          "semantic_definition": "Characters confront duties, harms, obligations, or moral consequences arising from their professional or scientific work.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "responsibility_for_consequences",
+              "definition": "The narrative substantively examines moral responsibility for consequences of professional or scientific action.",
+              "negative_boundaries": [
+                "Technical difficulty without an ethical duty or harm question does not establish ethical responsibility."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H06",
+      "query": "A mystery about a missing person, family secrets, and unreliable testimony",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "missing-person mystery",
+          "facet_type": "core",
+          "semantic_definition": "The disappearance or unexplained absence of a person is central to the mystery or investigation.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "central_disappearance",
+              "definition": "A missing or disappeared person is the central unresolved problem.",
+              "negative_boundaries": [
+                "A minor absent character or unrelated crime does not establish a missing-person mystery."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "family secrets",
+          "facet_type": "core",
+          "semantic_definition": "Concealed facts within a family materially affect relationships, motives, or the mystery.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "concealed_family_fact",
+              "definition": "A consequential secret is held within or about a family.",
+              "negative_boundaries": [
+                "Ordinary privacy or a secret unrelated to family relationships does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "unreliable testimony",
+          "facet_type": "core",
+          "semantic_definition": "Accounts from witnesses or participants are materially doubtful, contradictory, deceptive, mistaken, or incomplete.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "doubtful_account",
+              "definition": "At least one important account cannot be straightforwardly trusted and affects interpretation of events.",
+              "negative_boundaries": [
+                "A simple lack of information without a questionable account does not establish unreliable testimony."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H07",
+      "query": "A story about rebuilding after a natural disaster, community cooperation, and scarce housing",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "post-disaster rebuilding",
+          "facet_type": "core",
+          "semantic_definition": "Recovery and reconstruction after an earthquake, flood, storm, fire, or other natural disaster materially shape the story.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "reconstruction_after_disaster",
+              "definition": "The narrative substantively depicts rebuilding lives, homes, institutions, or infrastructure after a natural disaster.",
+              "negative_boundaries": [
+                "Experiencing a disaster without meaningful recovery or rebuilding does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "community cooperation",
+          "facet_type": "core",
+          "semantic_definition": "Members of a community coordinate, share resources, organize, or work collectively toward recovery.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "collective_recovery_action",
+              "definition": "Community members substantively cooperate toward a shared recovery goal.",
+              "negative_boundaries": [
+                "Parallel individual efforts without meaningful cooperation do not establish community cooperation."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "scarce housing",
+          "facet_type": "core",
+          "semantic_definition": "Insufficient safe or available housing materially constrains recovery, displacement, or decisions.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "housing_shortage",
+              "definition": "A consequential shortage of habitable housing is explicit.",
+              "negative_boundaries": [
+                "General property damage without a meaningful housing shortage does not establish scarce housing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H08",
+      "query": "A political thriller about journalism, censorship, and whistleblowing",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "journalism",
+          "facet_type": "core",
+          "semantic_definition": "Reporting, investigating, publishing, or gathering news is a substantive activity in the narrative.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "journalistic_work",
+              "definition": "Journalists or reporters materially investigate or publish information.",
+              "negative_boundaries": [
+                "Media appearing in the background without substantive journalistic work does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "censorship",
+          "facet_type": "core",
+          "semantic_definition": "Authorities or institutions suppress, restrict, block, alter, or punish the publication or circulation of information.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "information_suppression",
+              "definition": "A consequential attempt to suppress or restrict information is explicit.",
+              "negative_boundaries": [
+                "Ordinary editorial choice or secrecy alone does not establish censorship."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "whistleblowing",
+          "facet_type": "core",
+          "semantic_definition": "An insider exposes wrongdoing, hidden misconduct, or dangerous information to outsiders or the public.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "insider_disclosure",
+              "definition": "A person with inside access discloses concealed wrongdoing or risk.",
+              "negative_boundaries": [
+                "An external investigation without insider disclosure does not establish whistleblowing."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H09",
+      "query": "A humorous memoir about working in restaurants",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "restaurant work memoir",
+          "facet_type": "core",
+          "semantic_definition": "First-person or autobiographical experience of working in restaurants, kitchens, dining rooms, or restaurant management is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "restaurant_work_experience",
+              "definition": "The memoir substantively recounts work inside the restaurant industry.",
+              "negative_boundaries": [
+                "A cookbook or restaurant review collection without work memoir content does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "humorous",
+          "facet_type": "qualifier",
+          "semantic_definition": "Humor, comedy, wit, or deliberately funny treatment is an important characteristic of the memoir.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "humorous_treatment",
+              "definition": "The description establishes a meaningfully humorous or comic treatment.",
+              "negative_boundaries": [
+                "An isolated funny anecdote or merely light tone does not establish a humorous qualifier."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H10",
+      "query": "A beginner-friendly guide to birdwatching in cities",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "urban birdwatching",
+          "facet_type": "core",
+          "semantic_definition": "Observing, identifying, or finding birds specifically in urban or city environments is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "city_birdwatching",
+              "definition": "The work teaches or supports birdwatching in cities or comparable urban settings.",
+              "negative_boundaries": [
+                "General ornithology without practical bird observation in urban settings does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "beginner-friendly",
+          "facet_type": "qualifier",
+          "semantic_definition": "The material is intentionally accessible to readers with little or no prior birdwatching experience.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "novice_accessibility",
+              "definition": "The book explicitly targets beginners or explains concepts from an introductory starting point.",
+              "negative_boundaries": [
+                "A specialist field guide assuming substantial prior knowledge does not satisfy the beginner-friendly qualifier."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H11",
+      "query": "A practical book about improving sleep for shift workers",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "improving sleep",
+          "facet_type": "core",
+          "semantic_definition": "Sleep quality, sleep timing, rest, or sleep habits are addressed with the goal of improving sleep.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "sleep_improvement",
+              "definition": "The work substantively explains strategies or practices intended to improve sleep.",
+              "negative_boundaries": [
+                "A general health book that only mentions sleep does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "for shift workers",
+          "facet_type": "qualifier",
+          "semantic_definition": "Advice is materially tailored to people whose work occurs at night, rotates, or otherwise disrupts conventional sleep schedules.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "shift_work_context",
+              "definition": "The work substantively addresses sleep under shift-work or irregular work-hour constraints.",
+              "negative_boundaries": [
+                "Generic sleep advice without meaningful shift-work adaptation does not satisfy this qualifier."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H12",
+      "query": "A visually oriented introduction to architecture for non-specialists",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "architecture introduction",
+          "facet_type": "core",
+          "semantic_definition": "Buildings, architectural design, styles, structures, or the built environment are substantively explained at an introductory level.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "introductory_architecture",
+              "definition": "The work introduces architectural ideas, buildings, design, or styles for general understanding.",
+              "negative_boundaries": [
+                "A construction manual or specialist technical reference alone does not establish a general architecture introduction."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "visually oriented for non-specialists",
+          "facet_type": "qualifier",
+          "semantic_definition": "Images, diagrams, photographs, or visual examples are important to an accessible treatment aimed at general readers.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "visual_general_reader_treatment",
+              "definition": "The work is designed for non-specialists and relies materially on visual explanation or examples.",
+              "negative_boundaries": [
+                "A text-heavy specialist monograph aimed at professionals does not satisfy this qualifier."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H13",
+      "query": "A story about trust between a lawyer and a reluctant client",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "lawyer-client trust under reluctance",
+          "facet_type": "core",
+          "semantic_definition": "Trust, mistrust, disclosure, or confidence specifically within a lawyer-client relationship is central, with the client's reluctance materially complicating representation.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "lawyer_client_trust_dynamic",
+              "definition": "A lawyer-client relationship, client reluctance, and a substantive trust or disclosure dynamic are all established.",
+              "negative_boundaries": [
+                "A legal story without a lawyer-client trust dynamic does not satisfy the full relational constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H14",
+      "query": "A story about a coach helping an injured athlete rebuild confidence",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "coach-athlete recovery relationship",
+          "facet_type": "core",
+          "semantic_definition": "A coach supports an injured athlete, and that coaching materially contributes to rebuilding confidence during recovery or return to competition.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "coach_supports_injured_athlete",
+              "definition": "A coach-athlete relationship, meaningful injury, and confidence rebuilding attributable to coaching are all established.",
+              "negative_boundaries": [
+                "Sports participation without injury recovery or coach-driven confidence rebuilding does not satisfy the relationship constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H15",
+      "query": "A story about tension between a landlord and a long-term tenant",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "landlord-tenant tension",
+          "facet_type": "core",
+          "semantic_definition": "A sustained conflict, negotiation, dependency, or mistrust specifically between a landlord and a long-term tenant is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "landlord_tenant_conflict",
+              "definition": "The same parties are established as landlord and long-term tenant and have a consequential strained relationship.",
+              "negative_boundaries": [
+                "A housing story without a substantive landlord-tenant relationship does not satisfy the relational constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H16",
+      "query": "A story about collaboration between a scientist and a skeptical research assistant",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "scientist-assistant collaboration under skepticism",
+          "facet_type": "core",
+          "semantic_definition": "A scientist and research assistant must work together while the assistant's skepticism materially affects their collaboration, inquiry, or decisions.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "scientist_assistant_skeptical_collaboration",
+              "definition": "A scientist-assistant working relationship, substantive collaboration, and consequential skepticism are all established.",
+              "negative_boundaries": [
+                "A research setting without this role-specific collaborative tension does not satisfy the relationship constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H17",
+      "query": "A book about cryptography for protecting information, not cryptocurrency investing",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "cryptography for information protection",
+          "facet_type": "core",
+          "semantic_definition": "Encryption, cryptographic methods, secure communication, or protecting information through cryptography is substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V4H17_F1_HX_CRYPTOCURRENCY_INVESTING",
+              "rule": "Reject works whose relevant treatment is primarily cryptocurrency trading, investing, token markets, or speculation rather than cryptography for information protection."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "cryptographic_information_security",
+              "definition": "The work substantively explains or discusses cryptography as a means of securing information or communications.",
+              "negative_boundaries": [
+                "Using the word crypto only to discuss digital-asset markets does not establish cryptography."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H18",
+      "query": "A book about evolutionary biology, not motivational uses of the word evolution",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "evolutionary biology",
+          "facet_type": "core",
+          "semantic_definition": "Biological evolution, natural selection, adaptation, common descent, population change, or evolutionary mechanisms are substantively explained.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V4H18_F1_HX_MOTIVATIONAL_EVOLUTION",
+              "rule": "Reject works that use 'evolution' primarily as a motivational, self-help, business, or metaphorical concept without substantive evolutionary biology."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "biological_evolution",
+              "definition": "The work substantively addresses scientific mechanisms or evidence of biological evolution.",
+              "negative_boundaries": [
+                "Metaphorical personal or organizational 'evolution' without biological science does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H19",
+      "query": "A book about game design as a creative discipline, not gambling or casino strategy",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "game design as creative discipline",
+          "facet_type": "core",
+          "semantic_definition": "Designing games through mechanics, rules, systems, player experience, narrative, balance, or iterative development is substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V4H19_F1_HX_GAMBLING",
+              "rule": "Reject works whose relevant treatment is primarily gambling, betting, casino strategy, or games of chance rather than the craft of designing games."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "creative_game_design",
+              "definition": "The work substantively examines the craft or discipline of designing games.",
+              "negative_boundaries": [
+                "Advice about winning games, betting, or casino play does not establish game design."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H20",
+      "query": "A book about constitutional law, not election campaigning or partisan strategy",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "constitutional law",
+          "facet_type": "core",
+          "semantic_definition": "Constitutional structures, rights, judicial interpretation, separation of powers, federalism, or constitutional doctrine are substantively examined.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V4H20_F1_HX_CAMPAIGN_STRATEGY",
+              "rule": "Reject works whose relevant treatment is primarily election campaigning, partisan messaging, polling, or electoral strategy without substantive constitutional-law analysis."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "constitutional_legal_analysis",
+              "definition": "The work substantively analyzes constitutional law, doctrine, rights, or governmental structure.",
+              "negative_boundaries": [
+                "General political commentary without constitutional legal analysis does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H21",
+      "query": "A book about housing affordability, zoning, and neighborhood change",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "housing affordability",
+          "facet_type": "core",
+          "semantic_definition": "The cost, availability, or financial accessibility of housing for households is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "housing_cost_access",
+              "definition": "The work substantively addresses whether people can obtain or afford housing.",
+              "negative_boundaries": [
+                "Real-estate investing or property aesthetics alone do not establish housing affordability."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "zoning",
+          "facet_type": "core",
+          "semantic_definition": "Land-use rules, zoning codes, density restrictions, permitting, or related local planning regulations are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "land_use_regulation",
+              "definition": "Zoning or comparable land-use regulation is a substantive mechanism in the discussion.",
+              "negative_boundaries": [
+                "Urban growth without land-use regulation does not establish zoning."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "neighborhood change",
+          "facet_type": "core",
+          "semantic_definition": "Change in neighborhood population, development, displacement, amenities, property values, or social composition is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "neighborhood_transformation",
+              "definition": "The work substantively examines how a neighborhood changes over time.",
+              "negative_boundaries": [
+                "A static description of a neighborhood does not establish neighborhood change."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H22",
+      "query": "A book about cybersecurity, privacy, and government surveillance",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "cybersecurity",
+          "facet_type": "core",
+          "semantic_definition": "Protection of computers, networks, systems, or digital information from attack, intrusion, compromise, or disruption is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "digital_security",
+              "definition": "The work substantively addresses protecting digital systems or information from cyber threats.",
+              "negative_boundaries": [
+                "General technology use without security threats or defenses does not establish cybersecurity."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "privacy",
+          "facet_type": "core",
+          "semantic_definition": "Control over personal information, confidentiality, data collection, exposure, or informational autonomy is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "informational_privacy",
+              "definition": "The work substantively addresses privacy of personal or sensitive information.",
+              "negative_boundaries": [
+                "Secrecy unrelated to personal information or data rights does not establish privacy."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "government surveillance",
+          "facet_type": "core",
+          "semantic_definition": "Monitoring, interception, data collection, tracking, or observation by state authorities is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "state_monitoring",
+              "definition": "Government or state surveillance practices are substantive.",
+              "negative_boundaries": [
+                "Private-company monitoring alone does not establish government surveillance."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H23",
+      "query": "A book about museums, cultural heritage, and artifact repatriation",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "museums",
+          "facet_type": "core",
+          "semantic_definition": "Museums, their collections, institutional practices, curation, or public role are a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "museum_institutions",
+              "definition": "Museums or museum collections are substantively examined.",
+              "negative_boundaries": [
+                "Art history without museum institutions or collections does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "cultural heritage",
+          "facet_type": "core",
+          "semantic_definition": "Objects, sites, traditions, or inherited cultural materials valued as shared heritage are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "heritage_subject",
+              "definition": "The work substantively addresses preservation, ownership, meaning, or stewardship of cultural heritage.",
+              "negative_boundaries": [
+                "General culture without heritage preservation, ownership, or stewardship does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "artifact repatriation",
+          "facet_type": "core",
+          "semantic_definition": "Returning cultural objects or artifacts to countries, communities, or peoples of origin is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "return_of_cultural_objects",
+              "definition": "The work substantively addresses claims, processes, or debates over returning artifacts to originating communities or nations.",
+              "negative_boundaries": [
+                "Museum collecting without return or restitution questions does not establish repatriation."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V4H24",
+      "query": "A book about aging populations, caregiving systems, and public policy",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "aging populations",
+          "facet_type": "core",
+          "semantic_definition": "Demographic aging, older populations, longevity, or population age structure is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "population_aging",
+              "definition": "The work substantively addresses societal or demographic consequences of an aging population.",
+              "negative_boundaries": [
+                "An individual memoir of aging without population-level treatment does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "caregiving systems",
+          "facet_type": "core",
+          "semantic_definition": "Formal or informal systems for providing long-term care, elder care, family care, or support services are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "care_systems",
+              "definition": "The work substantively addresses how caregiving is organized, delivered, or sustained.",
+              "negative_boundaries": [
+                "A single caregiving relationship without a broader caregiving-system dimension does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "public policy",
+          "facet_type": "core",
+          "semantic_definition": "Government programs, regulation, funding, social insurance, or policy choices addressing aging or care are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "aging_policy",
+              "definition": "Public policy materially shapes the work's treatment of aging or caregiving.",
+              "negative_boundaries": [
+                "Private household decisions without a policy dimension do not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

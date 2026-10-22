@@ -1,0 +1,26 @@
+{
+  "status": "V4H_QUERY_AND_FACET_SPEC_FROZEN_BEFORE_RETRIEVAL",
+  "frozen_at_utc": "2026-10-22T09:58:04.856610+00:00",
+  "source_v4b_selection_lock_sha256": "98ab3a62b978b922dc4b6e1bb031bdc6578a007a93de7ae84b20d36a80c9c9b4",
+  "selected_candidate": "v4b",
+  "prior_query_anti_leakage_manifest_sha256": "f4b3f79da07c577b96967db6ff064cb95a9aaa46b06de44c5ad76f65a8009325",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "query_file_sha256": "eef2b5a0c7e1400adcc1d68edf7f26e16297f985fdb50f2fa26fa6ceff75f813",
+  "facet_file_sha256": "dbdb7c5d5603e17164cf6ef880df912f6196663387885e1f5773e54b97d2b106",
+  "strata_counts": {
+    "two_core_theme": 4,
+    "three_core_conjunctive": 4,
+    "core_plus_qualifier": 4,
+    "relationship_or_role_constraint": 4,
+    "hard_exclusion_or_contrast": 4,
+    "abstract_nonfiction_multi_facet": 4
+  },
+  "catalog_or_v4h_retrieval_outputs_inspected_during_authoring": false,
+  "v4h_judge_outputs_inspected_during_authoring": false,
+  "holdout_retrieval_performed": false,
+  "judge_execution_performed": false,
+  "human_relevance_labels_used": false,
+  "release_metrics_calculated": false,
+  "next_stage": "PREPARE_V4H_FROZEN_V3B_AND_V4B_RETRIEVAL_PACKAGE"
+}
