@@ -1,0 +1,12 @@
+{
+  "patch_id": "v4a-retrieval-diagnostic-windows-crlf-spec-hash-normalization1",
+  "scope": "execution_only_non_semantic",
+  "reason": "The frozen v4a experiment spec is a tracked text file stored with LF in Git but may be checked out with CRLF on Windows. Raw-byte SHA-256 therefore differs although semantic content is unchanged.",
+  "change": "Verify the frozen v4a spec by exact raw SHA-256 first, then by a line-ending-only canonical-LF SHA-256 fallback. CSV and generated run-artifact hashes remain raw-byte exact.",
+  "semantic_changes": false,
+  "judge_changes": false,
+  "retrieval_changes": false,
+  "selection_changes": false,
+  "release_changes": false,
+  "expected_frozen_spec_sha256": "6aba9c8354f201ad41044dd82d4476612f81ebd27a5ce4f8bf4f327a8b3281b9"
+}

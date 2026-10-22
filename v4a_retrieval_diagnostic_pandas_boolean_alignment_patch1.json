@@ -1,0 +1,14 @@
+{
+  "patch_id": "v4a-retrieval-diagnostic-pandas-boolean-alignment1",
+  "scope": "execution_only_non_semantic",
+  "reason": "The builder attempted to use a row-indexed boolean Series as the second (column) selector in DataFrame.loc while validating candidate_source=both, causing pandas.errors.IndexingError before any output artifact was written.",
+  "change": "Select the candidate_source=both rows from the already-computed row-wise conjunction (dense_present & bm25_present), then require that all selected values are true. The invariant being checked is unchanged.",
+  "semantic_changes": false,
+  "retrieval_changes": false,
+  "bm25_changes": false,
+  "judge_changes": false,
+  "metric_changes": false,
+  "selection_changes": false,
+  "release_changes": false,
+  "partial_outputs_expected_from_failed_r2_builder": false
+}
