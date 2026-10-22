@@ -1,0 +1,131 @@
+{
+  "experiment_id": "semantic-relevance-v4a-retrieval-diagnostic-quarantine-sensitivity",
+  "version": "0.1.0",
+  "status": "FROZEN_BEFORE_SENSITIVITY_ANALYSIS",
+  "purpose": "Bound the explanatory 17-query V4A retrieval diagnostic over every allowed semantic relevance score for the single unresolved quarantined case, without assigning or imputing an actual judge score.",
+  "authority_boundary": {
+    "diagnostic_role": "explanatory_only",
+    "may_reopen_v4a_development_selection": false,
+    "may_modify_selected_development_system": false,
+    "frozen_development_selection": "v3b",
+    "may_calculate_release_metrics_or_gates": false,
+    "may_produce_release_decision": false,
+    "may_assign_actual_score_to_quarantine": false,
+    "may_use_human_relevance_labels": false,
+    "may_call_judge_or_model": false
+  },
+  "frozen_case": {
+    "case_id": "V4A_RETRDIAG_H14_9781582972947",
+    "query_id": "H14",
+    "isbn13": "9781582972947",
+    "status": "QUARANTINED_UNSCORED",
+    "actual_score_known": false,
+    "must_remain_unscored": true
+  },
+  "frozen_coverage": {
+    "hybrid_union_pairs": 1576,
+    "reused_frozen_scores": 901,
+    "new_novel_pairs_requested": 675,
+    "novel_scores_persisted": 674,
+    "quarantined_unscored_pairs": 1,
+    "actual_scores_available_total": 1575
+  },
+  "sensitivity_scenarios": {
+    "scenario_field": "hypothetical_quarantine_score",
+    "allowed_scores": [
+      0,
+      1,
+      2,
+      3,
+      4
+    ],
+    "scenario_ids": [
+      "S0",
+      "S1",
+      "S2",
+      "S3",
+      "S4"
+    ],
+    "mapping": {
+      "S0": 0,
+      "S1": 1,
+      "S2": 2,
+      "S3": 3,
+      "S4": 4
+    },
+    "interpretation": "Each scenario is counterfactual analysis only. None is an imputation, judge output, human label, or persisted semantic score."
+  },
+  "complete_map_construction": {
+    "base": "frozen v4a_retrieval_diagnostic_score_inventory.csv",
+    "reused_scores": "901 already frozen in the diagnostic inventory",
+    "new_scores": "674 persisted frozen judge results",
+    "quarantine_handling": "For each scenario only, supply the scenario score in-memory for the one quarantined pair. Do not write it into the judge score artifact.",
+    "pair_identity": [
+      "query_id",
+      "isbn13"
+    ],
+    "duplicate_policy": "hard_fail",
+    "missing_policy": "hard_fail_except_exactly_the_one_frozen_quarantine_before_scenario_injection"
+  },
+  "required_query_level_diagnostics": [
+    "bm25_only_clear_or_strong_count",
+    "has_bm25_only_clear_or_strong_candidate",
+    "best_bm25_only_score",
+    "hybrid_union_clear_or_strong_count",
+    "hybrid_union_oracle_mean_at_10",
+    "hybrid_union_oracle_clear_or_strong_rate_at_10",
+    "hybrid_union_oracle_irrelevant_rate_at_10",
+    "stage_c_limitation_class",
+    "hybrid_union_limitation_class",
+    "stage_c_to_hybrid_limitation_class_transition"
+  ],
+  "definitions": {
+    "clear_or_strong": "judge_score >= 3",
+    "irrelevant": "judge_score == 0",
+    "bm25_only": "candidate_source == 'bm25_only'",
+    "query_gains_bm25_only_clear_or_strong": "True when at least one candidate absent from dense top50 but introduced by BM25 has judge_score >= 3.",
+    "oracle_top10_ranking": [
+      "judge_score descending",
+      "hybrid_retrieval_rank ascending",
+      "isbn13 ascending"
+    ],
+    "oracle_scope": "entire frozen deduplicated dense50+BM25-50 hybrid union for the query",
+    "classification_pool_clear_count": "hybrid_union_clear_or_strong_count"
+  },
+  "limitation_classification": {
+    "source_rule": "same thresholds as frozen V3 Stage-C classification",
+    "epsilon": 1e-12,
+    "RETRIEVAL_LIMITED": "hybrid_union_oracle_mean_at_10 < 1.5 OR hybrid_union_clear_or_strong_count == 0",
+    "RERANKER_LIMITED": "hybrid_union_oracle_mean_at_10 >= 2.5 AND hybrid_union_oracle_clear_or_strong_rate_at_10 >= 0.60 AND hybrid_union_oracle_irrelevant_rate_at_10 <= 0.10",
+    "MIXED": "all remaining cases"
+  },
+  "required_scenario_outputs": [
+    "17 query-level diagnostic rows per scenario",
+    "total BM25-only clear/strong candidates",
+    "count of queries gaining at least one BM25-only clear/strong candidate",
+    "Stage-C-to-hybrid limitation-class transition matrix",
+    "hybrid limitation-class counts"
+  ],
+  "sensitivity_reporting": {
+    "report_all_five_scenarios": true,
+    "report_min_max_for_numeric_diagnostics": true,
+    "report_exact_set_of_observed_classifications_and_transitions": true,
+    "classification_invariant_definition": "For every query, hybrid limitation class and Stage-C-to-hybrid transition are identical in S0,S1,S2,S3,S4.",
+    "do_not_collapse_if_not_invariant": true,
+    "if_not_invariant": "Report the affected query/scenarios and bounded alternatives; do not pick a preferred quarantine score."
+  },
+  "frozen_provenance": {
+    "v4a_spec_sha256": "6aba9c8354f201ad41044dd82d4476612f81ebd27a5ce4f8bf4f327a8b3281b9",
+    "hybrid_union_sha256": "71be13c297f6449e6a53c54c7b9db590f6f033d69a11f16b21377797d9390155",
+    "diagnostic_score_inventory_sha256": "250841f0bf9cefc5a461e09f3963842187bdac8bfdaafe03e7e07487d07c7e16",
+    "diagnostic_input_lock_sha256": "da34d259dacd70348878c2c1e61fa9d702dd536b58df88ffc129a3fb4e6be4e2",
+    "partial_novel_score_sha256": "ceb643cbff823007beb1f698b9fd42a78af70ead73e1c8bc90de94d14764be47",
+    "quarantine_sha256": "ce16b3da279d4435d3b2eea7cf1aa190e6e804ecb6e275e8c12001703cbb0a38",
+    "judging_metadata_sha256": "0a065f0dd163865776550420527822601162ddb321f981ca999fcce11932032c",
+    "partial_freeze_lock_sha256": "ae22f150f5f64f228f7970010103b1229c7b4c100f348f55faec172034319e55",
+    "v3_posthoc_complete_map_sha256": "723fa27ecb8947334d25b3b7423a6597da39d594eb7ec2f979056b1c3cc516e5",
+    "v3_posthoc_classification_lock_sha256": "cbaaaa1795773e46867ee5c135822b4b559c7805eee8e4264609dd4c9a913385",
+    "v4a_comparison_selection_lock_sha256": "c9a33feabf061e9bec373cbf5a5bdfb8b83ac03fd700f9fa55ffdfaa77e5056f"
+  },
+  "next_stage": "DETERMINISTIC_SENSITIVITY_ANALYSIS_WITH_ZERO_JUDGE_OR_MODEL_CALLS"
+}
