@@ -1,0 +1,42 @@
+{
+  "contract_id": "semantic-relevance-v4h-final-holdout-display-union",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V4H_DISPLAY_UNION_BUILD",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "baseline": "v3b",
+  "candidate": "v4b",
+  "display_depth_per_system": 10,
+  "source_reranking_lock_sha256": "6d3a7014f5995d978a90df627c720c0b81aa2e8b28e8bba99cfa2c64d27811b5",
+  "source_v3b_recommendations_sha256": "2f1aec34740f35127822a634e00f772db716e35e2d8aeaeaf729d54ecc95b505",
+  "source_v4b_recommendations_sha256": "27c8fb4502909f0a3f89d6b6dfbcec55ac82ae489eab800d51334f312d16fec2",
+  "union_key": [
+    "query_id",
+    "isbn13"
+  ],
+  "pair_source_values": [
+    "both",
+    "v3b_only",
+    "v4b_only"
+  ],
+  "metadata_consistency_on_shared_pairs": [
+    "query",
+    "stratum",
+    "title",
+    "description",
+    "authors"
+  ],
+  "score_reuse_policy": {
+    "historical_query_book_score_reuse_allowed": false,
+    "reason": "V4H01-V4H24 are new unseen queries; relevance labels are query-specific.",
+    "all_unique_displayed_pairs_require_frozen_judge_scoring": true
+  },
+  "execution_boundary": {
+    "retrieval_calls": 0,
+    "reranker_inference_calls": 0,
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "release_metrics_or_decision": false
+  },
+  "next_stage": "JUDGE_ALL_UNIQUE_FROZEN_V3B_V4B_DISPLAYED_PAIRS"
+}

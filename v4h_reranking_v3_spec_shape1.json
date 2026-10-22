@@ -1,0 +1,18 @@
+{
+  "patch_id": "v4h-reranking-v3-spec-shape1",
+  "classification": "non-semantic verifier shape correction",
+  "cause": "r1 looked for frozen V3 model metadata under spec.model, but the frozen V3 reranker experiment stores it under spec.reranker_model.",
+  "changes": [
+    "model_id lookup: model.model_id -> reranker_model.model_id",
+    "model revision lookup: model.revision -> reranker_model.model_revision",
+    "max_length_tokens lookup: model.max_length_tokens -> reranker_model.max_length_tokens",
+    "Applied identically in preflight and execution verifier paths."
+  ],
+  "reranking_contract_changed": false,
+  "model_id_changed": false,
+  "model_revision_changed": false,
+  "ranking_logic_changed": false,
+  "retrieval_inputs_changed": false,
+  "inference_performed_before_fix": false,
+  "judge_calls_performed": 0
+}

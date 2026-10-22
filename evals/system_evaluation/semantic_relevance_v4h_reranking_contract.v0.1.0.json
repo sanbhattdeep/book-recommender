@@ -1,0 +1,57 @@
+{
+  "contract_id": "semantic-relevance-v4h-final-holdout-reranking",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V4H_RERANKER_EXECUTION",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "baseline": "v3b",
+  "candidate": "v4b",
+  "source_retrieval_run": "evals/runs/semantic_relevance_v4_holdout/20261022T103659Z_retrieval",
+  "source_retrieval_lock_sha256": "e2902e1cc537e74a39b6a0c1d421c8db0d00637596c89a7889841ae242089884",
+  "source_dense_top50_sha256": "40abebfe33af7352e9c82352daa3ca2143e666073257696fdf270aae9d01a8aa",
+  "source_hybrid_union_sha256": "97fd79621bacc4ec56d204bdc366ad1757c1f6329d014861a1bbef6999fdd311",
+  "model": {
+    "id": "BAAI/bge-reranker-base",
+    "revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "runtime": "transformers.AutoTokenizer + AutoModelForSequenceClassification",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "score": "single raw sequence-classification logit",
+    "repeat_inference_passes": 2,
+    "repeatability_gate": "identical per-query reranker order in both V4B full union and V3B dense-only subset"
+  },
+  "score_reuse": {
+    "method": "score the complete frozen V4B union once per pass; reuse identical query-candidate scores for the dense-only V3B subset",
+    "reason": "same frozen query, candidate text, model, revision and inference contract",
+    "no_score_normalization": true,
+    "no_calibration": true
+  },
+  "v3b_ranking": {
+    "candidate_scope": "frozen dense top50 only",
+    "method": "reciprocal_rank_fusion",
+    "rrf_k": 60.0,
+    "vector_weight": 1.0,
+    "reranker_weight": 1.0,
+    "display_depth": 10
+  },
+  "v4b_ranking": {
+    "candidate_scope": "frozen full dense50+BM25-50 union",
+    "method": "reranker_score_only",
+    "ranking": [
+      "reranker_score descending",
+      "hybrid_retrieval_rank ascending only on exact score tie",
+      "isbn13 ascending"
+    ],
+    "display_depth": 10,
+    "retrieval_rank_non_tie_weight": 0.0
+  },
+  "execution_boundary": {
+    "retrieval_calls": 0,
+    "cross_encoder_inference": "ENABLED_ONLY_IN_EXECUTION_STAGE",
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "release_metrics_or_decision": false
+  },
+  "next_stage": "FREEZE_UNIQUE_V3B_V4B_DISPLAYED_PAIR_UNION_BEFORE_JUDGING"
+}

@@ -1,0 +1,77 @@
+{
+  "contract_id": "semantic-relevance-v4h-final-holdout-retrieval",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V4H_RETRIEVAL_EXECUTION",
+  "purpose": "Freeze candidate-generation inputs and retrieval rules for the new unseen V4H01-V4H24 final holdout before any V4H retrieval is executed.",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "development_selected_candidate": "v4b",
+  "baseline": "v3b",
+  "candidate": "v4b",
+  "frozen_provenance": {
+    "v4b_design_spec_sha256": "c72b5edbc330feae0620314fa5d5c6f90a55b356174d70a075ae77b47a8d0fca",
+    "v4b_design_lock_sha256": "e60ca1032f7fa733f3e7a51ec87a229d7454645aa6109b5e557588af50383c6d",
+    "v4b_development_selection_lock_sha256": "98ab3a62b978b922dc4b6e1bb031bdc6578a007a93de7ae84b20d36a80c9c9b4",
+    "v4h_query_file_sha256": "eef2b5a0c7e1400adcc1d68edf7f26e16297f985fdb50f2fa26fa6ceff75f813",
+    "v4h_facet_file_sha256": "dbdb7c5d5603e17164cf6ef880df912f6196663387885e1f5773e54b97d2b106",
+    "v4h_authoring_lock_sha256": "14cd3a8a9f6bf22666dd4c74a150e85f82a53789ccaa5bd2870d606b66ef83e7",
+    "dense_candidate_generator_git_blob": "89a769f7a752a517ebc7079e08c531e8df415bce",
+    "dense_candidate_generator_content_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+    "hybrid_retrieval_implementation_git_blob": "3c1a612dc4d33a7680dd1f93d40558cb094efa1b",
+    "hybrid_retrieval_implementation_content_sha256": "6f31504e29078fffbab86ddb86ef26b02aaa22082d3bfdb6944792bf689f6db7"
+  },
+  "runtime_data": {
+    "catalog_file": "books_with_emotions.csv",
+    "catalog_sha256": "22244d277a643e56bf23a744d0d45eb2247db4a05792ec69ffd942c6d5fdbf6e",
+    "catalog_rows": 5197,
+    "tagged_description_file": "tagged_description.txt",
+    "tagged_description_sha256": "cb3f34f397be0d65af4f931bc24265b69b1ed151b0a76ade03885fbaf3c5e1a5",
+    "tagged_description_nonempty_lines": 5197,
+    "require_catalog_isbn_set_equals_tagged_description_isbn_set": true
+  },
+  "dense_branch": {
+    "implementation": "frozen semantic retriever in gradio-dashboard.py",
+    "embedding_model": "nomic-embed-text",
+    "candidate_depth": 50,
+    "query_method": "Chroma.similarity_search",
+    "repeat_query_order_check": true,
+    "output_role": "shared V3B dense candidate pool and V4B dense retrieval branch"
+  },
+  "bm25_branch": {
+    "implementation": "frozen semantic_relevance_v4a_hybrid.BM25Index",
+    "fields": [
+      "title",
+      "description"
+    ],
+    "k1": 1.5,
+    "b": 0.75,
+    "candidate_depth": 50,
+    "positive_score_only": true,
+    "ranking": [
+      "bm25_score descending",
+      "isbn13 ascending"
+    ]
+  },
+  "hybrid_union": {
+    "implementation": "frozen semantic_relevance_v4a_hybrid.build_hybrid_union",
+    "deduplicate_key": "isbn13",
+    "rrf_k": 60.0,
+    "dense_weight": 1.0,
+    "bm25_weight": 1.0,
+    "truncate_before_reranker": false,
+    "expected_per_query_range": [
+      50,
+      100
+    ]
+  },
+  "execution_boundary": {
+    "dense_retrieval": "ENABLED_ONLY_IN_EXECUTION_STAGE",
+    "bm25_retrieval": "ENABLED_ONLY_IN_EXECUTION_STAGE",
+    "hybrid_union_build": "ENABLED_ONLY_IN_EXECUTION_STAGE",
+    "reranker_inference": false,
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "release_metrics_or_decision": false
+  },
+  "next_stage_after_frozen_retrieval": "RERANK_FROZEN_DENSE50_FOR_V3B_AND_FROZEN_FULL_HYBRID_UNION_FOR_V4B"
+}
