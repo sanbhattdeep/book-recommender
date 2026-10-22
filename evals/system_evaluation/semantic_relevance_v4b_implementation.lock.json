@@ -1,0 +1,30 @@
+{
+  "status": "V4B_IMPLEMENTATION_FROZEN_BEFORE_DEVELOPMENT_RANKING",
+  "frozen_at_utc": "2026-10-22T05:33:04.369525+00:00",
+  "experiment_id": "semantic-relevance-hybrid-retrieval-v4b",
+  "version": "0.1.0",
+  "v4b_spec_json_sha256": "c72b5edbc330feae0620314fa5d5c6f90a55b356174d70a075ae77b47a8d0fca",
+  "v4b_spec_md_sha256": "dae818b2519be70d49880e28642d76c414fa2a6ccda139242af5174984d29850",
+  "v4b_design_lock_sha256": "e60ca1032f7fa733f3e7a51ec87a229d7454645aa6109b5e557588af50383c6d",
+  "v4b_ranking_source_sha256": "5729b078cee1a2706a8c3d9bcaa9e8449292bc1f9f1a2816053b84758db7d677",
+  "v4b_ranking_tests_sha256": "76593ff7471ed8e4beb61bcd349e3788bf97081d405decda0821f403b6c730f2",
+  "ranking_contract": [
+    "reranker_score descending",
+    "hybrid_retrieval_rank ascending on exact reranker_score tie only",
+    "isbn13 ascending on remaining exact tie"
+  ],
+  "score_rounding": false,
+  "epsilon_tie_bucket": false,
+  "score_calibration": false,
+  "retrieval_rank_non_tie_weight": false,
+  "top_k": 10,
+  "recommendations_generated": false,
+  "retrieval_calls_performed": 0,
+  "model_calls_performed": 0,
+  "judge_calls_performed": 0,
+  "human_relevance_labels_used": false,
+  "development_selection_calculated": false,
+  "release_metrics_calculated": false,
+  "release_decision_produced": false,
+  "next_stage": "DERIVE_V4B_DEVELOPMENT_TOP10_FROM_FROZEN_V4A_RERANKER_SCORES"
+}

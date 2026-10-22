@@ -1,0 +1,175 @@
+{
+  "experiment_id": "semantic-relevance-hybrid-retrieval-v4b",
+  "version": "0.1.0",
+  "status": "PROPOSED_FOR_FREEZE_BEFORE_V4B_IMPLEMENTATION",
+  "purpose": "Test whether the useful candidate-discovery headroom created by the frozen dense50+BM25-50 hybrid union can be converted into better displayed top-10 relevance by removing V4A's final retrieval-rank/reranker-rank RRF and using the frozen cross-encoder score as the primary final ordering signal.",
+  "decision_context": {
+    "frozen_v4a_development_selection": "v3b",
+    "v4a_candidate_selected": false,
+    "v4a_retrieval_diagnostic_role": "explanatory development evidence only",
+    "retrieval_diagnostic_sensitivity_invariant": true,
+    "retrieval_diagnostic_evidence": {
+      "target_queries": 17,
+      "bm25_only_clear_or_strong_candidates_range": [
+        33,
+        34
+      ],
+      "queries_gaining_bm25_only_clear_or_strong_candidate": 7,
+      "stage_c_class_counts": {
+        "RETRIEVAL_LIMITED": 7,
+        "RERANKER_LIMITED": 4,
+        "MIXED": 6
+      },
+      "hybrid_union_class_counts": {
+        "RETRIEVAL_LIMITED": 3,
+        "RERANKER_LIMITED": 6,
+        "MIXED": 8
+      },
+      "invariant_transition_counts": {
+        "RETRIEVAL_LIMITED->MIXED": 3,
+        "RETRIEVAL_LIMITED->RERANKER_LIMITED": 1,
+        "RETRIEVAL_LIMITED->RETRIEVAL_LIMITED": 3,
+        "MIXED->RERANKER_LIMITED": 1,
+        "MIXED->MIXED": 5,
+        "RERANKER_LIMITED->RERANKER_LIMITED": 4
+      },
+      "interpretation": "BM25 contributes real but concentrated candidate-discovery value. It improves the limitation classification for five queries and leaves three formerly retrieval-limited queries retrieval-limited. Because V4A still lost the frozen development comparison, V4B isolates final ranking as the next hypothesis."
+    },
+    "development_benchmark_role": "H01-H24 remain development-only for v4; no release claim",
+    "final_system_claim_requires_new_unseen_holdout_if_v4b_selected": true
+  },
+  "frozen_provenance": {
+    "v4a_spec_sha256": "6aba9c8354f201ad41044dd82d4476612f81ebd27a5ce4f8bf4f327a8b3281b9",
+    "v4a_retrieval_lock_sha256": "7587aa140c1cb26f8ac5addaf6873f3bc7ec05b6ec34775a6cbfe98d7ffa40d1",
+    "v4a_hybrid_union_sha256": "71be13c297f6449e6a53c54c7b9db590f6f033d69a11f16b21377797d9390155",
+    "v4a_reranker_scores_sha256": "c94d4208257b2e17cc92f2a9f675c8db67a1ab675f945a0f7ddd96a362f34b49",
+    "v4a_reranker_lock_sha256": "97a8cc18cf2e8c2cf5abec679f41de81546a945b6ae9b36ab06abd97d2508a22",
+    "v4a_comparison_selection_lock_sha256": "c9a33feabf061e9bec373cbf5a5bdfb8b83ac03fd700f9fa55ffdfaa77e5056f",
+    "v4a_retrieval_diagnostic_sensitivity_analysis_lock_sha256": "7d7f446a028d6227f3f3da0b0bd8ee54661add294d2021f0a82313bbf23c8e43",
+    "v3_selected_candidate_lock_sha256": "87484c845fe332882a8ee97eba3824cdc69121f1e10b6614d4532d58fb82e053",
+    "v3_reranker_source_sha256": "5e7a7d6b35c0674f32644e758218830d8a340a61588e2ff0b3f20582fdbb0f60",
+    "judge_candidate": "semantic_relevance_v0.29.0-r5"
+  },
+  "experimental_invariants": {
+    "dense_retrieval_rerun": false,
+    "dense_candidate_depth": 50,
+    "bm25_retrieval_rerun": false,
+    "bm25_candidate_depth": 50,
+    "bm25_analyzer_changed": false,
+    "bm25_k1_changed": false,
+    "bm25_b_changed": false,
+    "hybrid_union_changed": false,
+    "hybrid_union_truncated_before_reranker": false,
+    "reranker_model_changed": false,
+    "reranker_revision_changed": false,
+    "reranker_input_template_changed": false,
+    "reranker_max_length_changed": false,
+    "reranker_inference_rerun": false,
+    "judge_semantics_changed": false,
+    "rubric_changed": false,
+    "release_gates_changed": false,
+    "query_rewriting": false,
+    "query_decomposition": false,
+    "parameter_sweeps": false,
+    "score_calibration_or_thresholding": false
+  },
+  "candidate_generation": {
+    "input": "exact frozen V4A dense50+BM25-50 deduplicated full hybrid union",
+    "rows": 2211,
+    "query_count": 24,
+    "dense_candidate_depth": 50,
+    "bm25_candidate_depth": 50,
+    "union_truncation": "none",
+    "reuse_frozen_hybrid_union": true
+  },
+  "reranker": {
+    "model_id": "BAAI/bge-reranker-base",
+    "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "runtime_api": "reuse frozen V4A reranker-score artifact; no new model inference",
+    "score": "single raw sequence-classification logit",
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "authors_in_input": false,
+    "rerank_scope": "entire deduplicated dense50+BM25-50 union",
+    "reuse_v4a_reranker_scores": true
+  },
+  "final_v4b_ranking": {
+    "method": "reranker_score_only",
+    "primary_sort": "reranker_score descending",
+    "tie_break": [
+      "hybrid_retrieval_rank ascending only when reranker_score is exactly equal",
+      "isbn13 ascending"
+    ],
+    "tie_equality": "exact numeric equality; no epsilon bucket and no score rounding",
+    "hybrid_retrieval_rank_has_non_tie_weight": false,
+    "retrieval_rrf_in_final_score": false,
+    "top_k": 10
+  },
+  "development_protocol": {
+    "query_set": "H01-H24",
+    "query_count": 24,
+    "role": "development only; no release decision",
+    "primary_baseline": "frozen v3b",
+    "candidate": "v4b",
+    "v4a_role": "rejected development candidate; may be reported descriptively but does not alter selection rule",
+    "ranking_execution": "deterministically derive V4B top10 from the frozen V4A full-union reranker score artifact; zero retrieval/model/judge calls",
+    "display_union_scoring": "freeze the unique v3b/v4b displayed top10 union before any new judging; reuse all compatible frozen scores; judge only previously-unjudged displayed pairs",
+    "quarantined_h14_pair_policy": "If V4A_RETRDIAG_H14_9781582972947 enters the V4B displayed comparison union without a real frozen score, do not impute it and do not make the development selection decision. Resolve it under a separately reviewed execution package or pre-register a separate selection-sensitivity contract before viewing selection results.",
+    "metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10",
+      "catastrophic_query_rate"
+    ],
+    "bootstrap": {
+      "replicates": 5000,
+      "seed": 20261002,
+      "confidence_level": 0.95,
+      "resampling_unit": "query"
+    },
+    "judge": "semantic_relevance_v0.29.0-r5",
+    "human_labels": false,
+    "no_parameter_change_after_v4b_spec_freeze": true
+  },
+  "development_selection_rule": {
+    "selection_type": "same pre_registered lexicographic v3b-vs-candidate rule used for v4a",
+    "ordered_criteria": [
+      "lower catastrophic_query_rate",
+      "lower irrelevant_rate_at_10",
+      "higher clear_or_strong_rate_at_10",
+      "higher macro_mean_relevance_at_10",
+      "higher ndcg_at_10"
+    ],
+    "final_tie_break": "retain v3b",
+    "retrieval_diagnostics_can_explain_but_not_override_selection": true,
+    "v4a_results_cannot_override_v3b_vs_v4b_selection": true,
+    "no_parameter_search_after_results_seen": true
+  },
+  "new_unseen_holdout_protocol": {
+    "required_only_if_v4b_selected": true,
+    "query_count": 24,
+    "query_ids": "V4H01-V4H24",
+    "authoring_blind_to_catalog_and_retrieval_outputs": true,
+    "query_and_facet_files_frozen_before_retrieval": true,
+    "no_retrieval_or_reranker_parameter_change_after_holdout_begins": true
+  },
+  "explicit_non_goals": [
+    "BM25F or field weighting",
+    "stemming, lemmatization, stop-word tuning, synonym expansion",
+    "query rewriting or decomposition",
+    "embedding/index changes",
+    "candidate-depth sweep",
+    "BM25 k1/b sweep",
+    "RRF k/weight sweep",
+    "reranker model changes or fine-tuning",
+    "reranker score calibration, normalization, or thresholding",
+    "judge-as-reranker",
+    "training on judge labels",
+    "release-gate changes"
+  ]
+}
