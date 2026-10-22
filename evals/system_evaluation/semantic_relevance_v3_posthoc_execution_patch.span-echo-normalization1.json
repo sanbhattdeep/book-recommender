@@ -1,0 +1,20 @@
+{
+  "status": "APPLIED_NON_SEMANTIC_EXECUTION_PATCH",
+  "patch_id": "v3-posthoc-prominence-span-echo-normalization1",
+  "purpose": "Repair one structured-output serialization failure in ProminenceAssessment.",
+  "from_stage_b_scorer_sha256": "b19bcdcb310879dd39c660ee817666c917fb229bc704ba0a2cf9587b2388bc30",
+  "scope": "ProminenceAssessment.supporting_span_ids only",
+  "normalization_rule": "Preserve an already-valid S# ID unchanged. Otherwise, replace an item only when its trimmed value exactly equals one of the supplied rendered source lines '<valid S#>: <exact span text>'. Any other malformed/unknown value is left unchanged and is rejected by the original frozen validator.",
+  "judge_source_modified": false,
+  "judge_prompt_modified": false,
+  "semantic_rules_changed": false,
+  "deterministic_scoring_rules_changed": false,
+  "facet_spec_changed": false,
+  "judge_config_changed": false,
+  "rubric_changed": false,
+  "release_metrics_or_gates_changed": false,
+  "frozen_v3_release_decision_modified": false,
+  "persisted_prepatch_scores_reused": true,
+  "persisted_prepatch_score_rationale": "A row persisted before this patch necessarily passed the original strict prominence validator, so it could not have used this repair path.",
+  "human_relevance_labels_used": false
+}
