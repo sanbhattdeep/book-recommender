@@ -1,0 +1,78 @@
+{
+  "diagnostic_id": "semantic-relevance-v4h-no-clear-headroom-stage-a",
+  "version": "0.1.0",
+  "status": "PROPOSED_FOR_FREEZE_BEFORE_STAGE_A_CANDIDATE_SELECTION",
+  "role": "post_release_consumed_holdout_diagnostic",
+  "release_decision": {
+    "authoritative_system": "v4b",
+    "frozen_decision": "FAIL",
+    "may_be_reopened": false,
+    "may_be_overridden_by_this_diagnostic": false
+  },
+  "motivation": {
+    "observed_no_clear_top10_queries": 10,
+    "target_query_ids": [
+      "V4H07",
+      "V4H09",
+      "V4H10",
+      "V4H11",
+      "V4H13",
+      "V4H16",
+      "V4H19",
+      "V4H21",
+      "V4H22",
+      "V4H23"
+    ],
+    "reason": "A NO_CLEAR_TOP10 result does not establish candidate-generation failure. A clear/strong candidate may already exist below displayed rank 10 in the frozen V4B full union. Stage A tests ranks 11-50 before making any V5 retrieval-vs-ranking architectural conclusion."
+  },
+  "frozen_input_anchors": {
+    "v4h_failure_analysis_lock_sha256": "4e0f10f3d70fae6154c20d32622c21f437749d30835e892736cafa7d6ab3fc90",
+    "v4h_failure_query_diagnostics_sha256": "09c1c74f49d09ae76fb95c2a38ca7d69197e29caa7737875d87de946362363c8",
+    "v4h_final_release_analysis_lock_sha256": "7e7d73920452ec39ea72947d2b3762a02aaa1b2bb0bcd7470c7e21dbb3a25ab0",
+    "v4h_reranking_lock_sha256": "6d3a7014f5995d978a90df627c720c0b81aa2e8b28e8bba99cfa2c64d27811b5",
+    "v4h_judge_scores_sha256": "8f8249a609287477a7f094ef774dd8f8b2af4b9b9b142d58e6c22123ae15f906"
+  },
+  "candidate_selection": {
+    "system_ranking": "frozen V4B full-union ranking",
+    "rank_window_inclusive": [
+      11,
+      50
+    ],
+    "queries": [
+      "V4H07",
+      "V4H09",
+      "V4H10",
+      "V4H11",
+      "V4H13",
+      "V4H16",
+      "V4H19",
+      "V4H21",
+      "V4H22",
+      "V4H23"
+    ],
+    "expected_candidates_per_query": 40,
+    "expected_total_candidates": 400,
+    "selection_order": [
+      "query_id ASC",
+      "v4b_rank ASC"
+    ],
+    "no_candidate_sampling": true,
+    "no_reranker_reexecution": true,
+    "no_retrieval_reexecution": true
+  },
+  "stage_a_outcome_after_future_judging": {
+    "clear_or_strong_threshold": "judge_score >= 3",
+    "classification": {
+      "HEADROOM_FOUND_11_50": "At least one rank 11-50 candidate has judge_score >= 3.",
+      "NO_CLEAR_THROUGH_50": "No rank 11-50 candidate has judge_score >= 3; remains unresolved pending optional Stage B ranks 51-end."
+    },
+    "important_boundary": "Stage A can prove displayed-ranking headroom when a clear/strong candidate is found at ranks 11-50. It cannot prove full candidate-union limitation when none is found; that requires Stage B over ranks 51-end for unresolved queries."
+  },
+  "execution_boundary": {
+    "this_package_performs_judge_calls": false,
+    "this_package_performs_model_calls": false,
+    "this_package_calculates_release_metrics": false,
+    "this_package_changes_release_decision": false,
+    "this_package_changes_system_parameters": false
+  }
+}

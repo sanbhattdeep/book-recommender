@@ -1,0 +1,64 @@
+{
+  "contract_id": "semantic-relevance-v4h-headroom-stage-a-judging-preparation",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_SCORE_REUSE_INVENTORY_OR_JUDGE_EXECUTION",
+  "role": "post_release_consumed_holdout_diagnostic",
+  "v4h_release_decision": "FAIL_IMMUTABLE",
+  "target_query_ids": [
+    "V4H07",
+    "V4H09",
+    "V4H10",
+    "V4H11",
+    "V4H13",
+    "V4H16",
+    "V4H19",
+    "V4H21",
+    "V4H22",
+    "V4H23"
+  ],
+  "candidate_inventory": {
+    "count": 400,
+    "rank_window": [
+      11,
+      50
+    ],
+    "candidate_sha256": "2f2bfe05e1c21bb6a7b8c6dbe6c37fca8c42b9985ebeb74fcda710f5b629a68d",
+    "candidate_lock_sha256": "cb0ee919fd4a830d6d7e30f7acc91854470354684768ab9cf4762ec289f1fdfa"
+  },
+  "existing_v4h_score_artifact": {
+    "judge_scores_sha256": "8f8249a609287477a7f094ef774dd8f8b2af4b9b9b142d58e6c22123ae15f906",
+    "judge_scoring_lock_sha256": "ac7a96c89eb2d4a51eda1b56756ed3b943311e7f300b661659cff51285423a8f"
+  },
+  "score_reuse_rule": {
+    "allowed": true,
+    "key": [
+      "query_id",
+      "isbn13"
+    ],
+    "scope": "same frozen V4H query and exact same book only",
+    "cross_query_reuse": false,
+    "approximate_matching": false,
+    "reuse_requires_frozen_v4h_score": true,
+    "fresh_judge_required_for_all_other_pairs": true
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "v4h_facet_spec_sha256": "dbdb7c5d5603e17164cf6ef880df912f6196663387885e1f5773e54b97d2b106",
+    "historical_v3_scoring_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777",
+    "accepted_span_echo_patch_sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266",
+    "accepted_duplicate_candidate_id_patch_id": "v4h-stage-a-duplicate-candidate-id-normalization1"
+  },
+  "preparation_outputs": [
+    "v4h_headroom_stage_a_score_inventory.csv",
+    "v4h_headroom_stage_a_judging_input.csv",
+    "v4h_headroom_stage_a_judging_input.lock.json"
+  ],
+  "execution_boundary": {
+    "judge_calls": 0,
+    "retrieval_calls": 0,
+    "reranker_calls": 0,
+    "release_metrics_calculated": false,
+    "release_decision_modified": false,
+    "human_relevance_labels_used": false
+  }
+}
