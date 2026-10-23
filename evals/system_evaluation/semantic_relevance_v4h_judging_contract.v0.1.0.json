@@ -1,0 +1,43 @@
+{
+  "contract_id": "semantic-relevance-v4h-final-holdout-judging",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V4H_JUDGE_INPUT_PREPARATION",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "judging_inventory": {
+    "source": "evals/runs/semantic_relevance_v4_holdout/20261022T103659Z_retrieval/v4h_v3b_v4b_display_union.csv",
+    "source_sha256": "444fa3722dc1e8815e111ab95db9a35b501ae9e57d692d560c6c5fe5955f096a",
+    "unique_query_book_pairs": 382,
+    "historical_score_reuse": false,
+    "all_pairs_require_fresh_judging": true,
+    "case_id_rule": "V4H_JUDGE_<query_id>_<canonical_isbn13>"
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "provenance_lock": "evals/runs/semantic_relevance_v3_holdout/20261007T124150Z_retrieval/holdout_judge_scoring_lock.json",
+    "provenance_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777",
+    "judge_source": "evals/semantic_relevance_facet_judge.py",
+    "deterministic_scoring": "evals/semantic_relevance_facet_scoring.py",
+    "judge_config": "evals/judge_configs/semantic_relevance_judge.v0.29.0-r5.json",
+    "rubric": "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json",
+    "v4h_facet_spec": "evals/facets/semantic_relevance/semantic_relevance_v4_holdout_query_facets.v0.1.0.json",
+    "v4h_facet_spec_sha256": "dbdb7c5d5603e17164cf6ef880df912f6196663387885e1f5773e54b97d2b106",
+    "accepted_nonsemantic_execution_patch": {
+      "id": "v3-posthoc-prominence-span-echo-normalization1",
+      "file": "evals/system_evaluation/semantic_relevance_v3_posthoc_execution_patch.span-echo-normalization1.json",
+      "sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266"
+    }
+  },
+  "execution": {
+    "provider": "ollama",
+    "human_relevance_labels_used": false,
+    "retrieval_calls": 0,
+    "reranker_calls": 0,
+    "fresh_judge_calls_required": true,
+    "persist_each_completed_case": true,
+    "resume_from_persisted_cases": true,
+    "final_scoring_lock_only_after_all_cases_complete": true,
+    "release_metrics_or_decision": false
+  },
+  "next_stage_after_complete_scores": "CALCULATE_FROZEN_V4H_STANDALONE_AND_PAIRED_RELEASE_METRICS"
+}
