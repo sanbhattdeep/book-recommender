@@ -1,0 +1,103 @@
+{
+  "contract_id": "semantic-relevance-v4h-final-release-analysis",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_AFTER_JUDGE_SCORE_FREEZE_BEFORE_RELEASE_ANALYSIS",
+  "query_set": "V4H01-V4H24",
+  "query_count": 24,
+  "recommendations_per_system_per_query": 10,
+  "authoritative_system": "v4b",
+  "secondary_baseline": "v3b",
+  "authoritative_decision_rule": "Apply the original eight semantic-relevance release gates to standalone V4B metrics on V4H. Paired V3B-vs-V4B evidence cannot override the standalone V4B release decision.",
+  "frozen_inputs": {
+    "judge_scores": "8f8249a609287477a7f094ef774dd8f8b2af4b9b9b142d58e6c22123ae15f906",
+    "judge_scoring_lock": "ac7a96c89eb2d4a51eda1b56756ed3b943311e7f300b661659cff51285423a8f",
+    "judging_input": "64335ac9e30a2d32aa71ad4306bffdb82f22ef7feef18dd1c92459f2f33a7645",
+    "display_union": "444fa3722dc1e8815e111ab95db9a35b501ae9e57d692d560c6c5fe5955f096a",
+    "v3b_recommendations": "2f1aec34740f35127822a634e00f772db716e35e2d8aeaeaf729d54ecc95b505",
+    "v4b_recommendations": "27c8fb4502909f0a3f89d6b6dfbcec55ac82ae489eab800d51334f312d16fec2",
+    "reranking_lock": "6d3a7014f5995d978a90df627c720c0b81aa2e8b28e8bba99cfa2c64d27811b5"
+  },
+  "metrics": [
+    "macro_mean_relevance_at_10",
+    "clear_or_strong_rate_at_10",
+    "irrelevant_rate_at_10",
+    "hit_rate_at_5_clear_or_strong",
+    "top1_clear_or_strong_rate",
+    "mrr_at_10_clear_or_strong",
+    "ndcg_at_10",
+    "catastrophic_query_rate"
+  ],
+  "metric_rules": {
+    "clear_or_strong": "judge_score >= 3",
+    "irrelevant": "judge_score == 0",
+    "ndcg_gain": "2^judge_score - 1",
+    "ndcg_ideal": "same returned top10 sorted by judge_score descending",
+    "catastrophic_query": "mean_relevance_at_10 < 1.5"
+  },
+  "uncertainty": {
+    "method": "query-level cluster bootstrap percentile CI",
+    "replicates": 5000,
+    "seed": 20261002,
+    "confidence_level": 0.95,
+    "resampling_unit": "query"
+  },
+  "release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": {
+      "metric": "macro_mean_relevance_at_10",
+      "op": ">=",
+      "value": 2.5
+    },
+    "macro_mean_relevance_ci_lower_ge_2_00": {
+      "metric": "macro_mean_relevance_at_10_ci_lower_95",
+      "op": ">=",
+      "value": 2.0
+    },
+    "clear_or_strong_rate_at_10_ge_0_60": {
+      "metric": "clear_or_strong_rate_at_10",
+      "op": ">=",
+      "value": 0.6
+    },
+    "irrelevant_rate_at_10_le_0_10": {
+      "metric": "irrelevant_rate_at_10",
+      "op": "<=",
+      "value": 0.1
+    },
+    "hit_rate_at_5_clear_or_strong_ge_0_90": {
+      "metric": "hit_rate_at_5_clear_or_strong",
+      "op": ">=",
+      "value": 0.9
+    },
+    "top1_clear_or_strong_rate_ge_0_75": {
+      "metric": "top1_clear_or_strong_rate",
+      "op": ">=",
+      "value": 0.75
+    },
+    "ndcg_at_10_ge_0_85": {
+      "metric": "ndcg_at_10",
+      "op": ">=",
+      "value": 0.85
+    },
+    "catastrophic_query_rate_eq_0": {
+      "metric": "catastrophic_query_rate",
+      "op": "==",
+      "value": 0.0
+    }
+  },
+  "decision_policy": {
+    "PASS": "All 8 release gates pass.",
+    "REVIEW": "One or two gates fail and catastrophic_query_rate remains 0.",
+    "FAIL": "Three or more gates fail, or catastrophic_query_rate > 0."
+  },
+  "paired_analysis": {
+    "role": "secondary",
+    "direction": "V4B minus V3B",
+    "cannot_override_standalone_v4b_release_decision": true,
+    "same_query_cluster_bootstrap": true
+  },
+  "execution_boundary": {
+    "judge_calls": 0,
+    "retrieval_calls": 0,
+    "reranker_calls": 0,
+    "human_relevance_labels": false
+  }
+}
