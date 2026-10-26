@@ -1,0 +1,982 @@
+{
+  "facet_spec_id": "semantic-relevance-v5-fresh-development-query-facets",
+  "version": "0.1.0",
+  "status": "frozen_before_v5d_retrieval",
+  "evaluation_dimension": "semantic-recommendation-relevance",
+  "rubric_id": "semantic-recommendation-relevance",
+  "rubric_version": "0.1.0",
+  "dataset_id": "semantic-relevance-v5-fresh-development-queries",
+  "dataset_version": "0.1.0",
+  "scoring_module": "evals/semantic_relevance_facet_scoring.py",
+  "authoring_role": "candidate_blind_fresh_development_selection_set",
+  "candidate_outputs_inspected_during_authoring": false,
+  "judge_outputs_inspected_during_authoring": false,
+  "human_relevance_labels_used": false,
+  "authoring_guidelines": [
+    "Facets are derived only from each frozen V5D query text before any V5D retrieval.",
+    "Do not add candidate-specific facts, titles, authors, retrieval ranks, reranker scores, judge outputs, or observed V5D failures.",
+    "Use core facets for central semantic requirements and qualifier facets for important modifiers.",
+    "Keep relationship/role requirements together when splitting them could let unrelated evidence satisfy separate pieces.",
+    "Hard exclusions encode only the explicit contrast in the query.",
+    "Every facet has at least one canonical required component and negative boundary.",
+    "Do not edit the V5D query/facet files after V5D retrieval begins; version and restart development selection if a semantic-spec defect is discovered before selection is consumed."
+  ],
+  "queries": [
+    {
+      "query_id": "V5D01",
+      "query": "A story about secrecy and intimacy",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "secrecy",
+          "facet_type": "core",
+          "semantic_definition": "Concealed information, hidden motives, or deliberate withholding materially shapes relationships or events.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "consequential_concealment",
+              "definition": "A consequential secret or deliberate withholding is explicit and affects choices, relationships, or events.",
+              "negative_boundaries": [
+                "Ordinary privacy or a surprise reveal with no sustained consequences does not establish secrecy as a central theme."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "intimacy",
+          "facet_type": "core",
+          "semantic_definition": "Emotional closeness, vulnerability, trust, or deep personal connection is substantively developed.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "meaningful_intimacy",
+              "definition": "A close relationship involving emotional vulnerability, trust, or deep personal connection is materially important.",
+              "negative_boundaries": [
+                "Casual companionship, attraction, or proximity without meaningful emotional closeness does not establish intimacy."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D02",
+      "query": "A story about duty and resentment",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "duty",
+          "facet_type": "core",
+          "semantic_definition": "A binding obligation, responsibility, role, promise, or sense of what one must do materially shapes a character's choices.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "binding_obligation",
+              "definition": "A character is substantively guided or constrained by a duty, responsibility, promise, or role obligation.",
+              "negative_boundaries": [
+                "Routine tasks or preferences without a felt obligation do not establish duty."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "resentment",
+          "facet_type": "core",
+          "semantic_definition": "Sustained bitterness or grievance over perceived unfairness, burden, injury, or obligation materially shapes behavior.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "sustained_grievance",
+              "definition": "A character carries consequential resentment or bitterness toward a person, role, burden, or past wrong.",
+              "negative_boundaries": [
+                "Momentary irritation or anger without sustained grievance does not establish resentment."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D03",
+      "query": "A story about courage and conformity",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "courage",
+          "facet_type": "core",
+          "semantic_definition": "A character knowingly faces fear, danger, social cost, or serious risk in order to act.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "action_despite_risk",
+              "definition": "A character acts despite meaningful fear, danger, social cost, or personal risk.",
+              "negative_boundaries": [
+                "Confidence or recklessness without confronting a meaningful fear or risk does not establish courage."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "conformity",
+          "facet_type": "core",
+          "semantic_definition": "Pressure to follow group norms, expectations, conventions, or approved behavior materially shapes choices.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "normative_pressure",
+              "definition": "Social or institutional pressure to conform to expected behavior is explicit and consequential.",
+              "negative_boundaries": [
+                "Shared habits or ordinary cooperation without pressure to fit a norm do not establish conformity."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D04",
+      "query": "A story about creativity and failure",
+      "stratum": "two_core_theme",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "creativity",
+          "facet_type": "core",
+          "semantic_definition": "Making, inventing, composing, designing, or producing original work is a substantive concern.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "creative_process",
+              "definition": "A consequential creative process or act of making original work is materially present.",
+              "negative_boundaries": [
+                "Routine problem solving or consumption of art without creative production does not establish creativity."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "failure",
+          "facet_type": "core",
+          "semantic_definition": "Significant failure, unsuccessful effort, rejection, or inability to achieve an important goal materially shapes the work.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "consequential_failure",
+              "definition": "A meaningful attempt fails or is rejected and the consequences of that failure are substantively explored.",
+              "negative_boundaries": [
+                "Minor mistakes or temporary setbacks without meaningful consequence do not establish failure as a theme."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D05",
+      "query": "A courtroom drama about wrongful accusation, forensic evidence, and media pressure",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "wrongful accusation",
+          "facet_type": "core",
+          "semantic_definition": "A person is accused of wrongdoing they may not have committed, and the accusation is central to the case or conflict.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "contested_false_accusation",
+              "definition": "A consequential accusation is presented as false, doubtful, or potentially wrongful and drives the courtroom conflict.",
+              "negative_boundaries": [
+                "A routine prosecution with no meaningful question of wrongful accusation does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "forensic evidence",
+          "facet_type": "core",
+          "semantic_definition": "Scientific, medical, technical, or physical evidence used to establish facts is substantively important to the legal dispute.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "material_forensic_evidence",
+              "definition": "Forensic or technical evidence materially affects what can be proven, challenged, or inferred in the case.",
+              "negative_boundaries": [
+                "Generic clues or testimony without substantive forensic/technical evidence do not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "media pressure",
+          "facet_type": "core",
+          "semantic_definition": "News coverage, public attention, or media narratives materially influence the case, participants, or proceedings.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "consequential_media_attention",
+              "definition": "Media coverage or public narratives create meaningful pressure on the case or its participants.",
+              "negative_boundaries": [
+                "Incidental reporting that does not affect the legal conflict does not establish media pressure."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D06",
+      "query": "A historical novel about exploration, cartography, and imperial ambition",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "exploration",
+          "facet_type": "core",
+          "semantic_definition": "Travel into poorly known territory for discovery, mapping, knowledge, or expansion materially drives the narrative.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "expeditionary_discovery",
+              "definition": "An expedition or exploratory journey seeking new geographic knowledge or access is central.",
+              "negative_boundaries": [
+                "Ordinary travel or adventure without an exploratory purpose does not establish exploration."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "cartography",
+          "facet_type": "core",
+          "semantic_definition": "Mapmaking, surveying, geographic measurement, or the production/use of maps is substantively important.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "mapmaking_or_surveying",
+              "definition": "Cartographic work, surveying, or map production materially shapes the expedition or conflict.",
+              "negative_boundaries": [
+                "Simply consulting a map does not establish cartography as a substantive facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "imperial ambition",
+          "facet_type": "core",
+          "semantic_definition": "Expansion of empire, territorial control, colonial influence, or state power materially motivates or frames exploration.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "imperial_expansion_motive",
+              "definition": "Imperial or colonial expansion is explicit and consequential to the expedition or its sponsors.",
+              "negative_boundaries": [
+                "National identity or foreign travel without expansionist ambition does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D07",
+      "query": "A science-fiction story about genetic engineering, parenthood, and social inequality",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "genetic engineering",
+          "facet_type": "core",
+          "semantic_definition": "Deliberate alteration, design, or manipulation of genes or inherited biological traits is a substantive story element.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "deliberate_genetic_modification",
+              "definition": "Genetic modification or engineered heredity is explicit and materially affects the story.",
+              "negative_boundaries": [
+                "Natural inheritance or ordinary medical treatment without deliberate genetic alteration does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "parenthood",
+          "facet_type": "core",
+          "semantic_definition": "The responsibilities, choices, attachment, or identity of being a parent are materially examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "parental_role",
+              "definition": "A parent or prospective parent faces consequential responsibilities, choices, or relationships connected to parenthood.",
+              "negative_boundaries": [
+                "A child appearing in the story without a substantive parental role does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "social inequality",
+          "facet_type": "core",
+          "semantic_definition": "Unequal status, opportunity, resources, rights, or treatment between social groups materially shapes the fictional society or conflict.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "structural_inequality",
+              "definition": "Systematic unequal treatment or opportunity between groups is explicit and consequential.",
+              "negative_boundaries": [
+                "Individual rivalry or difference without a broader inequality structure does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D08",
+      "query": "A workplace novel about automation, job insecurity, and worker solidarity",
+      "stratum": "three_core_conjunctive",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "automation",
+          "facet_type": "core",
+          "semantic_definition": "Machines, software, robotics, or automated systems replacing or transforming human work are substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "work_automation",
+              "definition": "Automation materially changes tasks, staffing, or how work is performed.",
+              "negative_boundaries": [
+                "Ordinary use of tools or software without meaningful automation of work does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "job insecurity",
+          "facet_type": "core",
+          "semantic_definition": "Workers face meaningful risk of job loss, reduced hours, displacement, precarity, or unstable employment.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "employment_precarity",
+              "definition": "The possibility or reality of losing stable work is explicit and consequential for workers.",
+              "negative_boundaries": [
+                "General workplace dissatisfaction without employment insecurity does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "worker solidarity",
+          "facet_type": "core",
+          "semantic_definition": "Workers cooperate, organize, support one another, or act collectively around shared workplace interests.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "collective_worker_action",
+              "definition": "Workers materially coordinate or support one another in response to shared workplace conditions.",
+              "negative_boundaries": [
+                "Friendship among coworkers without collective workplace action does not establish worker solidarity."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D09",
+      "query": "An illustrated guide to marine ecology",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "marine ecology",
+          "facet_type": "core",
+          "semantic_definition": "Relationships among marine organisms and their ocean or coastal environments are the substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "marine_ecological_relationships",
+              "definition": "The work substantively explains organisms, ecosystems, interactions, or environmental processes in marine settings.",
+              "negative_boundaries": [
+                "A book merely featuring sea animals without ecological relationships does not establish marine ecology."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "illustrated",
+          "facet_type": "qualifier",
+          "semantic_definition": "Illustrations, diagrams, photographs, or other visual material are an important part of how the subject is taught or presented.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "substantive_visual_explanation",
+              "definition": "Visual material is explicitly important to explanation, identification, or learning.",
+              "negative_boundaries": [
+                "A book merely having a cover image or occasional decoration does not establish an illustrated treatment."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D10",
+      "query": "A concise history of printing and the spread of books",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "history of printing and book dissemination",
+          "facet_type": "core",
+          "semantic_definition": "The historical development of printing technologies and the circulation or spread of books is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "printing_and_dissemination_history",
+              "definition": "The work materially addresses how printing developed and how printed books were produced, distributed, or spread.",
+              "negative_boundaries": [
+                "A general literary history without substantive printing or dissemination history does not establish this core."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "concise",
+          "facet_type": "qualifier",
+          "semantic_definition": "The work is explicitly brief, compact, short-form, or designed to provide a compressed overview.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "compact_treatment",
+              "definition": "The description explicitly establishes a concise, brief, compact, or short overview.",
+              "negative_boundaries": [
+                "A broad introductory subject alone does not establish concision."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D11",
+      "query": "A hands-on guide to bicycle repair for home mechanics",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "bicycle repair for home mechanics",
+          "facet_type": "core",
+          "semantic_definition": "Diagnosing, maintaining, or repairing bicycles using methods suitable for an individual working at home is substantive.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "home_bicycle_maintenance",
+              "definition": "The work gives substantive bicycle repair or maintenance guidance usable by a non-professional home mechanic.",
+              "negative_boundaries": [
+                "Cycling technique, bicycle history, or professional shop management without repair guidance does not establish this core."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "hands-on",
+          "facet_type": "qualifier",
+          "semantic_definition": "The treatment emphasizes doing the work directly through procedures, tasks, demonstrations, or step-by-step practice.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "direct_practical_procedures",
+              "definition": "The description establishes direct procedures or tasks intended to be performed by the reader.",
+              "negative_boundaries": [
+                "General explanation without direct practical procedures does not establish a hands-on treatment."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D12",
+      "query": "An example-rich introduction to probability for non-mathematicians",
+      "stratum": "core_plus_qualifier",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "probability for non-mathematicians",
+          "facet_type": "core",
+          "semantic_definition": "Probability concepts are explained for readers without advanced mathematical training.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "accessible_probability_content",
+              "definition": "The work substantively teaches probability while explicitly targeting readers without advanced mathematics.",
+              "negative_boundaries": [
+                "A specialist probability text assuming advanced mathematics does not establish this core."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "example-rich",
+          "facet_type": "qualifier",
+          "semantic_definition": "Concrete examples, worked cases, scenarios, or demonstrations are an important teaching method.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "substantial_examples",
+              "definition": "The description explicitly emphasizes numerous or central examples, worked cases, or demonstrations.",
+              "negative_boundaries": [
+                "A single example or ordinary exercises do not by themselves establish an example-rich treatment."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D13",
+      "query": "A story about an architect negotiating with a community organizer",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "architect-community organizer negotiation",
+          "facet_type": "core",
+          "semantic_definition": "Negotiation, disagreement, compromise, or trust specifically between an architect and a community organizer is central to a shared planning or design problem.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "role_bound_negotiation",
+              "definition": "An architect and a community organizer are both established, and their direct negotiation or collaboration materially shapes the story.",
+              "negative_boundaries": [
+                "A story about architecture or activism without this specific cross-role relationship does not satisfy the relational constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D14",
+      "query": "A story about an editor working through difficult revisions with a debut novelist",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "editor-debut novelist revision relationship",
+          "facet_type": "core",
+          "semantic_definition": "An editor and a first-time novelist work through consequential revisions, disagreement, guidance, or trust around a manuscript.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "editor_novelist_revision_dynamic",
+              "definition": "An editor, a debut novelist, and a substantive revision relationship are all established.",
+              "negative_boundaries": [
+                "A publishing story without an editor-novelist revision dynamic does not satisfy the full relational constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D15",
+      "query": "A story about a farmer relying on a veterinarian during a livestock outbreak",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "farmer-veterinarian reliance during outbreak",
+          "facet_type": "core",
+          "semantic_definition": "A farmer materially relies on a veterinarian during a livestock disease outbreak, with their professional relationship shaping decisions or outcomes.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "farmer_vet_outbreak_dynamic",
+              "definition": "A farmer, a veterinarian, a livestock outbreak, and substantive reliance between the roles are all established.",
+              "negative_boundaries": [
+                "A rural or veterinary story without this specific outbreak-driven farmer-veterinarian relationship does not satisfy the constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D16",
+      "query": "A story about an orchestra conductor working with a rebellious soloist",
+      "stratum": "relationship_or_role_constraint",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "conductor-soloist conflict in concert preparation",
+          "facet_type": "core",
+          "semantic_definition": "An orchestra conductor and a rebellious or resistant soloist must work together while preparing a performance, with their artistic or authority conflict central.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "conductor_soloist_preparation_dynamic",
+              "definition": "A conductor, a soloist, concert preparation, and a substantive conflict/cooperation dynamic are all established.",
+              "negative_boundaries": [
+                "A general music story without this specific conductor-soloist working relationship does not satisfy the constraint."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D17",
+      "query": "A book about economic inflation, not cosmic inflation",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "economic inflation",
+          "facet_type": "core",
+          "semantic_definition": "Sustained increases in general price levels, purchasing-power erosion, monetary inflation, or their economic causes and effects are substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V5D17_F1_HX_COSMIC_INFLATION",
+              "rule": "Reject works whose relevant treatment is primarily cosmological inflation or expansion of the early universe rather than economic price inflation."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "macroeconomic_price_inflation",
+              "definition": "The work substantively addresses inflation as an economic phenomenon involving prices or purchasing power.",
+              "negative_boundaries": [
+                "Using inflation only to describe expansion in another domain does not establish economic inflation."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D18",
+      "query": "A book about legal trusts and estates, not interpersonal trust or relationship advice",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "legal trusts and estates",
+          "facet_type": "core",
+          "semantic_definition": "Trusts, estates, fiduciary arrangements, inheritance planning, probate, or related legal structures are substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V5D18_F1_HX_INTERPERSONAL_TRUST",
+              "rule": "Reject works whose relevant treatment is primarily interpersonal trust, relationship repair, or trust-building advice rather than legal trusts and estates."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "trusts_estates_law",
+              "definition": "The work substantively addresses legal trusts, estates, fiduciary duties, probate, or estate planning.",
+              "negative_boundaries": [
+                "Interpersonal trust, confidence, or relationship advice without the legal structure does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D19",
+      "query": "A book about musical harmony, not social harmony or conflict resolution",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "musical harmony",
+          "facet_type": "core",
+          "semantic_definition": "The combination, progression, or theory of simultaneous pitches, chords, tonal relationships, or harmonic structure in music is substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V5D19_F1_HX_SOCIAL_HARMONY",
+              "rule": "Reject works whose relevant treatment is primarily social harmony, interpersonal agreement, or conflict resolution rather than musical harmony."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "music_harmony_theory",
+              "definition": "The work substantively addresses harmony as a musical concept involving chords, pitches, or harmonic progression.",
+              "negative_boundaries": [
+                "Using harmony metaphorically for agreement or peaceful relations does not establish musical harmony."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D20",
+      "query": "A book about archival preservation of documents, not food preservation or canning",
+      "stratum": "hard_exclusion_or_contrast",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "archival preservation of documents",
+          "facet_type": "core",
+          "semantic_definition": "Methods, institutions, or principles for preserving manuscripts, records, paper, photographs, or documentary archives are substantive.",
+          "hard_exclusions": [
+            {
+              "exclusion_id": "V5D20_F1_HX_FOOD_PRESERVATION",
+              "rule": "Reject works whose relevant treatment is primarily food preservation, canning, pickling, or storage rather than preservation of documentary archives."
+            }
+          ],
+          "required_components": [
+            {
+              "component_id": "document_archival_preservation",
+              "definition": "The work substantively addresses preserving documentary or archival materials against deterioration, loss, or damage.",
+              "negative_boundaries": [
+                "General preservation of food or household goods does not establish archival preservation."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D21",
+      "query": "A book about freshwater scarcity, agricultural demand, and transboundary governance",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "freshwater scarcity",
+          "facet_type": "core",
+          "semantic_definition": "Limited availability of usable freshwater for people, ecosystems, or economies is a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "limited_freshwater_supply",
+              "definition": "The work materially addresses shortage, stress, depletion, or constrained freshwater availability.",
+              "negative_boundaries": [
+                "General environmental concern without a freshwater scarcity problem does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "agricultural water demand",
+          "facet_type": "core",
+          "semantic_definition": "Water use by farming, irrigation, livestock, or food production is substantively examined as a demand on freshwater.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "farm_water_use",
+              "definition": "Agricultural water consumption or irrigation demand is an explicit and consequential part of the analysis.",
+              "negative_boundaries": [
+                "Agriculture mentioned without substantive water demand does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "transboundary governance",
+          "facet_type": "core",
+          "semantic_definition": "Rules, institutions, negotiation, or conflict over water shared across political borders are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "cross_border_water_governance",
+              "definition": "The work materially addresses governance or negotiation over shared waters crossing national or subnational borders.",
+              "negative_boundaries": [
+                "Local water management without a cross-border governance dimension does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D22",
+      "query": "A book about supply chains, labor standards, and consumer responsibility",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "supply chains",
+          "facet_type": "core",
+          "semantic_definition": "Networks of sourcing, production, logistics, suppliers, and distribution are a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "production_distribution_networks",
+              "definition": "The work substantively examines how goods or inputs move through supplier, production, and distribution networks.",
+              "negative_boundaries": [
+                "A single company or product without a supply-chain perspective does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "labor standards",
+          "facet_type": "core",
+          "semantic_definition": "Working conditions, wages, safety, labor rights, or employment standards within production networks are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "worker_conditions_standards",
+              "definition": "The work materially addresses labor rights, standards, wages, safety, or working conditions.",
+              "negative_boundaries": [
+                "General management efficiency without worker standards does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "consumer responsibility",
+          "facet_type": "core",
+          "semantic_definition": "The ethical or practical responsibilities of consumers for purchasing choices, sourcing, or downstream social impacts are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "consumer_choice_responsibility",
+              "definition": "The work materially considers how consumer decisions relate to conditions or harms elsewhere in the supply chain.",
+              "negative_boundaries": [
+                "Consumer preferences discussed only as marketing behavior do not establish responsibility."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D23",
+      "query": "A book about public libraries, digital access, and civic participation",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "public libraries",
+          "facet_type": "core",
+          "semantic_definition": "Publicly accessible libraries as civic, educational, informational, or community institutions are a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "public_library_institutions",
+              "definition": "The work substantively examines public libraries and their roles or services.",
+              "negative_boundaries": [
+                "A private collection or bookstore does not establish the public-library facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "digital access",
+          "facet_type": "core",
+          "semantic_definition": "Access to internet connectivity, digital devices, digital information, or online services is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "access_to_digital_resources",
+              "definition": "The work materially addresses whether people can access digital tools, connectivity, information, or services.",
+              "negative_boundaries": [
+                "Technology use without an access question does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "civic participation",
+          "facet_type": "core",
+          "semantic_definition": "Participation in community, democratic, civic, or public life is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "participation_in_public_life",
+              "definition": "The work materially addresses how people engage in civic, community, or democratic activity.",
+              "negative_boundaries": [
+                "General social interaction without civic/public participation does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "query_id": "V5D24",
+      "query": "A book about disability rights, workplace accommodation, and urban accessibility",
+      "stratum": "abstract_nonfiction_multi_facet",
+      "facets": [
+        {
+          "facet_id": "F1",
+          "text": "disability rights",
+          "facet_type": "core",
+          "semantic_definition": "Legal, social, or civil rights of disabled people, including equality and non-discrimination, are a substantive subject.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "rights_and_non_discrimination",
+              "definition": "The work materially addresses rights, equality, or protection from discrimination for disabled people.",
+              "negative_boundaries": [
+                "Medical discussion of disability without a rights dimension does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F2",
+          "text": "workplace accommodation",
+          "facet_type": "core",
+          "semantic_definition": "Adjustments, supports, accessibility measures, or job-design changes that enable disabled people to work are substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "employment_accommodation",
+              "definition": "The work materially addresses accommodations or supports in employment for disabled workers.",
+              "negative_boundaries": [
+                "General workplace flexibility unrelated to disability does not establish this facet."
+              ]
+            }
+          ]
+        },
+        {
+          "facet_id": "F3",
+          "text": "urban accessibility",
+          "facet_type": "core",
+          "semantic_definition": "Accessibility of streets, transport, buildings, public space, or urban infrastructure for disabled people is substantively examined.",
+          "hard_exclusions": [],
+          "required_components": [
+            {
+              "component_id": "accessible_built_environment",
+              "definition": "The work materially addresses barriers or accessibility in urban infrastructure or public space.",
+              "negative_boundaries": [
+                "Architecture or transport discussed without disability accessibility does not establish this facet."
+              ]
+            }
+          ]
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "status": "V5D_QUERY_AND_FACET_SPEC_FROZEN_BEFORE_DEVELOPMENT_RETRIEVAL",
+  "frozen_at_utc": "2026-10-26T12:02:04.876983+00:00",
+  "v5_development_design_lock_sha256": "89ee03a4328c268a8128d5e373854b92634c41eff204b53f7b93b78c481311c0",
+  "v5_r1_k1_architecture_lock_sha256": "2b298d3263c7a88090a983700da34c30767a71877a4b32ea2e1ae8f3524ade87",
+  "v5_r1_k1_implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+  "v5_r1_k1_model_qualification_lock_sha256": "67b1dd15403b5825086cce4c9e5c5af14cc883945f5a9626abaa4e5894b77211",
+  "query_set": "V5D01-V5D24",
+  "query_count": 24,
+  "query_file_sha256": "1d93979d21d081afaecac63ee46c56330e80a2e7dbeeeea5d3bfa55a4b56387a",
+  "facet_file_sha256": "355ac59604fc73039fe394ba36b9ef37c04cd0be447ff470bce669d8adeb4746",
+  "prior_query_anti_leakage_manifest_sha256": "32015f2426c1d72b2eb65db0e11c4be7ffdf390e14e00e00f29d0307e9f89056",
+  "strata_counts": {
+    "two_core_theme": 4,
+    "three_core_conjunctive": 4,
+    "core_plus_qualifier": 4,
+    "relationship_or_role_constraint": 4,
+    "hard_exclusion_or_contrast": 4,
+    "abstract_nonfiction_multi_facet": 4
+  },
+  "catalog_inspected_during_authoring": false,
+  "v5d_retrieval_performed": false,
+  "reranker_inference_performed": false,
+  "judge_execution_performed": false,
+  "human_relevance_labels_used": false,
+  "development_selection_calculated": false,
+  "release_metrics_calculated": false,
+  "one_shot_selection_set": true,
+  "parameter_change_after_first_v5d_semantic_result_allowed": false,
+  "next_stage": "PREPARE_V5D_R0_AND_R1_CANDIDATE_COLLECTION_BEFORE_RERANKING_OR_JUDGING"
+}
