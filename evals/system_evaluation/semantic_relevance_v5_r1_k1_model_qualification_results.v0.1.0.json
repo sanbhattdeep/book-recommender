@@ -1,0 +1,103 @@
+{
+  "status": "PASS",
+  "qualified_at_utc": "2026-10-26T11:24:28.112274+00:00",
+  "role": "fixed_synthetic_non_v5d_model_qualification_only",
+  "contract_sha256": "36bef237ae7b196c39022ce098fc158ee7cd02ffc97393b3984a22113db1194b",
+  "implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+  "probe_query_count": 3,
+  "probe_document_count": 8,
+  "r1": {
+    "model_id": "BAAI/bge-m3",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "snapshot_path": "C:\\Users\\sande\\.cache\\huggingface\\hub\\models--BAAI--bge-m3\\snapshots\\5617a9f61b028005a4858fdac845db406aefb181",
+    "device": "cuda",
+    "max_embedding_abs_delta": 0.0,
+    "max_similarity_score_abs_delta": 0.0,
+    "rank_signatures": {
+      "P01": [
+        "9900000000001",
+        "9900000000004",
+        "9900000000005",
+        "9900000000003",
+        "9900000000007",
+        "9900000000008",
+        "9900000000006",
+        "9900000000002"
+      ],
+      "P02": [
+        "9900000000002",
+        "9900000000008",
+        "9900000000006",
+        "9900000000007",
+        "9900000000004",
+        "9900000000003",
+        "9900000000001",
+        "9900000000005"
+      ],
+      "P03": [
+        "9900000000003",
+        "9900000000004",
+        "9900000000001",
+        "9900000000008",
+        "9900000000005",
+        "9900000000002",
+        "9900000000007",
+        "9900000000006"
+      ]
+    }
+  },
+  "k1": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "snapshot_path": "C:\\Users\\sande\\.cache\\huggingface\\hub\\models--BAAI--bge-reranker-v2-m3\\snapshots\\953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "device": "cuda",
+    "max_score_abs_delta": 0.0,
+    "rank_signatures": {
+      "P01": [
+        "9900000000001",
+        "9900000000004",
+        "9900000000003",
+        "9900000000005",
+        "9900000000007",
+        "9900000000008",
+        "9900000000002",
+        "9900000000006"
+      ],
+      "P02": [
+        "9900000000002",
+        "9900000000008",
+        "9900000000007",
+        "9900000000004",
+        "9900000000006",
+        "9900000000003",
+        "9900000000005",
+        "9900000000001"
+      ],
+      "P03": [
+        "9900000000003",
+        "9900000000002",
+        "9900000000008",
+        "9900000000001",
+        "9900000000004",
+        "9900000000007",
+        "9900000000006",
+        "9900000000005"
+      ]
+    }
+  },
+  "environment": {
+    "python": "3.12.10 (tags/v3.12.10:0cc8128, Apr  8 2025, 12:21:36) [MSC v.1943 64 bit (AMD64)]",
+    "platform": "Windows-11-10.0.26200-SP0",
+    "torch": "2.11.0+cu128",
+    "cuda_available": true,
+    "cuda_version": "12.8",
+    "gpu_name": "NVIDIA GeForce RTX 4050 Laptop GPU"
+  },
+  "semantic_quality_assertions_performed": false,
+  "catalog_retrieval_performed": false,
+  "bm25_retrieval_performed": false,
+  "judge_calls_performed": 0,
+  "v5d_authored_or_executed": false,
+  "development_selection_calculated": false,
+  "release_metrics_calculated": false
+}

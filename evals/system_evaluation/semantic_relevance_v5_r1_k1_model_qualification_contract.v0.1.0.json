@@ -1,0 +1,117 @@
+{
+  "contract_id": "semantic-relevance-v5-r1-k1-model-qualification",
+  "version": "0.1.0",
+  "status": "FROZEN_BEFORE_PINNED_MODEL_QUALIFICATION",
+  "purpose": "Qualify the exact frozen R1 and K1 model revisions and verify repeatable numeric/rank behavior on fixed synthetic non-V5D probes before any V5D query is authored or executed.",
+  "upstream": {
+    "architecture_lock_sha256": "2b298d3263c7a88090a983700da34c30767a71877a4b32ea2e1ae8f3524ade87",
+    "implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+    "r1_source_sha256": "eabadeccc01a98fb2f962e21ef94c4696e066b78d118f597b83120be4eeaf511",
+    "k1_source_sha256": "4a6ba7a13d03176108c65512a4185845b532ff5d85f3af512af013b8c8d60207"
+  },
+  "r1": {
+    "model_id": "BAAI/bge-m3",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "device": "auto",
+    "repeat_passes": 2,
+    "max_embedding_abs_delta": 1e-05,
+    "max_similarity_score_abs_delta": 1e-05,
+    "rank_signature_must_match_exactly": true
+  },
+  "k1": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "device": "auto",
+    "repeat_passes": 2,
+    "max_score_abs_delta": 1e-05,
+    "rank_signature_must_match_exactly": true
+  },
+  "probe_policy": {
+    "synthetic_only": true,
+    "not_from_v4h": true,
+    "not_from_v5d": true,
+    "not_used_for_quality_selection": true,
+    "no_expected_semantic_winner": true,
+    "pass_fail_scope": "model revision resolution, finite outputs, normalization/shape contracts, repeatability tolerances, and exact rank-order repeatability only"
+  },
+  "probes": {
+    "queries": [
+      {
+        "probe_query_id": "P01",
+        "text": "A beginner-friendly guide to watching birds in city parks"
+      },
+      {
+        "probe_query_id": "P02",
+        "text": "A reflective memoir about working in restaurant kitchens"
+      },
+      {
+        "probe_query_id": "P03",
+        "text": "A practical introduction to privacy and cybersecurity for ordinary people"
+      }
+    ],
+    "documents": [
+      {
+        "probe_doc_id": "D01",
+        "isbn13": "9900000000001",
+        "title": "Birds Between Buildings",
+        "description": "A practical introduction to identifying birds in urban parks, streets, balconies, and neighborhood green spaces."
+      },
+      {
+        "probe_doc_id": "D02",
+        "isbn13": "9900000000002",
+        "title": "Night Shift Kitchen",
+        "description": "A personal memoir about cooks, servers, pressure, humor, and long nights working in restaurant kitchens."
+      },
+      {
+        "probe_doc_id": "D03",
+        "isbn13": "9900000000003",
+        "title": "Everyday Digital Privacy",
+        "description": "A practical guide to passwords, phishing, device security, online tracking, privacy, and basic cybersecurity."
+      },
+      {
+        "probe_doc_id": "D04",
+        "isbn13": "9900000000004",
+        "title": "Backyard Astronomy",
+        "description": "A beginner guide to telescopes, constellations, planets, and observing the night sky from home."
+      },
+      {
+        "probe_doc_id": "D05",
+        "isbn13": "9900000000005",
+        "title": "Cities and Housing",
+        "description": "An accessible discussion of zoning, housing supply, affordability, rents, and neighborhood change."
+      },
+      {
+        "probe_doc_id": "D06",
+        "isbn13": "9900000000006",
+        "title": "The Museum Question",
+        "description": "Essays about museums, cultural heritage, collections, ownership, and the return of disputed artifacts."
+      },
+      {
+        "probe_doc_id": "D07",
+        "isbn13": "9900000000007",
+        "title": "After the Storm",
+        "description": "A community rebuilds homes and public services after a destructive storm while coping with limited housing."
+      },
+      {
+        "probe_doc_id": "D08",
+        "isbn13": "9900000000008",
+        "title": "Learning to Bake",
+        "description": "Step-by-step recipes and techniques for breads, cakes, pastries, and desserts for new home bakers."
+      }
+    ]
+  },
+  "execution_boundary": {
+    "v5d_authoring": false,
+    "v5d_execution": false,
+    "catalog_retrieval": false,
+    "bm25_retrieval": false,
+    "development_selection": false,
+    "judge_execution": false,
+    "release_metrics": false,
+    "allowed_model_calls": "only R1/K1 inference on the exact synthetic probes in this contract"
+  },
+  "outputs": [
+    "semantic_relevance_v5_r1_k1_model_qualification_results.v0.1.0.json",
+    "semantic_relevance_v5_r1_k1_model_qualification.v0.1.0.lock.json"
+  ]
+}
