@@ -1,0 +1,77 @@
+{
+  "contract_id": "semantic-relevance-v4h-headroom-stage-b-classification",
+  "version": "0.1.0",
+  "status": "FROZEN_AFTER_STAGE_B_SCORING_BEFORE_HEADROOM_CLASSIFICATION",
+  "role": "post_release_consumed_holdout_diagnostic",
+  "v4h_status": "CONSUMED_HOLDOUT_DIAGNOSTIC_DATA",
+  "frozen_release_decision": "FAIL",
+  "release_decision_may_be_changed": false,
+  "target_query_ids": [
+    "V4H10",
+    "V4H11",
+    "V4H13",
+    "V4H16",
+    "V4H21",
+    "V4H23"
+  ],
+  "rank_window": "51-end",
+  "inputs": {
+    "stage_a_classification_lock_sha256": "906b5975345c9d9eed1273ecc4ccd0611880b14d6326bf9f0e74b46f7d63d948",
+    "stage_b_candidate_inventory_sha256": "910f1a3f05487ab95f83cf3a7c6415750957a35ff9cf0e95a697b209a58c255f",
+    "stage_b_query_inventory_sha256": "bca3146d181d52ee6c3e8f43db3795ccf79ce764799fc0089d34067b89ad302b",
+    "stage_b_candidate_lock_sha256": "eb598bec298d8dd617d7b291a3274b9e1c4ae3dcf5f45c8bf98708a6a179023f",
+    "stage_b_score_inventory_sha256": "661933691c032d714a16a4e972f3754a15ca8bfac41d0108c0f4953f2cf7815a",
+    "stage_b_judging_input_sha256": "ac5b832a2feb7c8f26dcc964cccf6b33000147f005482047ea0c36e4e51bb591",
+    "stage_b_judging_input_lock_sha256": "49ae1b46c247a94fbae27cee9ad8b1987ca07e1fcaa24522f62137527e5d9392",
+    "fresh_stage_b_judge_scores_sha256": "2f91833d2351250e1841a88351af35c44d08ea6d0a8efd8b62e3fa75242eb428",
+    "fresh_stage_b_scoring_lock_sha256": "33dabcfeff65aacb3f0ab69f7a12a13d4412ee3ec67dc1c348dc2b1ba47d12d9",
+    "v4h_displayed_union_scores_sha256": "8f8249a609287477a7f094ef774dd8f8b2af4b9b9b142d58e6c22123ae15f906",
+    "v4h_displayed_union_scoring_lock_sha256": "ac7a96c89eb2d4a51eda1b56756ed3b943311e7f300b661659cff51285423a8f",
+    "stage_a_fresh_scores_sha256": "5a1c988e0efb6898e721f700261e834ed1994de107338dc49e68549aa9e1ca02",
+    "stage_a_fresh_scoring_lock_sha256": "b64ff7d8828fcd4d8938c487d48335c0837aaca0d6439f42b91579467a5c57f9",
+    "v4h_final_release_analysis_lock_sha256": "7e7d73920452ec39ea72947d2b3762a02aaa1b2bb0bcd7470c7e21dbb3a25ab0",
+    "stage_b_definition_contract_sha256": "c26af8da897995b817d9eeffef56f94a2fd4cab99dca16777d85f569759a4476",
+    "stage_b_judging_preparation_contract_sha256": "45ceaac688a3e6f6c733c5343a38590652cbfa9fa0236db68e1b4e6835322aef",
+    "stage_b_execution_contract_sha256": "f93427e7734e4dfb9392800959b48bc9a22c283525afd1f35f8442e764ede1ce"
+  },
+  "score_combination": {
+    "total_pairs": 252,
+    "exact_reused_pairs": 1,
+    "fresh_pairs": 251,
+    "join_key": ["case_id", "query_id", "isbn13"],
+    "reused_score_source": "same frozen V4H query + exact same ISBN only",
+    "fresh_score_source": "frozen Stage-B fresh judge score set",
+    "cross_query_reuse": false,
+    "approximate_reuse": false
+  },
+  "classification_rule": {
+    "clear_or_strong_threshold": "judge_score >= 3",
+    "HEADROOM_FOUND_51_END": "At least one frozen V4B rank 51-end candidate has judge_score >= 3. This demonstrates deeper full-union ranking headroom for the query.",
+    "NO_CLEAR_THROUGH_FULL_UNION": "No frozen V4B rank 51-end candidate has judge_score >= 3. Because Stage A already established no clear/strong candidate through rank 50, this is evidence that the frozen V4B full-union candidate set contains no clear/strong result for the query."
+  },
+  "overall_diagnostic_rule": {
+    "HEADROOM_FOUND_11_50": "Preserve the already-frozen Stage-A outcome for the four Stage-A-resolved queries.",
+    "HEADROOM_FOUND_51_END": "Use the Stage-B outcome for a previously unresolved query if a clear/strong result exists at rank 51-end.",
+    "NO_CLEAR_THROUGH_FULL_UNION": "Use the Stage-B outcome for a previously unresolved query when no clear/strong result exists anywhere in the frozen V4B full union."
+  },
+  "outputs": [
+    "v4h_headroom_stage_b_complete_scores.csv",
+    "v4h_headroom_stage_b_query_classification.csv",
+    "v4h_headroom_overall_query_disposition.csv",
+    "v4h_headroom_stage_b_summary.json",
+    "v4h_headroom_stage_b_report.md",
+    "v4h_headroom_stage_b_classification_metadata.json",
+    "v4h_headroom_stage_b_classification.lock.json"
+  ],
+  "forbidden": [
+    "new judge calls",
+    "new model calls",
+    "new retrieval calls",
+    "new reranker calls",
+    "human relevance labels",
+    "release metric calculation",
+    "release gate recalculation",
+    "release decision modification",
+    "changing any frozen Stage-A classification"
+  ]
+}
