@@ -1,0 +1,35 @@
+{
+  "contract_id": "semantic_relevance_v4h_headroom_closeout",
+  "version": "0.1.0",
+  "role": "post_release_consumed_holdout_diagnostic_closeout",
+  "v4h_consumed": true,
+  "frozen_release_decision": "FAIL",
+  "release_decision_modification_allowed": false,
+  "judge_calls_allowed": false,
+  "model_calls_allowed": false,
+  "retrieval_calls_allowed": false,
+  "reranker_calls_allowed": false,
+  "release_metrics_recalculation_allowed": false,
+  "required_input_locks": {
+    "v4h_failure_analysis.lock.json": "4e0f10f3d70fae6154c20d32622c21f437749d30835e892736cafa7d6ab3fc90",
+    "v4h_final_release_analysis.lock.json": "7e7d73920452ec39ea72947d2b3762a02aaa1b2bb0bcd7470c7e21dbb3a25ab0",
+    "v4h_headroom_stage_a_classification.lock.json": "906b5975345c9d9eed1273ecc4ccd0611880b14d6326bf9f0e74b46f7d63d948",
+    "v4h_headroom_stage_b_classification.lock.json": "d942a01c9af384e4c0a9e065c7e441f4d2d123229110d2606b2ec722a657f55f"
+  },
+  "required_headroom_disposition": {
+    "target_query_count": 10,
+    "HEADROOM_FOUND_11_50": 4,
+    "HEADROOM_FOUND_51_END": 0,
+    "NO_CLEAR_THROUGH_FULL_UNION": 6
+  },
+  "expected_query_cohorts": {
+    "HEADROOM_FOUND_11_50": ["V4H07", "V4H09", "V4H19", "V4H22"],
+    "NO_CLEAR_THROUGH_FULL_UNION": ["V4H10", "V4H11", "V4H13", "V4H16", "V4H21", "V4H23"]
+  },
+  "interpretation_boundary": {
+    "HEADROOM_FOUND_11_50": "Clear/strong material exists in the frozen V4B union at ranks 11-50; this is ranking/display headroom evidence.",
+    "NO_CLEAR_THROUGH_FULL_UNION": "No clear/strong result exists anywhere in the frozen V4B full union; this is candidate-set limitation evidence for that frozen retrieval/union boundary, not a prescription for a particular retrieval architecture.",
+    "non_target_queries": "The remaining 14 V4H queries already had at least one clear/strong result in the displayed top 10 and are outside this no-clear headroom classification."
+  },
+  "next_stage": "SYNTHESIZE_V5_DEVELOPMENT_DESIGN_FROM_FROZEN_V4H_EVIDENCE"
+}
