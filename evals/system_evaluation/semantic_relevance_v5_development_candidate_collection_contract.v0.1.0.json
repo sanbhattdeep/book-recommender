@@ -1,0 +1,83 @@
+{
+  "contract_id": "semantic-relevance-v5-development-candidate-collection",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5D_CANDIDATE_COLLECTION",
+  "purpose": "Freeze the first V5D semantic-execution boundary: collect R0 and R1 candidate sets on the already-frozen V5D24 queries while keeping K0/K1 reranking, judge execution, development selection, and release analysis disabled.",
+  "query_set": "V5D01-V5D24",
+  "query_count": 24,
+  "frozen_provenance": {
+    "v5_development_design_lock_sha256": "89ee03a4328c268a8128d5e373854b92634c41eff204b53f7b93b78c481311c0",
+    "v5_r1_k1_architecture_lock_sha256": "2b298d3263c7a88090a983700da34c30767a71877a4b32ea2e1ae8f3524ade87",
+    "v5_r1_k1_implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+    "v5_r1_k1_model_qualification_lock_sha256": "67b1dd15403b5825086cce4c9e5c5af14cc883945f5a9626abaa4e5894b77211",
+    "v5d_query_file_sha256": "1d93979d21d081afaecac63ee46c56330e80a2e7dbeeeea5d3bfa55a4b56387a",
+    "v5d_facet_file_sha256": "355ac59604fc73039fe394ba36b9ef37c04cd0be447ff470bce669d8adeb4746",
+    "v5d_authoring_lock_sha256": "ffca0f7a10c4d05ee79fc08d584df5793f93de2242a2ed2bf09436e2df80ba3e",
+    "r0_dense_candidate_generator_content_sha256": "cdd0458ff23bd669185a8c882ceb132438d037af1a29f4dd60bd7fef9c405b60",
+    "r0_dense_candidate_generator_git_blob": "89a769f7a752a517ebc7079e08c531e8df415bce",
+    "hybrid_retrieval_implementation_content_sha256": "6f31504e29078fffbab86ddb86ef26b02aaa22082d3bfdb6944792bf689f6db7",
+    "hybrid_retrieval_implementation_git_blob": "3c1a612dc4d33a7680dd1f93d40558cb094efa1b",
+    "r1_retrieval_source_sha256": "eabadeccc01a98fb2f962e21ef94c4696e066b78d118f597b83120be4eeaf511"
+  },
+  "runtime_data": {
+    "catalog_file": "books_with_emotions.csv",
+    "catalog_sha256": "22244d277a643e56bf23a744d0d45eb2247db4a05792ec69ffd942c6d5fdbf6e",
+    "catalog_rows": 5197,
+    "tagged_description_file": "tagged_description.txt",
+    "tagged_description_sha256": "cb3f34f397be0d65af4f931bc24265b69b1ed151b0a76ade03885fbaf3c5e1a5",
+    "tagged_description_nonempty_lines": 5197,
+    "isbn_set_alignment_required": true
+  },
+  "R0": {
+    "dense_implementation": "exact frozen semantic retriever in gradio-dashboard.py",
+    "embedding_model": "nomic-embed-text via frozen R0 implementation",
+    "candidate_depth": 50,
+    "query_method": "Chroma.similarity_search",
+    "repeat_query_order_check": true,
+    "bm25": "shared exact frozen V4A BM25 title+description k1=1.5 b=0.75 depth=50",
+    "union": "exact frozen RRF k=60 equal weights, ISBN deduplication, no pre-reranker truncation, maximum 100 unique candidates"
+  },
+  "R1": {
+    "dense_model": "BAAI/bge-m3",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "mode": "dense only",
+    "query_instruction": "none",
+    "document_text": "exact tagged_description line payload",
+    "normalize_embeddings": true,
+    "similarity": "dot product on normalized embeddings",
+    "candidate_depth": 50,
+    "repeat_query_order_check": true,
+    "repeat_score_tolerance_abs": 1e-05,
+    "bm25": "same shared frozen BM25 branch as R0",
+    "union": "same exact frozen RRF k=60 equal weights, ISBN deduplication, no pre-reranker truncation, maximum 100 unique candidates"
+  },
+  "latency_measurement": {
+    "purpose": "preserve preregistered exact-tie fallback evidence only; never overrides semantic criteria",
+    "candidate_generation_latency": "per-query first production retrieval pass only; excludes model/index loading, offline index construction, repeatability verification pass, file I/O, and judge time",
+    "bm25_latency": "per-query shared BM25 ranking time recorded separately",
+    "later_system_latency": "candidate-generation first-pass latency plus the corresponding first-pass K0/K1 reranking latency; combine only if exact semantic tie policy reaches latency"
+  },
+  "outputs": [
+    "v5d_r0_dense_top50.csv",
+    "v5d_r1_dense_top50.csv",
+    "v5d_bm25_top50.csv",
+    "v5d_r0_hybrid_union.csv",
+    "v5d_r1_hybrid_union.csv",
+    "v5d_candidate_collection_latency.csv",
+    "v5d_candidate_collection_metadata.json",
+    "v5d_candidate_collection.lock.json"
+  ],
+  "execution_boundary": {
+    "R0_dense_retrieval": true,
+    "R1_dense_retrieval": true,
+    "BM25_retrieval": true,
+    "hybrid_union_build": true,
+    "K0_reranker_inference": false,
+    "K1_reranker_inference": false,
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "development_selection": false,
+    "release_metrics_or_decision": false
+  },
+  "next_stage_after_frozen_candidates": "PREPARE_K0_AND_K1_RERANKING_ON_THE_FROZEN_R0_AND_R1_V5D_CANDIDATE_UNIONS"
+}
