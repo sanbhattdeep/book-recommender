@@ -1,0 +1,71 @@
+{
+  "contract_id": "semantic-relevance-v4h-headroom-stage-b-judge-execution",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_STAGE_B_JUDGE_EXECUTION",
+  "role": "post_release_consumed_holdout_diagnostic",
+  "release_decision": "FAIL_IMMUTABLE",
+  "target_query_ids": [
+    "V4H10",
+    "V4H11",
+    "V4H13",
+    "V4H16",
+    "V4H21",
+    "V4H23"
+  ],
+  "candidate_boundary": {
+    "rank_window": "51-end",
+    "total_pairs": 252,
+    "candidate_sha256": "910f1a3f05487ab95f83cf3a7c6415750957a35ff9cf0e95a697b209a58c255f",
+    "candidate_lock_sha256": "eb598bec298d8dd617d7b291a3274b9e1c4ae3dcf5f45c8bf98708a6a179023f"
+  },
+  "fresh_judging_input": {
+    "pair_count": 251,
+    "sha256": "ac5b832a2feb7c8f26dcc964cccf6b33000147f005482047ea0c36e4e51bb591",
+    "lock_sha256": "49ae1b46c247a94fbae27cee9ad8b1987ca07e1fcaa24522f62137527e5d9392"
+  },
+  "score_inventory": {
+    "total_stage_b_pairs": 252,
+    "reused_exact_pairs": 1,
+    "reused_displayed_union_pairs": 1,
+    "reused_stage_a_pairs": 0,
+    "fresh_pairs": 251,
+    "sha256": "661933691c032d714a16a4e972f3754a15ca8bfac41d0108c0f4953f2cf7815a"
+  },
+  "upstream_contracts": {
+    "stage_b_definition_contract_sha256": "c26af8da897995b817d9eeffef56f94a2fd4cab99dca16777d85f569759a4476",
+    "stage_b_judging_preparation_contract_sha256": "45ceaac688a3e6f6c733c5343a38590652cbfa9fa0236db68e1b4e6835322aef",
+    "stage_a_classification_lock_sha256": "906b5975345c9d9eed1273ecc4ccd0611880b14d6326bf9f0e74b46f7d63d948"
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "provider": "ollama",
+    "temperature": 0.0,
+    "v4h_facet_spec_sha256": "dbdb7c5d5603e17164cf6ef880df912f6196663387885e1f5773e54b97d2b106",
+    "historical_v3_scoring_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777"
+  },
+  "execution_patches": {
+    "span_echo_patch_sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266",
+    "original_duplicate_id_patch_sha256": "09b2acb1d3809da6ed4667d1e3f7b042dc86f85b6f69b732bb9017136f0b2b94",
+    "carryforward_duplicate_id_patch_sha256": "5e38542976fcb091a9f6461d2be11a34716d542b592bd96228e51146ac40ac73"
+  },
+  "persistence": {
+    "after_every_completed_case": true,
+    "resume_safe": true,
+    "current_failing_case_not_persisted": true,
+    "final_lock_only_after_all_251_fresh_pairs": true
+  },
+  "smoke_test": {
+    "recommended_limit": 3,
+    "same_persistent_score_artifact": true,
+    "final_lock_written_during_partial_run": false
+  },
+  "forbidden": [
+    "release metric calculation",
+    "release decision modification",
+    "retrieval execution",
+    "reranker execution",
+    "human relevance labels",
+    "cross-query score reuse",
+    "approximate score reuse"
+  ]
+}
