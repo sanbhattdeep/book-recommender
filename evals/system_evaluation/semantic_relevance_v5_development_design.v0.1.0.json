@@ -1,0 +1,208 @@
+{
+  "program_id": "semantic-relevance-v5-factorized-development",
+  "version": "0.1.0",
+  "status": "PROPOSED_FOR_FREEZE_BEFORE_V5_COMPONENT_IMPLEMENTATION",
+  "purpose": "Use frozen V4H post-release evidence to justify, but not tune, a factorized V5 development program that independently tests candidate-generation and ranking changes before any new final holdout.",
+  "authority_boundary": {
+    "v4h_role": "consumed holdout; diagnostic evidence only",
+    "v4h_release_decision": "FAIL",
+    "v4h_may_select_architecture_class": true,
+    "v4h_may_select_parameters_models_prompts_or_thresholds": false,
+    "v4h_query_text_facets_candidate_ids_and_judge_scores_may_be_used_for_v5_tuning": false,
+    "h01_h24_role": "historical consumed development evidence only; may support implementation debugging but cannot be the V5 selection set",
+    "release_gates_changed": false
+  },
+  "frozen_evidence": {
+    "v4b_final_v4h_release_result": "FAIL_0_OF_8_GATES",
+    "v4h_original_no_clear_top10_queries": 10,
+    "headroom_found_11_50": 4,
+    "headroom_found_51_end": 0,
+    "no_clear_through_full_union": 6,
+    "interpretation": [
+      "Ranking/display headroom exists for a material subset of failures.",
+      "Candidate-generation limitation exists for a larger subset of the original no-clear-top10 failures within the frozen V4B union.",
+      "No query was rescued only by ranks 51-end, so merely exposing deeper rows of the same frozen union is not the next primary hypothesis.",
+      "The evidence supports separate candidate-generation and ranking experiments rather than one confounded change."
+    ]
+  },
+  "baseline": {
+    "id": "B",
+    "system": "frozen V4B",
+    "candidate_generation": "V4B dense50 + BM25-50 deduplicated hybrid union",
+    "ranking": "V4B frozen cross-encoder score-only final ordering",
+    "maximum_pre_rerank_unique_candidates_per_query": 100
+  },
+  "factorial_program": {
+    "factors": {
+      "R": {
+        "meaning": "candidate-generation / query-representation change",
+        "R0": "exact frozen V4B candidate generation",
+        "R1": "one new candidate-generation implementation, frozen before fresh V5D authoring and execution",
+        "isolation_rule": "R1 must keep the V4B ranking implementation unchanged",
+        "candidate_budget_rule": "R1 may emit at most 100 unique pre-rerank candidates per query, matching the V4B maximum; any source merge/truncation must be deterministic and frozen in the R1 spec",
+        "prohibited": [
+          "V4H-specific rules",
+          "V4H query examples in prompts",
+          "parameter sweeps on V5D",
+          "increasing candidate budget above 100"
+        ]
+      },
+      "K": {
+        "meaning": "ranking / display-selection change",
+        "K0": "exact frozen V4B ranking implementation",
+        "K1": "one new ranking implementation, frozen before fresh V5D authoring and execution",
+        "isolation_rule": "K1 must consume exactly the candidate set supplied by its R factor and must not perform retrieval",
+        "prohibited": [
+          "V4H-specific rules",
+          "V4H judge labels as training data",
+          "parameter sweeps on V5D",
+          "judge-as-reranker"
+        ]
+      }
+    },
+    "systems": [
+      {
+        "id": "B",
+        "retrieval": "R0",
+        "ranking": "K0",
+        "role": "baseline"
+      },
+      {
+        "id": "R",
+        "retrieval": "R1",
+        "ranking": "K0",
+        "role": "retrieval-only candidate"
+      },
+      {
+        "id": "K",
+        "retrieval": "R0",
+        "ranking": "K1",
+        "role": "ranking-only candidate"
+      },
+      {
+        "id": "RK",
+        "retrieval": "R1",
+        "ranking": "K1",
+        "role": "combined candidate"
+      }
+    ],
+    "execution_rule": "All four exact implementations/specifications are frozen before semantic execution on V5D; execute all four on the same frozen V5D queries so main effects and interaction are observable without adaptive implementation changes."
+  },
+  "fresh_v5_development_set": {
+    "ids": "V5D01-V5D24",
+    "query_count": 24,
+    "strata": [
+      "two_core_theme",
+      "three_core_conjunctive",
+      "core_plus_qualifier",
+      "relationship_or_role_constraint",
+      "hard_exclusion_or_contrast",
+      "abstract_nonfiction_multi_facet"
+    ],
+    "queries_per_stratum": 4,
+    "authoring": "fresh authoring blind to catalog contents, retrieval outputs, candidate systems, and judge outputs",
+    "no_exact_or_paraphrased_reuse": [
+      "H01-H24",
+      "V4H01-V4H24"
+    ],
+    "query_and_facet_files_frozen_before_any_v5d_retrieval": true,
+    "one_shot_selection_set": true,
+    "no_parameter_change_after_first_v5d_semantic_result": true
+  },
+  "evaluation": {
+    "judge": "same frozen semantic_relevance_v0.29.0-r5 measurement instrument unless separately requalified before V5D authoring",
+    "human_relevance_labels": false,
+    "display_metrics": [
+      "macro_mean_relevance_at_10",
+      "clear_or_strong_rate_at_10",
+      "irrelevant_rate_at_10",
+      "hit_rate_at_5_clear_or_strong",
+      "top1_clear_or_strong_rate",
+      "mrr_at_10_clear_or_strong",
+      "ndcg_at_10",
+      "catastrophic_query_rate"
+    ],
+    "factor_diagnostics": [
+      "candidate_clear_or_strong_coverage_at_50",
+      "first_clear_or_strong_candidate_rank_within_50",
+      "display_clear_or_strong_conversion_given_candidate_at_50",
+      "paired_query_delta_by_stratum",
+      "R main-effect contrasts: R-B and RK-K",
+      "K main-effect contrasts: K-B and RK-R",
+      "R-by-K interaction diagnostics"
+    ],
+    "candidate_diagnostic_depth": 50,
+    "diagnostics_do_not_override_system_selection": true,
+    "bootstrap": {
+      "replicates": 5000,
+      "seed": 20261002,
+      "confidence_level": 0.95,
+      "resampling_unit": "query"
+    }
+  },
+  "development_selection_rule": {
+    "candidate_set": [
+      "B",
+      "R",
+      "K",
+      "RK"
+    ],
+    "ordered_criteria": [
+      "lower catastrophic_query_rate",
+      "lower irrelevant_rate_at_10",
+      "higher clear_or_strong_rate_at_10",
+      "higher macro_mean_relevance_at_10",
+      "higher ndcg_at_10"
+    ],
+    "rule": "Choose the lexicographically best system on frozen V5D. Diagnostics explain the result but cannot override it.",
+    "exact_tie_policy": [
+      "if B is tied for best across every ordered criterion, retain B",
+      "otherwise prefer fewer changed factors",
+      "if R and K remain exactly tied, prefer lower median system inference latency measured on the same frozen V5D run excluding judge time",
+      "if still exactly tied, make no V5 selection and require a separately preregistered tie-break evaluation"
+    ],
+    "no_post_result_parameter_search": true
+  },
+  "implementation_freeze_requirements": {
+    "R1": [
+      "exact source",
+      "dependencies/model IDs if any",
+      "prompt/template if any",
+      "retrieval depths",
+      "merge/dedup/truncation",
+      "repeatability tests",
+      "candidate budget <=100"
+    ],
+    "K1": [
+      "exact source",
+      "model ID/revision if any",
+      "input template",
+      "max length",
+      "score/aggregation rule",
+      "tie-breaking",
+      "repeatability tests"
+    ],
+    "RK": "mechanical composition of the independently frozen R1 and K1; no third set of tuned parameters",
+    "freeze_before": "V5D query authoring and any V5D retrieval/model execution"
+  },
+  "final_unseen_holdout": {
+    "required_if_nonbaseline_candidate_selected": true,
+    "ids": "V5H01-V5H24",
+    "query_count": 24,
+    "authoring_blind_to_catalog_and_system_outputs": true,
+    "candidate_frozen_before_authoring": true,
+    "same_original_eight_release_gates": true,
+    "no_parameter_or_gate_change_after_holdout_begins": true
+  },
+  "explicit_non_goals": [
+    "tuning on V4H",
+    "using V4H query/facet text as prompt examples",
+    "raising candidate budget as the only retrieval change",
+    "judge-as-reranker",
+    "training on judge labels",
+    "release-gate changes",
+    "adaptive V5D parameter sweeps",
+    "reopening or modifying the frozen V4B V4H release decision"
+  ],
+  "next_stage": "FREEZE_EXACT_V5_R1_AND_K1_COMPONENT_SPECS_AND_IMPLEMENTATIONS_BEFORE_V5D_AUTHORING"
+}
