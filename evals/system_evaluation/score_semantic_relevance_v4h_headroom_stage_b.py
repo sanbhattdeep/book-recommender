@@ -435,7 +435,7 @@ def main() -> None:
         write_metadata("PARTIAL", len(results), len(judging),
                        last_case=(None if len(results)==0 else str(results.iloc[-1]["case_id"])))
         print()
-        print(f"V4H HEADROOM STAGE-A JUDGE EXECUTION: PARTIAL ({len(results)}/{len(judging)} fresh persisted)")
+        print(f"V4H HEADROOM STAGE-B JUDGE EXECUTION: PARTIAL ({len(results)}/{len(judging)} fresh persisted)")
         print("Final fresh-score lock: NOT WRITTEN")
         print("Release metrics calculated: NO")
         print("Frozen V4B release decision modified: NO")
@@ -477,7 +477,7 @@ def main() -> None:
     print()
     print("PASS  all 251 fresh Stage-B pairs judged")
     print("PASS  fresh Stage-B score set frozen")
-    print("V4H HEADROOM STAGE-A JUDGE EXECUTION: PASS")
+    print("V4H HEADROOM STAGE-B JUDGE EXECUTION: PASS")
     print(f"Fresh judge scores SHA-256: {sha256(FRESH_SCORES)}")
     print(f"Fresh scoring lock SHA-256: {sha256(FINAL_LOCK)}")
     print(f"Fresh score counts: {counts}")
