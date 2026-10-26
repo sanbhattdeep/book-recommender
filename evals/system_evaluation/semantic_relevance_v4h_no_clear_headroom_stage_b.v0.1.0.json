@@ -1,0 +1,70 @@
+{
+  "diagnostic_id": "semantic-relevance-v4h-no-clear-headroom-stage-b",
+  "version": "0.1.0",
+  "status": "PROPOSED_FOR_FREEZE_AFTER_STAGE_A_CLASSIFICATION_BEFORE_STAGE_B_CANDIDATE_SELECTION",
+  "role": "post_release_consumed_holdout_diagnostic",
+  "v4h_status": "CONSUMED_HOLDOUT_DIAGNOSTIC_DATA",
+  "release_decision": {
+    "authoritative_system": "v4b",
+    "frozen_decision": "FAIL",
+    "may_be_reopened": false,
+    "may_be_overridden_by_this_diagnostic": false
+  },
+  "frozen_input_anchors": {
+    "stage_a_classification_lock_sha256": "906b5975345c9d9eed1273ecc4ccd0611880b14d6326bf9f0e74b46f7d63d948",
+    "v4h_reranking_lock_sha256": "6d3a7014f5995d978a90df627c720c0b81aa2e8b28e8bba99cfa2c64d27811b5",
+    "v4h_final_release_analysis_lock_sha256": "7e7d73920452ec39ea72947d2b3762a02aaa1b2bb0bcd7470c7e21dbb3a25ab0"
+  },
+  "target_selection": {
+    "source": "frozen Stage-A query classification",
+    "required_stage_a_classification": "NO_CLEAR_THROUGH_50",
+    "expected_query_count": 6,
+    "excluded_stage_a_classification": "HEADROOM_FOUND_11_50",
+    "expected_excluded_query_count": 4,
+    "no_manual_query_selection": true
+  },
+  "candidate_selection": {
+    "system_ranking": "frozen V4B full-union ranking",
+    "rank_window": "51 through each target query's maximum frozen V4B rank",
+    "preserve_all_candidates": true,
+    "no_candidate_sampling": true,
+    "no_reranker_reexecution": true,
+    "no_retrieval_reexecution": true,
+    "selection_order": [
+      "query_id ASC",
+      "v4b_rank ASC"
+    ]
+  },
+  "stage_b_future_outcome_rule": {
+    "clear_or_strong_threshold": "judge_score >= 3",
+    "HEADROOM_FOUND_51_END": "At least one frozen V4B rank 51-end candidate has judge_score >= 3. This demonstrates deeper full-union ranking headroom for the query.",
+    "NO_CLEAR_THROUGH_FULL_UNION": "No candidate at frozen V4B ranks 51-end has judge_score >= 3 (including a query with no ranks beyond 50). Only after complete Stage-B scoring may this be used as evidence that the frozen V4B full-union candidate set contains no clear/strong result for that query."
+  },
+  "execution_boundary": {
+    "this_package_performs_judge_calls": false,
+    "this_package_performs_model_calls": false,
+    "this_package_performs_retrieval_calls": false,
+    "this_package_performs_reranker_calls": false,
+    "this_package_calculates_release_metrics": false,
+    "this_package_changes_release_decision": false,
+    "this_package_changes_system_parameters": false
+  },
+  "outputs": [
+    "v4h_no_clear_headroom_stage_b_candidates.csv",
+    "v4h_no_clear_headroom_stage_b_query_inventory.csv",
+    "v4h_no_clear_headroom_stage_b_metadata.json",
+    "v4h_no_clear_headroom_stage_b.lock.json"
+  ],
+  "forbidden": [
+    "manual addition of HEADROOM_FOUND_11_50 queries",
+    "new judge calls",
+    "new model calls",
+    "new retrieval calls",
+    "new reranker calls",
+    "human relevance labels",
+    "release metric calculation",
+    "release gate recalculation",
+    "release decision modification",
+    "claiming full-union candidate limitation before Stage-B scores are complete"
+  ]
+}
