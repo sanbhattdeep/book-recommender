@@ -1,0 +1,49 @@
+{
+  "contract_id": "semantic-relevance-v5-development-v029-r5-judge-execution",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5D_JUDGE_EXECUTION",
+  "query_set": "V5D01-V5D24",
+  "case_count": 452,
+  "source_judging_input": {
+    "score_inventory_sha256": "99117bd78a5d9f42bc50110ec575c5c3df65ef9b2717d6892c60d3d4739c3f2b",
+    "novel_judging_input_sha256": "e9aa5eb04d9847e289c7621a0aaeec50e8fe057ae975286e05fe22e79c8396d0",
+    "judging_input_lock_sha256": "6cdc1f17928e7b3b05bdc1b5efb62a9c8da2d760ae2c4032c33df9a18696d826",
+    "reused_frozen_scores": 0,
+    "fresh_pairs_to_judge": 452
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "historical_scoring_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777",
+    "v5d_facet_spec_sha256": "355ac59604fc73039fe394ba36b9ef37c04cd0be447ff470bce669d8adeb4746",
+    "span_echo_patch_sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266",
+    "original_duplicate_id_patch_sha256": "09b2acb1d3809da6ed4667d1e3f7b042dc86f85b6f69b732bb9017136f0b2b94",
+    "v5d_duplicate_id_carryforward_sha256": "d079bb55f2dfd98b5ab78ee2138faf1f1f2d5d4d90681616f962686817461e57"
+  },
+  "execution": {
+    "resume_safe_persistence": "after every successfully completed case",
+    "retrieval_calls": 0,
+    "reranker_inference": false,
+    "historical_score_reuse": false,
+    "human_relevance_labels": false,
+    "development_metrics": false,
+    "development_selection": false,
+    "release_metrics": false,
+    "final_score_lock_only_when_all_452_complete": true
+  },
+  "smoke_test": {
+    "query_ids": [
+      "V5D01",
+      "V5D17",
+      "V5D21"
+    ],
+    "maximum_new_cases": 3,
+    "selection_rule": "first currently-unscored row in frozen judging-input order for each listed query ID",
+    "scores_persist_into_full_run": true
+  },
+  "failure_policy": {
+    "current_case_persisted_only_after_success": true,
+    "on_failure": "write PARTIAL_FAILED metadata, leave failing case unpersisted, stop",
+    "new_patch_requires_review": true
+  },
+  "next_stage_after_complete_score_freeze": "CALCULATE_V5D_B_R_K_RK_DEVELOPMENT_METRICS_AND_PREREGISTERED_SELECTION"
+}
