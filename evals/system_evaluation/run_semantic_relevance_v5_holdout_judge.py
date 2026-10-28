@@ -3,12 +3,20 @@ from __future__ import annotations
 import argparse
 import hashlib
 import json
+import sys
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any
 
 import pandas as pd
 from deepeval.models import OllamaModel
+
+# This runner lives under evals/system_evaluation while the frozen judge/scoring
+# modules live directly under evals. Add that parent directory explicitly so
+# execution is independent of the caller's current PYTHONPATH.
+EVALS_DIR = Path(__file__).resolve().parents[1]
+if str(EVALS_DIR) not in sys.path:
+    sys.path.insert(0, str(EVALS_DIR))
 
 import semantic_relevance_facet_judge as judge_module
 from semantic_relevance_facet_scoring import (

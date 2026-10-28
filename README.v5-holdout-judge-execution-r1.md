@@ -51,3 +51,18 @@ Execution contract SHA-256: `454d78668ffef002f0f3cf67a182f20f252d18b837354ef0e3d
 Carry-forward patch SHA-256: `5330a4bd7fbcbdbfb278fd9459a980452db95b72254bbe5f646643f4d514c589`
 Verifier SHA-256: `b1a9ebedb4886b15445d9dfc0550aa15e89b7674791d0e2d77e73a515911a8f7`
 Runner SHA-256: `ded4d6fb52cbe738362330ab75df98dc4b6b6918e7b297c8f37b0da94abc58b1`
+
+
+## r2 packaging repair
+
+The r1 smoke command failed before boundary validation with:
+
+`ModuleNotFoundError: No module named 'semantic_relevance_facet_judge'`
+
+The runner is located under `evals/system_evaluation`, while the frozen judge
+module is located directly under `evals`. r2 adds that existing `evals`
+directory to `sys.path` before importing the frozen judge/scoring modules.
+
+This is an execution-path repair only. It does not modify the frozen judge
+source, prompt, model, temperature, semantic rules, deterministic scoring,
+facet specification, V5H judge input, metrics, gates, or release decision.
