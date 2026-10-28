@@ -1,0 +1,63 @@
+{
+  "contract_id": "semantic-relevance-v5-holdout-judge-execution",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5H_JUDGE_EXECUTION",
+  "purpose": "Execute the frozen semantic_relevance_v0.29.0-r5 measurement instrument on the 359 already-frozen novel V5H displayed pairs, with resume-safe persistence and no retrieval/reranking, human labels, holdout metrics, release gates, or release decision.",
+  "query_set": "V5H01-V5H24",
+  "query_count": 24,
+  "case_count": 359,
+  "run_directory": "evals/runs/semantic_relevance_v5_holdout/20261028T055522Z_retrieval",
+  "frozen_inputs": {
+    "judging_input_contract_sha256": "5c7a28bf5f5a902bfcdf75e7b30c1d0ad40f9b36969dc802c7ceb3588f5dbf94",
+    "score_inventory_sha256": "cc350ec54f519ff710f34d24a4aedf45ddb2910f52a7a46276f9a783ecb38e20",
+    "novel_judging_input_sha256": "fc046bfef77af201aa7fe91bef6649372292b4a277929b0b99f5311a1666feab",
+    "judging_input_lock_sha256": "a2ff301aef1788526d51858394ee4249eeb548fc05981e0246a50a2a8643eea7",
+    "displayed_pair_union_sha256": "13ff542ecfe5316484b62eb0f1b406f9f8f8dd4a7491acc369128a5285d6ff67",
+    "display_union_lock_sha256": "0a9e7981cb20584b0074af58cd9b7a2e7a27a6689c75a6f685db7bb3617c96b0",
+    "facet_spec_sha256": "0a3e55b66568bf89aa7cd212d09cec91803ad1d145bf815783622c1fd89c1d73",
+    "authoring_lock_sha256": "e4836060ba90e49fbf4da05bf12a15246c312bd7926e48ff72d3766f74613751",
+    "historical_measurement_instrument_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777",
+    "nonsemantic_execution_patch_sha256": "5330a4bd7fbcbdbfb278fd9459a980452db95b72254bbe5f646643f4d514c589"
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "provider": "ollama",
+    "temperature": 0.0,
+    "judge_source": "evals/semantic_relevance_facet_judge.py",
+    "scoring_source": "evals/semantic_relevance_facet_scoring.py",
+    "judge_config": "evals/judge_configs/semantic_relevance_judge.v0.29.0-r5.json",
+    "rubric": "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json"
+  },
+  "execution": {
+    "resume_safe": true,
+    "persist_after_every_successful_case": true,
+    "failed_case_not_persisted": true,
+    "final_score_lock_only_after_complete_359_of_359": true,
+    "smoke_query_ids": [
+      "V5H01",
+      "V5H17",
+      "V5H21"
+    ],
+    "smoke_max_cases": 3,
+    "smoke_selection": "first currently-unscored frozen row for each listed query ID, in listed order",
+    "full_mode": "score every currently-unscored frozen case and resume from persisted rows"
+  },
+  "execution_boundary": {
+    "retrieval_calls": 0,
+    "reranker_inference": false,
+    "candidate_mutation": false,
+    "historical_score_reuse": false,
+    "judge_execution": true,
+    "human_relevance_labels": false,
+    "holdout_metrics": false,
+    "release_metrics": false,
+    "release_gates": false,
+    "release_decision": false
+  },
+  "outputs": [
+    "v5h_judge_scores.csv",
+    "v5h_judging_metadata.json",
+    "v5h_judge_scoring.lock.json"
+  ],
+  "next_stage_after_complete_freeze": "PREPARE_V5H_B_VS_K_FINAL_RELEASE_ANALYSIS_USING_ORIGINAL_EIGHT_GATES"
+}
