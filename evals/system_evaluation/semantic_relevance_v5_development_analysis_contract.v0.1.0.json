@@ -1,0 +1,117 @@
+{
+  "contract_id": "semantic-relevance-v5-development-factorial-analysis",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5D_DEVELOPMENT_ANALYSIS",
+  "query_set": "V5D01-V5D24",
+  "query_count": 24,
+  "systems": {
+    "B": "R0K0",
+    "R": "R1K0",
+    "K": "R0K1",
+    "RK": "R1K1"
+  },
+  "frozen_inputs": {
+    "v5_design_spec_sha256": "ef21af8375d3606cf53038f6986a8cd7e3c389fee8345770a39aff73d4cc4551",
+    "v5_design_lock_sha256": "89ee03a4328c268a8128d5e373854b92634c41eff204b53f7b93b78c481311c0",
+    "factorial_reranking_lock_sha256": "085a3691ed7e0c8e324482798d5dc0c3a9d15f35c8d26fc37ef44bfd066f22f6",
+    "B_recommendations_sha256": "dba45cd656b760d21c1adc58d5e9f97b2407b4498335d9350bb819f2edcb1692",
+    "R_recommendations_sha256": "968ebd3dd0b92dd481d3362556daf8d547f02a63280ca8bea09657e56125bc86",
+    "K_recommendations_sha256": "c6aa093346b0907b03a6dc6fa730822985fa05ab0e79cb7c9c2a6abe53a61208",
+    "RK_recommendations_sha256": "7068a0ed477ad1954512448193f103da84408f335cdf81af6657e150ef49fd9a",
+    "judge_scores_sha256": "0f5c1453ed6f860ef31eb51de5094460a9b60559ad147202a50b7901ec422822",
+    "judge_scoring_lock_sha256": "977cf3db37eb3c0aefe6809567923a74672c6bcbeac8f432ff6368937e20ee9d"
+  },
+  "display_metrics": [
+    "macro_mean_relevance_at_10",
+    "clear_or_strong_rate_at_10",
+    "irrelevant_rate_at_10",
+    "hit_rate_at_5_clear_or_strong",
+    "top1_clear_or_strong_rate",
+    "mrr_at_10_clear_or_strong",
+    "ndcg_at_10",
+    "catastrophic_query_rate"
+  ],
+  "metric_definitions": {
+    "clear_or_strong": "judge_score >= 3",
+    "irrelevant": "judge_score == 0",
+    "catastrophic_query": "mean relevance@10 < 1.5",
+    "ndcg_gain": "2^judge_score - 1",
+    "ndcg_discount": "log2(rank + 1)"
+  },
+  "bootstrap": {
+    "replicates": 5000,
+    "seed": 20261002,
+    "confidence_level": 0.95,
+    "resampling_unit": "query"
+  },
+  "factor_contrasts": {
+    "R_main_effect": [
+      "R-B",
+      "RK-K"
+    ],
+    "K_main_effect": [
+      "K-B",
+      "RK-R"
+    ],
+    "interaction": "(RK-K)-(R-B) = RK-K-R+B",
+    "paired_query_delta_by_stratum": true
+  },
+  "selection": {
+    "candidate_set": [
+      "B",
+      "R",
+      "K",
+      "RK"
+    ],
+    "ordered_criteria": [
+      {
+        "metric": "catastrophic_query_rate",
+        "direction": "lower"
+      },
+      {
+        "metric": "irrelevant_rate_at_10",
+        "direction": "lower"
+      },
+      {
+        "metric": "clear_or_strong_rate_at_10",
+        "direction": "higher"
+      },
+      {
+        "metric": "macro_mean_relevance_at_10",
+        "direction": "higher"
+      },
+      {
+        "metric": "ndcg_at_10",
+        "direction": "higher"
+      }
+    ],
+    "exact_tie_policy": [
+      "if B remains tied for best across every ordered criterion, retain B",
+      "otherwise prefer fewer changed factors",
+      "if R and K remain exactly tied, prefer lower median system latency excluding judge time",
+      "if still exactly tied, make no selection and require separately preregistered tie-break evaluation"
+    ],
+    "changed_factor_count": {
+      "B": 0,
+      "R": 1,
+      "K": 1,
+      "RK": 2
+    },
+    "diagnostics_can_override_selection": false,
+    "no_post_result_parameter_search": true
+  },
+  "candidate_depth_diagnostics": {
+    "status_during_this_step": "NOT_CALCULATED",
+    "reason": "candidate_clear_or_strong_coverage_at_50 and first_clear_or_strong_candidate_rank_within_50 require judge evidence for deeper candidates outside the already-frozen displayed-pair union",
+    "may_override_selection": false,
+    "may_be_run_later_as_separately_frozen_nonadaptive_diagnostics": true
+  },
+  "execution_boundary": {
+    "judge_calls": 0,
+    "retrieval_calls": 0,
+    "reranker_calls": 0,
+    "human_relevance_labels": false,
+    "release_gates": false,
+    "release_decision": false
+  }
+}
