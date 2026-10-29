@@ -1,0 +1,44 @@
+{
+  "status": "V5_R1_K1_IMPLEMENTATION_SOURCE_FROZEN_BEFORE_MODEL_QUALIFICATION",
+  "frozen_at_utc": "2026-10-26T10:52:46.497043+00:00",
+  "architecture_lock_sha256": "2b298d3263c7a88090a983700da34c30767a71877a4b32ea2e1ae8f3524ade87",
+  "r1": {
+    "model_id": "BAAI/bge-m3",
+    "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+    "source_sha256": "eabadeccc01a98fb2f962e21ef94c4696e066b78d118f597b83120be4eeaf511",
+    "tests_sha256": "a3eda4bc0fd0984e2e84d154045e16642e9d40ed45072e43f25c69b2a4090f0c",
+    "candidate_depth": 50,
+    "batch_size": 16,
+    "embedding_dimension": 1024,
+    "max_sequence_length": 512,
+    "normalize_embeddings": true,
+    "similarity": "dot_product_on_l2_normalized_embeddings"
+  },
+  "k1": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "source_sha256": "4a6ba7a13d03176108c65512a4185845b532ff5d85f3af512af013b8c8d60207",
+    "tests_sha256": "be4c60545921acb71cdf69e889648aec79403f81f524f9f7835a5462866fee90",
+    "batch_size": 4,
+    "max_length_tokens": 512,
+    "score": "single_raw_sequence_classification_logit",
+    "ordering": "score_desc_exact_tie_retrieval_rank_then_isbn"
+  },
+  "dependencies": {
+    "sentence-transformers": "6.2.0",
+    "transformers": "5.15.0",
+    "torch": "2.11.0+cu128"
+  },
+  "catalog_sha256": "22244d277a643e56bf23a744d0d45eb2247db4a05792ec69ffd942c6d5fdbf6e",
+  "tagged_description_sha256": "cb3f34f397be0d65af4f931bc24265b69b1ed151b0a76ade03885fbaf3c5e1a5",
+  "unit_tests_passed": true,
+  "model_files_downloaded_or_loaded": false,
+  "model_inference_performed": false,
+  "retrieval_execution_performed": false,
+  "reranker_execution_performed": false,
+  "judge_calls_performed": 0,
+  "v5d_authored_or_executed": false,
+  "development_selection_calculated": false,
+  "release_metrics_calculated": false,
+  "next_stage": "QUALIFY_PINNED_R1_K1_MODEL_REVISIONS_AND_REPEATABILITY_ON_FIXED_NON_V5D_PROBES"
+}

@@ -1,0 +1,140 @@
+{
+  "dataset_id": "semantic-relevance-v5-fresh-development-queries",
+  "version": "0.1.0",
+  "status": "frozen_before_v5d_retrieval",
+  "authoring_role": "candidate_blind_fresh_development_selection_set",
+  "query_count": 24,
+  "anti_leakage": {
+    "catalog_inspected_during_authoring": false,
+    "v5d_retrieval_outputs_inspected_during_authoring": false,
+    "v5d_reranker_outputs_inspected_during_authoring": false,
+    "judge_outputs_inspected_during_authoring": false,
+    "human_relevance_labels_used": false,
+    "prior_Q_H_V4H_and_synthetic_probe_query_texts_inspected_only_to_avoid_overlap": true,
+    "prior_query_texts_used_for_parameter_or_model_selection": false,
+    "manual_semantic_overlap_review_completed": true,
+    "paraphrased_reuse_detected": false
+  },
+  "queries": [
+    {
+      "query_id": "V5D01",
+      "query": "A story about secrecy and intimacy",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V5D02",
+      "query": "A story about duty and resentment",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V5D03",
+      "query": "A story about courage and conformity",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V5D04",
+      "query": "A story about creativity and failure",
+      "stratum": "two_core_theme"
+    },
+    {
+      "query_id": "V5D05",
+      "query": "A courtroom drama about wrongful accusation, forensic evidence, and media pressure",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V5D06",
+      "query": "A historical novel about exploration, cartography, and imperial ambition",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V5D07",
+      "query": "A science-fiction story about genetic engineering, parenthood, and social inequality",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V5D08",
+      "query": "A workplace novel about automation, job insecurity, and worker solidarity",
+      "stratum": "three_core_conjunctive"
+    },
+    {
+      "query_id": "V5D09",
+      "query": "An illustrated guide to marine ecology",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V5D10",
+      "query": "A concise history of printing and the spread of books",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V5D11",
+      "query": "A hands-on guide to bicycle repair for home mechanics",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V5D12",
+      "query": "An example-rich introduction to probability for non-mathematicians",
+      "stratum": "core_plus_qualifier"
+    },
+    {
+      "query_id": "V5D13",
+      "query": "A story about an architect negotiating with a community organizer",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V5D14",
+      "query": "A story about an editor working through difficult revisions with a debut novelist",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V5D15",
+      "query": "A story about a farmer relying on a veterinarian during a livestock outbreak",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V5D16",
+      "query": "A story about an orchestra conductor working with a rebellious soloist",
+      "stratum": "relationship_or_role_constraint"
+    },
+    {
+      "query_id": "V5D17",
+      "query": "A book about economic inflation, not cosmic inflation",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V5D18",
+      "query": "A book about legal trusts and estates, not interpersonal trust or relationship advice",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V5D19",
+      "query": "A book about musical harmony, not social harmony or conflict resolution",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V5D20",
+      "query": "A book about archival preservation of documents, not food preservation or canning",
+      "stratum": "hard_exclusion_or_contrast"
+    },
+    {
+      "query_id": "V5D21",
+      "query": "A book about freshwater scarcity, agricultural demand, and transboundary governance",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V5D22",
+      "query": "A book about supply chains, labor standards, and consumer responsibility",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V5D23",
+      "query": "A book about public libraries, digital access, and civic participation",
+      "stratum": "abstract_nonfiction_multi_facet"
+    },
+    {
+      "query_id": "V5D24",
+      "query": "A book about disability rights, workplace accommodation, and urban accessibility",
+      "stratum": "abstract_nonfiction_multi_facet"
+    }
+  ]
+}

@@ -1,0 +1,102 @@
+{
+  "contract_id": "semantic-relevance-v5-development-factorial-reranking",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5D_K0_K1_RERANKING",
+  "purpose": "Freeze K0 and K1 inference/ranking over the already-frozen R0 and R1 V5D candidate unions, producing B/R/K/RK displayed top10s without any new retrieval, judge execution, or development selection.",
+  "query_set": "V5D01-V5D24",
+  "query_count": 24,
+  "source_candidate_run": "evals/runs/semantic_relevance_v5_development/20261026T124615Z_candidate_collection",
+  "frozen_provenance": {
+    "v5_design_lock_sha256": "89ee03a4328c268a8128d5e373854b92634c41eff204b53f7b93b78c481311c0",
+    "v5_r1_k1_architecture_lock_sha256": "2b298d3263c7a88090a983700da34c30767a71877a4b32ea2e1ae8f3524ade87",
+    "v5_r1_k1_implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+    "v5_r1_k1_model_qualification_lock_sha256": "67b1dd15403b5825086cce4c9e5c5af14cc883945f5a9626abaa4e5894b77211",
+    "v5d_authoring_lock_sha256": "ffca0f7a10c4d05ee79fc08d584df5793f93de2242a2ed2bf09436e2df80ba3e",
+    "candidate_collection_contract_sha256": "0b9dc202a43a64099ee03257f18f644e06d398dedb5d07391e9555d87cba6ad5",
+    "candidate_collection_lock_sha256": "d6c863d5dcd69ac6230ac00e60ee05aa9867701b2d15e42b91de0d05c8cd2e03",
+    "r0_dense_sha256": "c118140b77c7813c12f865bab591229141e295e8573940e9a6146fc5c895bd22",
+    "r1_dense_sha256": "94f8b03640bc542b1caf5379cfc11529d881bd4613bd4fcc0057e13c308bc4c8",
+    "bm25_sha256": "22f3f4a76e509965b3fa1ad2baecdc78a960e87faec2a29f743ed7ae6e43bb1c",
+    "r0_union_sha256": "221f2f6036a8cb3564a47fcfbc8f197ff12bab6776c1cafcafa83b459a1f916f",
+    "r1_union_sha256": "e54989797c1ebc7c12eacecf296172c3f38342ee3be679bab56682b6bd63d09d",
+    "k0_source_sha256": "5e7a7d6b35c0674f32644e758218830d8a340a61588e2ff0b3f20582fdbb0f60",
+    "v4b_ranking_source_sha256": "5729b078cee1a2706a8c3d9bcaa9e8449292bc1f9f1a2816053b84758db7d677",
+    "k1_source_sha256": "4a6ba7a13d03176108c65512a4185845b532ff5d85f3af512af013b8c8d60207"
+  },
+  "factorial_systems": {
+    "B": {
+      "retrieval": "R0 frozen union",
+      "ranking": "K0"
+    },
+    "R": {
+      "retrieval": "R1 frozen union",
+      "ranking": "K0"
+    },
+    "K": {
+      "retrieval": "R0 frozen union",
+      "ranking": "K1"
+    },
+    "RK": {
+      "retrieval": "R1 frozen union",
+      "ranking": "K1"
+    }
+  },
+  "K0": {
+    "model_id": "BAAI/bge-reranker-base",
+    "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+    "runtime": "frozen semantic_relevance_v3_reranker",
+    "batch_size": 8,
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "score": "single raw sequence-classification logit",
+    "ranking": "frozen V4B score-only ordering: score desc; exact tie -> hybrid_retrieval_rank asc -> isbn13 asc"
+  },
+  "K1": {
+    "model_id": "BAAI/bge-reranker-v2-m3",
+    "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+    "runtime": "frozen semantic_relevance_v5_k1_reranker",
+    "dtype": "float32",
+    "batch_size": 4,
+    "max_length_tokens": 512,
+    "truncation": "only_second",
+    "candidate_text_template": "Title: {title}\\nDescription: {description}",
+    "score": "single raw sequence-classification logit",
+    "ranking": "frozen K1 score-only ordering: score desc; exact tie -> hybrid_retrieval_rank asc -> isbn13 asc"
+  },
+  "repeatability": {
+    "passes_per_model_per_candidate_union": 2,
+    "gate": "identical complete per-query rank-order signature across the two passes",
+    "numeric_score_delta": "record maximum absolute delta; finite required; no new numeric tolerance gate is introduced"
+  },
+  "latency_measurement": {
+    "purpose": "preserve preregistered exact-semantic-tie fallback evidence only",
+    "reranker_latency": "per-query first production scoring pass for the corresponding frozen candidate union; excludes model loading, repeatability pass, file I/O, and judge time",
+    "system_latency": "R0 or R1 first-pass dense latency + shared BM25 latency + corresponding K0/K1 first-pass reranker latency; uses the already-frozen candidate latency artifact",
+    "selection_use": "latency may be consulted only if the frozen semantic lexicographic rule reaches its registered latency tie-break"
+  },
+  "outputs": [
+    "v5d_B_r0k0_ranked_full_union.csv",
+    "v5d_B_r0k0_recommendations.csv",
+    "v5d_R_r1k0_ranked_full_union.csv",
+    "v5d_R_r1k0_recommendations.csv",
+    "v5d_K_r0k1_ranked_full_union.csv",
+    "v5d_K_r0k1_recommendations.csv",
+    "v5d_RK_r1k1_ranked_full_union.csv",
+    "v5d_RK_r1k1_recommendations.csv",
+    "v5d_reranking_latency.csv",
+    "v5d_factorial_reranking_metadata.json",
+    "v5d_factorial_reranking.lock.json"
+  ],
+  "execution_boundary": {
+    "new_retrieval": false,
+    "candidate_mutation": false,
+    "K0_inference": true,
+    "K1_inference": true,
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "development_selection": false,
+    "release_metrics_or_decision": false
+  },
+  "next_stage_after_frozen_reranking": "FREEZE_UNIQUE_B_R_K_RK_DISPLAYED_PAIR_UNION_BEFORE_JUDGING"
+}

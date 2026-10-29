@@ -1,0 +1,159 @@
+{
+  "architecture_id": "semantic-relevance-v5-r1-k1",
+  "version": "0.1.0",
+  "status": "PROPOSED_FOR_FREEZE_BEFORE_V5_COMPONENT_IMPLEMENTATION",
+  "purpose": "Freeze one retrieval-only R1 hypothesis and one ranking-only K1 hypothesis for the factorized V5 B/R/K/RK development program before any V5D authoring or execution.",
+  "authority_boundary": {
+    "v4h_role": "consumed diagnostic evidence only",
+    "v4h_tuning_allowed": false,
+    "v5d_authored_or_executed": false,
+    "component_implementation_execution": false,
+    "release_gates_changed": false
+  },
+  "baseline": {
+    "R0": {
+      "dense_model": "nomic-embed-text via frozen semantic recommender v2",
+      "dense_depth": 50,
+      "lexical_branch": "frozen V4A deterministic BM25 over title+description",
+      "lexical_depth": 50,
+      "union": "deduplicate by isbn13; no pre-reranker truncation; maximum 100 unique candidates",
+      "hybrid_rank": "RRF k=60, equal dense/BM25 weights"
+    },
+    "K0": {
+      "model_id": "BAAI/bge-reranker-base",
+      "model_revision": "2cfc18c9415c912f9d8155881c133215df768a70",
+      "input_template": "Title: {title}\\nDescription: {description}",
+      "max_length_tokens": 512,
+      "final_order": "raw reranker_score descending; exact-score tie -> retrieval rank ascending -> isbn13 ascending"
+    }
+  },
+  "R1": {
+    "hypothesis": "Candidate recall for complex semantic queries can improve by replacing only the dense embedding model while keeping lexical retrieval, depths, fusion, candidate budget, and downstream ranking unchanged.",
+    "change_class": "dense_retriever_model_only",
+    "dense_branch": {
+      "model_id": "BAAI/bge-m3",
+      "model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+      "runtime": "sentence-transformers SentenceTransformer",
+      "mode": "dense embedding only",
+      "embedding_dimension": 1024,
+      "query_instruction": "none",
+      "query_text": "raw user query exactly as supplied",
+      "document_text": "exact frozen R0 tagged_description line payload; no metadata enrichment or field rewrite",
+      "normalize_embeddings": true,
+      "similarity": "dot product on L2-normalized embeddings (cosine equivalent)",
+      "max_sequence_length": 512,
+      "candidate_depth": 50,
+      "tie_break": "isbn13 ascending after exact similarity tie"
+    },
+    "lexical_branch": {
+      "implementation": "exact frozen V4A BM25 implementation",
+      "fields": [
+        "title",
+        "description"
+      ],
+      "k1": 1.5,
+      "b": 0.75,
+      "candidate_depth": 50,
+      "changed": false
+    },
+    "union": {
+      "deduplicate_key": "isbn13",
+      "truncate_before_reranker": false,
+      "maximum_unique_candidates": 100,
+      "hybrid_rank_method": "same frozen RRF as R0",
+      "rrf_k": 60,
+      "dense_weight": 1.0,
+      "bm25_weight": 1.0
+    },
+    "explicit_non_changes": [
+      "no BGE-M3 sparse retrieval",
+      "no BGE-M3 ColBERT/multi-vector retrieval",
+      "no query rewriting or decomposition",
+      "no metadata/category enrichment",
+      "no BM25 parameter or analyzer change",
+      "no candidate-depth increase",
+      "no reranker change inside R1"
+    ]
+  },
+  "K1": {
+    "hypothesis": "Display ranking can improve by replacing only the cross-encoder reranker with a newer fixed reranker while preserving candidate sets and the score-only V4B ranking policy.",
+    "change_class": "cross_encoder_model_only",
+    "model": {
+      "model_id": "BAAI/bge-reranker-v2-m3",
+      "model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+      "architecture": "XLMRobertaForSequenceClassification",
+      "runtime": "transformers.AutoTokenizer + AutoModelForSequenceClassification",
+      "dtype": "float32",
+      "device": "auto",
+      "batch_size": 4,
+      "max_length_tokens": 512,
+      "truncation": "only_second",
+      "seed": 20261002
+    },
+    "input": {
+      "query": "raw user query exactly as supplied",
+      "candidate_text_template": "Title: {title}\\nDescription: {description}",
+      "authors_in_input": false,
+      "categories_in_input": false
+    },
+    "score_and_order": {
+      "score": "single raw sequence-classification logit",
+      "normalization": "none",
+      "calibration": "none",
+      "thresholding": "none",
+      "primary_sort": "reranker_score descending",
+      "tie_equality": "exact numeric equality; no epsilon bucket and no score rounding",
+      "tie_break": [
+        "retrieval rank ascending",
+        "isbn13 ascending"
+      ]
+    },
+    "scope": "rerank the complete candidate union supplied by R0 or R1; K1 performs no retrieval",
+    "repeatability": "two repeated inference passes must produce identical per-query rank-order signatures before semantic evaluation",
+    "explicit_non_changes": [
+      "no retrieval inside K1",
+      "no retrieval-rank weight except exact-score tie-break",
+      "no final RRF fusion",
+      "no prompt or query rewriting",
+      "no judge-derived features",
+      "no fine-tuning",
+      "no score calibration or parameter sweep"
+    ]
+  },
+  "factorial_composition": {
+    "B": "R0 + K0",
+    "R": "R1 + K0",
+    "K": "R0 + K1",
+    "RK": "R1 + K1",
+    "RK_rule": "mechanical composition only; no third parameter set"
+  },
+  "implementation_freeze_requirements": {
+    "R1": [
+      "exact source SHA-256",
+      "pinned BGE-M3 revision",
+      "sentence-transformers version",
+      "tagged_description corpus SHA-256",
+      "catalog SHA-256",
+      "deterministic top50/repeatability tests",
+      "candidate budget <=100"
+    ],
+    "K1": [
+      "exact source SHA-256",
+      "pinned reranker revision",
+      "transformers and torch versions",
+      "input template and max length",
+      "raw-logit ordering and tie-break tests",
+      "repeat inference rank-order test"
+    ],
+    "freeze_before": "V5D query authoring and any V5D retrieval/model execution"
+  },
+  "prohibited_before_v5d": [
+    "using V4H query text/facets/candidate IDs/judge scores to choose parameters",
+    "running R1/K1 on V5D before implementation locks exist",
+    "authoring V5D queries before R1/K1 implementation locks exist",
+    "changing R1/K1 after first V5D semantic result",
+    "raising candidate budget above 100",
+    "changing judge or release gates as part of this architecture step"
+  ],
+  "next_stage": "IMPLEMENT_AND_FREEZE_EXACT_R1_AND_K1_COMPONENTS_WITH_UNIT_AND_REPEATABILITY_TESTS_BEFORE_V5D_AUTHORING"
+}

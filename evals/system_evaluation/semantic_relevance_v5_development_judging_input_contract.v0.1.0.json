@@ -1,0 +1,53 @@
+{
+  "contract_id": "semantic-relevance-v5-development-judging-input",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5D_JUDGING_INPUT_MATERIALIZATION",
+  "purpose": "Freeze the score-reuse decision and complete novel judge-input universe for the already-frozen V5D B/R/K/RK displayed-pair union before any V5D relevance judge call.",
+  "query_set": "V5D01-V5D24",
+  "query_count": 24,
+  "source_display_union": {
+    "run_directory": "evals/runs/semantic_relevance_v5_development/20261026T124615Z_candidate_collection",
+    "displayed_pair_union_sha256": "00fac6ed404e10b25779848f5ced12c6cfc48b6a4f88080364d8b0647b6bbe21",
+    "display_union_lock_sha256": "145ebd730b1444399c27706071ec392a1f7da3f12688927312c039bb59f60117",
+    "unique_query_book_pairs": 452
+  },
+  "score_reuse_policy": {
+    "allowed_only_for": "exact same query text + same canonical ISBN under the frozen compatible measurement instrument",
+    "cross_query_reuse": false,
+    "approximate_query_reuse": false,
+    "isbn_only_reuse": false,
+    "human_relevance_labels": false,
+    "fresh_v5d_queries_proven_exact-disjoint_from_frozen_prior_query_manifest": true,
+    "expected_reused_frozen_scores": 0,
+    "expected_novel_pairs_to_judge": 452,
+    "reason": "V5D01-V5D24 were frozen as a fresh selection set and have no exact query-text match in the frozen Q01-Q12/H01-H24/V4H01-V4H24 prior-query universe. Therefore no historical score can satisfy the same-query reuse rule."
+  },
+  "measurement_instrument": {
+    "judge_candidate": "semantic_relevance_v0.29.0-r5",
+    "historical_scoring_lock_sha256": "4a4be17bdec6a3d1cd95667bde9fbae1fb4a6077e10b5dc4270710787ffe6777",
+    "judge_config": "evals/judge_configs/semantic_relevance_judge.v0.29.0-r5.json",
+    "rubric": "evals/rubrics/semantic_relevance/semantic_relevance_rubric.v0.1.0.json",
+    "span_echo_execution_patch_sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266"
+  },
+  "frozen_v5d_inputs": {
+    "facet_spec_sha256": "355ac59604fc73039fe394ba36b9ef37c04cd0be447ff470bce669d8adeb4746",
+    "authoring_lock_sha256": "ffca0f7a10c4d05ee79fc08d584df5793f93de2242a2ed2bf09436e2df80ba3e",
+    "prior_query_manifest_sha256": "32015f2426c1d72b2eb65db0e11c4be7ffdf390e14e00e00f29d0307e9f89056"
+  },
+  "execution_boundary": {
+    "retrieval_calls": 0,
+    "reranker_inference": false,
+    "judge_execution": false,
+    "human_relevance_labels": false,
+    "development_metrics": false,
+    "development_selection": false,
+    "release_metrics": false
+  },
+  "outputs_after_freeze": [
+    "v5d_display_score_inventory.csv",
+    "v5d_novel_display_pairs_to_judge.csv",
+    "v5d_judging_input_metadata.json",
+    "v5d_judging_input.lock.json"
+  ],
+  "next_stage": "PREPARE_V5D_V029_R5_JUDGE_EXECUTION_PACKAGE"
+}

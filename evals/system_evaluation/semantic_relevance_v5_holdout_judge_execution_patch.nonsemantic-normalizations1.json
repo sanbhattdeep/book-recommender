@@ -1,0 +1,35 @@
+{
+  "status": "FROZEN_NON_SEMANTIC_EXECUTION_AMENDMENT",
+  "patch_id": "v5h-judge-execution-known-format-normalizations-carryforward1",
+  "purpose": "Carry forward from the start of the fresh V5H judge run two already accepted structured-output format repairs so known serialization-only failures do not interrupt the frozen semantic_relevance_v0.29.0-r5 measurement instrument.",
+  "normalizations": [
+    {
+      "name": "duplicate_stage_a_candidate_id_normalization",
+      "based_on_patch": "semantic_relevance_v4h_execution_patch.duplicate-candidate-id-normalization1.json",
+      "based_on_patch_canonical_lf_sha256": "09b2acb1d3809da6ed4667d1e3f7b042dc86f85b6f69b732bb9017136f0b2b94",
+      "rule": "When EvidenceSelection.evidence_span_ids contains duplicate real S# IDs and contains no NONE, remove exact duplicates preserving first-occurrence order, then invoke the original frozen normalize_candidate_span_ids validator.",
+      "none_semantics_changed": false,
+      "unknown_id_validation_changed": false
+    },
+    {
+      "name": "prominence_span_echo_normalization",
+      "based_on_patch": "semantic_relevance_v3_posthoc_execution_patch.span-echo-normalization1.json",
+      "based_on_patch_canonical_lf_sha256": "85488eb50ae0d9d4b8f0f2c213f9874a3f3d24881131af57e1bf61e5776e4266",
+      "rule": "Preserve an already-valid S# ID unchanged. Otherwise, replace an item only when its trimmed value exactly equals one supplied rendered source line '<valid S#>: <exact span text>'. Any other malformed/unknown value remains unchanged and is rejected by the original frozen validator."
+    }
+  ],
+  "judge_source_modified": false,
+  "judge_prompt_modified": false,
+  "judge_model_modified": false,
+  "judge_temperature_modified": false,
+  "semantic_rules_changed": false,
+  "deterministic_scoring_rules_changed": false,
+  "facet_spec_changed": false,
+  "judge_config_changed": false,
+  "rubric_changed": false,
+  "displayed_pair_union_changed": false,
+  "judge_input_changed": false,
+  "human_relevance_labels_used": false,
+  "release_metrics_or_gates_changed": false,
+  "release_decision_modified": false
+}

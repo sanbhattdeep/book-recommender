@@ -1,0 +1,21 @@
+{
+  "status": "V5_R1_K1_PINNED_MODELS_QUALIFIED_BEFORE_V5D_AUTHORING",
+  "frozen_at_utc": "2026-10-26T11:24:28.259932+00:00",
+  "contract_sha256": "36bef237ae7b196c39022ce098fc158ee7cd02ffc97393b3984a22113db1194b",
+  "implementation_lock_sha256": "4d166df6b1acff66b23829126ee18c080bd3756de7ed98953e4520db8de9f72b",
+  "results_sha256": "94c7a9c5e519c0942c16f097ee308cec6c3bbdf1ea03444517e541f0891ac212",
+  "r1_model_id": "BAAI/bge-m3",
+  "r1_model_revision": "5617a9f61b028005a4858fdac845db406aefb181",
+  "k1_model_id": "BAAI/bge-reranker-v2-m3",
+  "k1_model_revision": "953dc6f6f85a1b2dbfca4c34a2796e7dde08d41e",
+  "r1_rank_repeatability_passed": true,
+  "k1_rank_repeatability_passed": true,
+  "semantic_quality_assertions_performed": false,
+  "catalog_retrieval_performed": false,
+  "bm25_retrieval_performed": false,
+  "judge_calls_performed": 0,
+  "v5d_authored_or_executed": false,
+  "development_selection_calculated": false,
+  "release_metrics_calculated": false,
+  "next_stage": "AUTHOR_AND_FREEZE_FRESH_V5D24_QUERY_AND_FACET_SET_BEFORE_ANY_DEVELOPMENT_RETRIEVAL"
+}
