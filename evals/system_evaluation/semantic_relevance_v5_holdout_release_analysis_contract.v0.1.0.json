@@ -1,0 +1,90 @@
+{
+  "contract_id": "semantic-relevance-v5-holdout-final-release-analysis",
+  "version": "0.1.0",
+  "status": "FROZEN_BY_PACKAGE_BEFORE_V5H_RELEASE_ANALYSIS",
+  "query_set": "V5H01-V5H24",
+  "query_count": 24,
+  "authoritative_system": {
+    "label": "K",
+    "identity": "R0K1"
+  },
+  "secondary_baseline": {
+    "label": "B",
+    "identity": "R0K0"
+  },
+  "selected_development_candidate": "K",
+  "frozen_inputs": {
+    "judge_scores_sha256": "336e4374bbafdd50ebf7149d6edce00895bb072b8f4c258ec070c2ad6b530a83",
+    "judge_scoring_lock_sha256": "35ea4964e039aae36efb92771180531125f5236ae4328e66f632ed10e03a6ae6",
+    "B_recommendations_sha256": "bc79777f7d096b8a5f327577513eeaacaa47d38a9c6ef9ecf93409a6c0a8369a",
+    "K_recommendations_sha256": "5f371bcfff0a700b9c1b6bfd831b8f83355f2199d5b78f704e5afe7a7dfbc2aa",
+    "reranking_lock_sha256": "21c5b52bb616fc1454bca40fca916bbe70dfb5277761ff6a41b513b161445797",
+    "display_union_sha256": "13ff542ecfe5316484b62eb0f1b406f9f8f8dd4a7491acc369128a5285d6ff67",
+    "display_union_lock_sha256": "0a9e7981cb20584b0074af58cd9b7a2e7a27a6689c75a6f685db7bb3617c96b0",
+    "judging_input_lock_sha256": "a2ff301aef1788526d51858394ee4249eeb548fc05981e0246a50a2a8643eea7",
+    "V5D_selection_lock_sha256": "e5fb7768c0940a8e699c7fc26186eeacfb938b811851adc6a34d1e920e0a519b",
+    "V5H_authoring_lock_sha256": "e4836060ba90e49fbf4da05bf12a15246c312bd7926e48ff72d3766f74613751"
+  },
+  "statistical_uncertainty": {
+    "bootstrap_unit": "query",
+    "bootstrap_replicates": 5000,
+    "seed": 20261002,
+    "confidence_interval": 0.95
+  },
+  "release_gates": {
+    "macro_mean_relevance_at_10_ge_2_50": [
+      "macro_mean_relevance_at_10",
+      ">=",
+      2.5
+    ],
+    "macro_mean_relevance_ci_lower_ge_2_00": [
+      "macro_mean_relevance_at_10_ci_lower_95",
+      ">=",
+      2.0
+    ],
+    "clear_or_strong_rate_at_10_ge_0_60": [
+      "clear_or_strong_rate_at_10",
+      ">=",
+      0.6
+    ],
+    "irrelevant_rate_at_10_le_0_10": [
+      "irrelevant_rate_at_10",
+      "<=",
+      0.1
+    ],
+    "hit_rate_at_5_clear_or_strong_ge_0_90": [
+      "hit_rate_at_5_clear_or_strong",
+      ">=",
+      0.9
+    ],
+    "top1_clear_or_strong_rate_ge_0_75": [
+      "top1_clear_or_strong_rate",
+      ">=",
+      0.75
+    ],
+    "ndcg_at_10_ge_0_85": [
+      "ndcg_at_10",
+      ">=",
+      0.85
+    ],
+    "catastrophic_query_rate_eq_0": [
+      "catastrophic_query_rate",
+      "==",
+      0.0
+    ]
+  },
+  "decision_policy": {
+    "PASS": "all eight original release gates pass",
+    "REVIEW": "one or two gates fail and catastrophic_query_rate == 0",
+    "FAIL": "three or more gates fail, or catastrophic_query_rate > 0",
+    "authoritative_system_only": "K standalone result owns the V5H release decision",
+    "secondary_comparison": "B and paired B-vs-K cannot override K"
+  },
+  "execution_boundary": {
+    "judge_calls": 0,
+    "model_calls": 0,
+    "retrieval_calls": 0,
+    "reranker_calls": 0,
+    "human_relevance_labels": false
+  }
+}
